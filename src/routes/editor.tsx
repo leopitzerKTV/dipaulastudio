@@ -1,0 +1,319 @@
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { useRef, useState } from "react";
+import { toPng } from "html-to-image";
+import { ArrowLeft, Download, Image as ImageIcon, Palette, Type, Calendar, MapPin } from "lucide-react";
+import { Ornament } from "@/components/Ornament";
+import ceremonyImg from "@/assets/ceremony.jpg";
+
+export const Route = createFileRoute("/editor")({
+  head: () => ({
+    meta: [
+      { title: "Editor do Convite — Nossa História" },
+      { name: "description", content: "Personalize seu convite digital: nomes, data, mensagem, cores e imagem. Exporte em alta resolução." },
+    ],
+  }),
+  component: Editor,
+});
+
+type Palette = {
+  id: string;
+  name: string;
+  bg: string;
+  card: string;
+  ink: string;
+  gold: string;
+  goldDeep: string;
+  gradient: string;
+};
+
+const PALETTES: Palette[] = [
+  {
+    id: "champagne",
+    name: "Champanhe & Ouro",
+    bg: "#f7f1e6",
+    card: "#fbf6ec",
+    ink: "#3a2a1c",
+    gold: "#c9a55b",
+    goldDeep: "#9c7a3a",
+    gradient: "linear-gradient(135deg,#9c7a3a,#e1c279)",
+  },
+  {
+    id: "ivory",
+    name: "Marfim & Ouro Claro",
+    bg: "#fbf8f1",
+    card: "#ffffff",
+    ink: "#2b2218",
+    gold: "#d6b773",
+    goldDeep: "#a98a44",
+    gradient: "linear-gradient(135deg,#b8923f,#ecd292)",
+  },
+  {
+    id: "blush",
+    name: "Blush & Ouro Rosê",
+    bg: "#f7ecec",
+    card: "#fdf5f3",
+    ink: "#3a2024",
+    gold: "#c79a7a",
+    goldDeep: "#a3704f",
+    gradient: "linear-gradient(135deg,#a3704f,#e9c0a5)",
+  },
+  {
+    id: "mahogany",
+    name: "Mogno & Dourado",
+    bg: "#f1ead8",
+    card: "#f9f3df",
+    ink: "#2a160e",
+    gold: "#b7873a",
+    goldDeep: "#7c5520",
+    gradient: "linear-gradient(135deg,#7c5520,#d6ae5d)",
+  },
+];
+
+function Editor() {
+  const [brideName, setBrideName] = useState("Amanda");
+  const [groomName, setGroomName] = useState("Ricardo");
+  const [date, setDate] = useState("24 · Maio · 2025");
+  const [time, setTime] = useState("Sábado, às 16h30");
+  const [venue, setVenue] = useState("Espaço Jardim Secreto");
+  const [city, setCity] = useState("São Paulo · SP");
+  const [message, setMessage] = useState(
+    "Com a bênção de nossas famílias, convidamos você para celebrar o nosso amor.",
+  );
+  const [tagline, setTagline] = useState("você está convidado para o nosso casamento");
+  const [palette, setPalette] = useState<Palette>(PALETTES[0]);
+  const [imageSrc, setImageSrc] = useState<string>(ceremonyImg);
+  const [exporting, setExporting] = useState(false);
+
+  const previewRef = useRef<HTMLDivElement>(null);
+
+  function onPickImage(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => setImageSrc(String(reader.result));
+    reader.readAsDataURL(file);
+  }
+
+  async function onExport() {
+    if (!previewRef.current) return;
+    setExporting(true);
+    try {
+      const dataUrl = await toPng(previewRef.current, {
+        pixelRatio: 3,
+        cacheBust: true,
+        backgroundColor: palette.bg,
+      });
+      const a = document.createElement("a");
+      a.href = dataUrl;
+      a.download = `convite-${brideName}-${groomName}.png`.toLowerCase().replace(/\s+/g, "-");
+      a.click();
+    } finally {
+      setExporting(false);
+    }
+  }
+
+  return (
+    <div
+      className="min-h-screen w-full"
+      style={{
+        background: `radial-gradient(ellipse at top, ${palette.gold}22, transparent 60%), ${palette.bg}`,
+      }}
+    >
+      <header className="sticky top-0 z-30 flex items-center justify-between border-b border-[var(--gold)]/20 bg-[var(--ivory)]/85 px-4 py-3 backdrop-blur-xl">
+        <Link to="/" className="inline-flex items-center gap-2 text-[var(--cocoa)]/70 hover:text-[var(--cocoa)]">
+          <ArrowLeft className="h-4 w-4" />
+          <span className="font-serif-caps text-[10px]">voltar</span>
+        </Link>
+        <h1 className="font-display text-lg text-[var(--cocoa)]">Editor do Convite</h1>
+        <button
+          onClick={onExport}
+          disabled={exporting}
+          className="inline-flex items-center gap-2 rounded-full px-3 py-1.5 font-serif-caps text-[10px] text-[var(--ivory)] shadow-[var(--shadow-card)] disabled:opacity-60"
+          style={{ background: palette.gradient }}
+        >
+          <Download className="h-3.5 w-3.5" />
+          {exporting ? "Exportando…" : "Exportar PNG"}
+        </button>
+      </header>
+
+      <div className="mx-auto grid max-w-6xl gap-8 px-4 py-8 lg:grid-cols-[1fr_380px]">
+        {/* Preview */}
+        <div className="flex justify-center">
+          <div
+            ref={previewRef}
+            className="relative aspect-[9/16] w-full max-w-[420px] overflow-hidden rounded-[2rem] shadow-[var(--shadow-luxe)]"
+            style={{ background: palette.card, color: palette.ink }}
+          >
+            <div className="px-7 pt-9 text-center">
+              <p className="font-serif-caps text-[10px]" style={{ color: palette.goldDeep }}>
+                Convite Digital
+              </p>
+              <OrnamentLine color={palette.gold} className="mt-3" />
+              <p className="mt-4 font-display text-[13px] italic opacity-70">{tagline}</p>
+              <h2 className="mt-2 font-display text-[56px] leading-[0.95]">
+                {brideName}
+                <span className="block font-display italic text-[34px] my-0.5" style={{ color: palette.goldDeep }}>
+                  e
+                </span>
+                {groomName}
+              </h2>
+              <OrnamentLine color={palette.gold} className="mt-4" />
+            </div>
+
+            <div className="relative mx-5 mt-5 aspect-[9/13] overflow-hidden rounded-2xl">
+              <img src={imageSrc} alt="Cerimônia" className="h-full w-full object-cover" crossOrigin="anonymous" />
+              <div
+                className="absolute inset-0"
+                style={{ background: `linear-gradient(to top, ${palette.ink}cc, transparent 55%)` }}
+              />
+              <div className="absolute inset-x-0 bottom-0 p-4 text-[var(--ivory)]">
+                <p className="font-serif-caps text-[10px] opacity-90">{date}</p>
+                <p className="font-display text-base mt-0.5">{time}</p>
+              </div>
+            </div>
+
+            <div className="px-7 pt-4 text-center">
+              <p className="font-display text-[13px] italic opacity-80">"{message}"</p>
+              <div className="mt-3 flex items-center justify-center gap-2 text-[11px] opacity-80">
+                <MapPin className="h-3 w-3" style={{ color: palette.goldDeep }} />
+                <span>{venue} · {city}</span>
+              </div>
+              <OrnamentLine color={palette.gold} className="mt-3" />
+              <p className="mt-2 font-serif-caps text-[9px]" style={{ color: palette.goldDeep }}>
+                Nossa História
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* Form */}
+        <aside className="space-y-5">
+          <Section icon={Type} title="Nomes do casal">
+            <Field label="Noiva" value={brideName} onChange={setBrideName} />
+            <Field label="Noivo" value={groomName} onChange={setGroomName} />
+          </Section>
+
+          <Section icon={Calendar} title="Data & cerimônia">
+            <Field label="Data" value={date} onChange={setDate} />
+            <Field label="Hora" value={time} onChange={setTime} />
+            <Field label="Local" value={venue} onChange={setVenue} />
+            <Field label="Cidade" value={city} onChange={setCity} />
+          </Section>
+
+          <Section icon={Type} title="Mensagem">
+            <Field label="Chamada" value={tagline} onChange={setTagline} />
+            <Field label="Convite" value={message} onChange={setMessage} multiline />
+          </Section>
+
+          <Section icon={Palette} title="Paleta">
+            <div className="grid grid-cols-2 gap-2">
+              {PALETTES.map((p) => (
+                <button
+                  key={p.id}
+                  onClick={() => setPalette(p)}
+                  className={`rounded-xl border p-2 text-left transition-all ${
+                    palette.id === p.id
+                      ? "border-[var(--gold-deep)] shadow-[var(--shadow-card)]"
+                      : "border-[var(--gold)]/25 hover:border-[var(--gold)]/60"
+                  }`}
+                  style={{ background: p.card }}
+                >
+                  <div className="flex gap-1">
+                    <span className="h-5 w-5 rounded-full" style={{ background: p.gold }} />
+                    <span className="h-5 w-5 rounded-full" style={{ background: p.goldDeep }} />
+                    <span className="h-5 w-5 rounded-full border border-[var(--gold)]/30" style={{ background: p.bg }} />
+                  </div>
+                  <p className="mt-1.5 font-display text-xs" style={{ color: p.ink }}>
+                    {p.name}
+                  </p>
+                </button>
+              ))}
+            </div>
+          </Section>
+
+          <Section icon={ImageIcon} title="Imagem principal">
+            <label className="flex cursor-pointer items-center justify-center gap-2 rounded-xl border border-dashed border-[var(--gold)]/45 bg-[var(--card)] px-3 py-4 font-serif-caps text-[10px] text-[var(--gold-deep)] hover:bg-[var(--gold)]/5">
+              <ImageIcon className="h-3.5 w-3.5" />
+              Escolher imagem (9:16)
+              <input type="file" accept="image/*" className="hidden" onChange={onPickImage} />
+            </label>
+          </Section>
+
+          <button
+            onClick={onExport}
+            disabled={exporting}
+            className="w-full rounded-full py-3.5 font-serif-caps text-[11px] text-[var(--ivory)] shadow-[var(--shadow-card)] disabled:opacity-60"
+            style={{ background: palette.gradient }}
+          >
+            {exporting ? "Exportando…" : "Exportar layout em PNG"}
+          </button>
+        </aside>
+      </div>
+    </div>
+  );
+}
+
+function Field({
+  label,
+  value,
+  onChange,
+  multiline,
+}: {
+  label: string;
+  value: string;
+  onChange: (v: string) => void;
+  multiline?: boolean;
+}) {
+  const cls =
+    "w-full rounded-lg border border-[var(--gold)]/25 bg-[var(--ivory)] px-3 py-2 text-sm text-[var(--cocoa)] outline-none focus:border-[var(--gold-deep)]";
+  return (
+    <label className="block">
+      <span className="mb-1 block font-serif-caps text-[9px] text-[var(--gold-deep)]/80">{label}</span>
+      {multiline ? (
+        <textarea rows={3} value={value} onChange={(e) => onChange(e.target.value)} className={cls} />
+      ) : (
+        <input value={value} onChange={(e) => onChange(e.target.value)} className={cls} />
+      )}
+    </label>
+  );
+}
+
+function Section({
+  icon: Icon,
+  title,
+  children,
+}: {
+  icon: React.ComponentType<{ className?: string; strokeWidth?: number }>;
+  title: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <section className="rounded-2xl border border-[var(--gold)]/25 bg-[var(--card)] p-4 shadow-[var(--shadow-card)]">
+      <div className="mb-3 flex items-center gap-2">
+        <span className="grid h-7 w-7 place-items-center rounded-full bg-[var(--gold)]/15 text-[var(--gold-deep)]">
+          <Icon className="h-3.5 w-3.5" strokeWidth={1.6} />
+        </span>
+        <h3 className="font-display text-base text-[var(--cocoa)]">{title}</h3>
+      </div>
+      <div className="space-y-2.5">{children}</div>
+    </section>
+  );
+}
+
+function OrnamentLine({ color, className = "" }: { color: string; className?: string }) {
+  return (
+    <div className={`flex items-center justify-center gap-3 ${className}`}>
+      <span className="h-px w-10" style={{ background: `linear-gradient(to right, transparent, ${color})` }} />
+      <svg width="20" height="13" viewBox="0 0 22 14" fill="none" style={{ color }}>
+        <path
+          d="M11 13C5.5 8 2 7 2 4.5C2 2.5 4 1 6 1.5C8 2 10 4 11 5.5C12 4 14 2 16 1.5C18 1 20 2.5 20 4.5C20 7 16.5 8 11 13Z"
+          stroke="currentColor"
+          strokeWidth="0.9"
+          fill="currentColor"
+          fillOpacity="0.2"
+        />
+      </svg>
+      <span className="h-px w-10" style={{ background: `linear-gradient(to left, transparent, ${color})` }} />
+    </div>
+  );
+}
