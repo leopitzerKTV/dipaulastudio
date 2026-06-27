@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as PainelRouteImport } from './routes/painel'
 import { Route as LinhaDoTempoRouteImport } from './routes/linha-do-tempo'
 import { Route as HistoriaRouteImport } from './routes/historia'
+import { Route as EditorRouteImport } from './routes/editor'
 import { Route as AlbumRouteImport } from './routes/album'
 import { Route as IndexRouteImport } from './routes/index'
 
@@ -30,6 +31,11 @@ const HistoriaRoute = HistoriaRouteImport.update({
   path: '/historia',
   getParentRoute: () => rootRouteImport,
 } as any)
+const EditorRoute = EditorRouteImport.update({
+  id: '/editor',
+  path: '/editor',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AlbumRoute = AlbumRouteImport.update({
   id: '/album',
   path: '/album',
@@ -44,6 +50,7 @@ const IndexRoute = IndexRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/album': typeof AlbumRoute
+  '/editor': typeof EditorRoute
   '/historia': typeof HistoriaRoute
   '/linha-do-tempo': typeof LinhaDoTempoRoute
   '/painel': typeof PainelRoute
@@ -51,6 +58,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/album': typeof AlbumRoute
+  '/editor': typeof EditorRoute
   '/historia': typeof HistoriaRoute
   '/linha-do-tempo': typeof LinhaDoTempoRoute
   '/painel': typeof PainelRoute
@@ -59,21 +67,36 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/album': typeof AlbumRoute
+  '/editor': typeof EditorRoute
   '/historia': typeof HistoriaRoute
   '/linha-do-tempo': typeof LinhaDoTempoRoute
   '/painel': typeof PainelRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/album' | '/historia' | '/linha-do-tempo' | '/painel'
+  fullPaths:
+    | '/'
+    | '/album'
+    | '/editor'
+    | '/historia'
+    | '/linha-do-tempo'
+    | '/painel'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/album' | '/historia' | '/linha-do-tempo' | '/painel'
-  id: '__root__' | '/' | '/album' | '/historia' | '/linha-do-tempo' | '/painel'
+  to: '/' | '/album' | '/editor' | '/historia' | '/linha-do-tempo' | '/painel'
+  id:
+    | '__root__'
+    | '/'
+    | '/album'
+    | '/editor'
+    | '/historia'
+    | '/linha-do-tempo'
+    | '/painel'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AlbumRoute: typeof AlbumRoute
+  EditorRoute: typeof EditorRoute
   HistoriaRoute: typeof HistoriaRoute
   LinhaDoTempoRoute: typeof LinhaDoTempoRoute
   PainelRoute: typeof PainelRoute
@@ -102,6 +125,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof HistoriaRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/editor': {
+      id: '/editor'
+      path: '/editor'
+      fullPath: '/editor'
+      preLoaderRoute: typeof EditorRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/album': {
       id: '/album'
       path: '/album'
@@ -122,6 +152,7 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AlbumRoute: AlbumRoute,
+  EditorRoute: EditorRoute,
   HistoriaRoute: HistoriaRoute,
   LinhaDoTempoRoute: LinhaDoTempoRoute,
   PainelRoute: PainelRoute,
