@@ -77,14 +77,18 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Lovable App" },
-      { name: "description", content: "Lovable Generated Project" },
+      { title: "DIPAULASTUDIO_CONVITES" },
+      { name: "description", content: "Love Story Album creates interactive digital invitations with a collaborative couple's album and timeline." },
       { name: "author", content: "Lovable" },
-      { property: "og:title", content: "Lovable App" },
-      { property: "og:description", content: "Lovable Generated Project" },
+      { property: "og:title", content: "DIPAULASTUDIO_CONVITES" },
+      { property: "og:description", content: "Love Story Album creates interactive digital invitations with a collaborative couple's album and timeline." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
       { name: "twitter:site", content: "@Lovable" },
+      { name: "twitter:title", content: "DIPAULASTUDIO_CONVITES" },
+      { name: "twitter:description", content: "Love Story Album creates interactive digital invitations with a collaborative couple's album and timeline." },
+      { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/fae2a955-bc3d-4e11-9c71-a9163a0812f0/id-preview-32fdfb3d--bcfde67d-c69c-4a41-bb52-13a92564e7ed.lovable.app-1782600293081.png" },
+      { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/fae2a955-bc3d-4e11-9c71-a9163a0812f0/id-preview-32fdfb3d--bcfde67d-c69c-4a41-bb52-13a92564e7ed.lovable.app-1782600293081.png" },
     ],
     links: [
       {
