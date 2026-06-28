@@ -6,6 +6,14 @@ import { toast } from "sonner";
 import { AppShell } from "@/components/AppShell";
 import { Ornament } from "@/components/Ornament";
 import { supabase } from "@/integrations/supabase/client";
+import {
+  cancelPendingDelete,
+  getLatestPendingId,
+  getPendingDeleteIds,
+  schedulePendingDelete,
+  setAlbumRestoreHandler,
+  subscribePendingDeletes,
+} from "@/lib/album-undo";
 
 export const Route = createFileRoute("/album")({
   head: () => ({ meta: [{ title: "Álbum Colaborativo — Amanda & Ricardo" }] }),
@@ -37,58 +45,6 @@ const TAGS = ["Geral", "Cerimônia", "Festa", "Making of", "Pré-wedding", "Conv
 type Tag = (typeof TAGS)[number];
 type SortOrder = "recent" | "old";
 
-function UndoToast({
-  id,
-  photo,
-  onUndo,
-}: {
-  id: string | number;
-  photo: Photo;
-  onUndo: () => void;
-}) {
-  const buttonRef = useRef<HTMLButtonElement>(null);
-
-  useEffect(() => {
-    buttonRef.current?.focus();
-  }, []);
-
-  return (
-    <div
-      role="alertdialog"
-      aria-live="assertive"
-      aria-atomic="true"
-      aria-labelledby={`undo-title-${id}`}
-      aria-describedby={`undo-desc-${id}`}
-      className="flex w-full items-center justify-between gap-4 rounded-lg bg-[var(--card)] p-4 shadow-[var(--shadow-luxe)]"
-      onKeyDown={(e) => {
-        if (e.key === "Escape") {
-          e.stopPropagation();
-          toast.dismiss(id);
-        }
-      }}
-    >
-      <div>
-        <p id={`undo-title-${id}`} className="font-display text-sm text-[var(--cocoa)]">
-          Foto excluída
-        </p>
-        <p id={`undo-desc-${id}`} className="font-serif-caps text-[10px] text-[var(--cocoa)]/70">
-          Você pode desfazer em até 5 segundos.
-        </p>
-      </div>
-      <button
-        ref={buttonRef}
-        onClick={() => {
-          onUndo();
-          toast.dismiss(id);
-        }}
-        aria-label={`Desfazer exclusão da foto de ${photo.author_name ?? "convidado"}`}
-        className="rounded-full bg-[var(--gold)] px-3 py-1.5 font-serif-caps text-[10px] text-[var(--ivory)] transition hover:brightness-110 focus:outline-none focus:ring-2 focus:ring-[var(--gold)] focus:ring-offset-1"
-      >
-        Desfazer
-      </button>
-    </div>
-  );
-}
 
 function Album() {
   const [photos, setPhotos] = useState<Photo[]>([]);
@@ -98,7 +54,7 @@ function Album() {
   const [sortOrder, setSortOrder] = useState<SortOrder>("recent");
   const [editing, setEditing] = useState<Photo | null>(null);
   const [confirmDelete, setConfirmDelete] = useState<Photo | null>(null);
-  const [undoDeletes, setUndoDeletes] = useState<{ photo: Photo; trashPath: string; timeoutId: number }[]>([]);
+  const [pendingDeleteIds, setPendingDeleteIds] = useState<Set<string>>(() => getPendingDeleteIds());
   const [authorName, setAuthorName] = useState<string>(() =>
     typeof window !== "undefined" ? localStorage.getItem("album.authorName") ?? "" : ""
   );
@@ -192,67 +148,6 @@ function Album() {
     }
   }
 
-  async function commitDelete(photo: Photo, trashPath: string) {
-    setUndoDeletes((prev) => prev.filter((d) => d.photo.id !== photo.id));
-    const { error } = await supabase.storage.from(BUCKET).remove([trashPath]);
-    if (error) {
-      console.error(error);
-      toast.error("Não foi possível remover o arquivo do armazenamento", {
-        description: "O registro foi excluído, mas o arquivo ficou órfão.",
-      });
-      return;
-    }
-    toast.success("Foto excluída permanentemente", { description: "A foto foi removida do álbum e do armazenamento." });
-  }
-
-  async function cancelDelete(photo: Photo) {
-    const entry = undoDeletes.find((d) => d.photo.id === photo.id);
-    if (!entry) return;
-    window.clearTimeout(entry.timeoutId);
-    setUndoDeletes((prev) => prev.filter((d) => d.photo.id !== photo.id));
-
-    const restoringToast = toast.loading("Restaurando foto...", {
-      description: "Recriando o registro e devolvendo o arquivo ao álbum.",
-    });
-
-    // Move the file back from trash to its original path
-    const { error: moveErr } = await supabase.storage
-      .from(BUCKET)
-      .move(entry.trashPath, photo.storage_path);
-    if (moveErr) {
-      console.error(moveErr);
-      toast.dismiss(restoringToast);
-      toast.error("Falha na restauração do arquivo", {
-        description: "O arquivo original não pôde ser recuperado do armazenamento. A foto permanece excluída.",
-      });
-      return;
-    }
-
-    // Re-insert the DB row with the same id so realtime restores it everywhere
-    const { error: insertErr } = await supabase.from("album_photos").insert({
-      id: photo.id,
-      storage_path: photo.storage_path,
-      author_name: photo.author_name,
-      caption: photo.caption,
-      tag: photo.tag,
-      created_at: photo.created_at,
-    });
-    if (insertErr) {
-      console.error(insertErr);
-      toast.dismiss(restoringToast);
-      toast.error("Falha na restauração do registro", {
-        description: "O arquivo foi recuperado, mas o registro não pôde ser recriado. Tente recarregar a página.",
-      });
-      return;
-    }
-
-    // Refresh signed URL and put the photo back into the local grid
-    const [hydrated] = await hydrateUrls([photo]);
-    setPhotos((prev) => (prev.some((p) => p.id === hydrated.id) ? prev : [hydrated, ...prev]));
-    toast.dismiss(restoringToast);
-    toast.success("Exclusão desfeita", { description: "A foto foi restaurada e voltou ao álbum." });
-  }
-
   async function deletePhoto(photo: Photo) {
     setConfirmDelete(null);
     setEditing((cur) => (cur?.id === photo.id ? null : cur));
@@ -283,40 +178,42 @@ function Album() {
       return;
     }
 
-    // 4) Schedule permanent deletion; cancelling will restore both file and row
-    const timeoutId = window.setTimeout(() => commitDelete(photo, trashPath), 5000);
-    setUndoDeletes((prev) => [...prev, { photo, trashPath, timeoutId }]);
-    toast.custom(
-      (id) => <UndoToast id={id} photo={photo} onUndo={() => cancelDelete(photo)} />,
-      { duration: 5000, id: `undo-${photo.id}` }
-    );
+    // 4) Hand off to the persistent undo store (survives navigation)
+    schedulePendingDelete(photo, trashPath);
   }
 
   function openDeleteConfirm(photo: Photo) {
     setConfirmDelete(photo);
   }
 
-  const undoDeletesRef = useRef(undoDeletes);
-  undoDeletesRef.current = undoDeletes;
+  // Subscribe to the cross-route undo store so this view reflects pending deletes
+  // and so the restore handler can re-insert into the local grid on undo.
   useEffect(() => {
+    const sync = () => setPendingDeleteIds(getPendingDeleteIds());
+    const unsub = subscribePendingDeletes(sync);
+    sync();
+    setAlbumRestoreHandler((restored) => {
+      setPhotos((prev) => (prev.some((p) => p.id === restored.id) ? prev : [restored, ...prev]));
+    });
     return () => {
-      undoDeletesRef.current.forEach((d) => window.clearTimeout(d.timeoutId));
+      unsub();
+      setAlbumRestoreHandler(null);
     };
   }, []);
 
   useEffect(() => {
     const onKeyDown = (e: KeyboardEvent) => {
       if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "z") {
-        const latest = undoDeletesRef.current[undoDeletesRef.current.length - 1];
-        if (latest) {
+        const latestId = getLatestPendingId();
+        if (latestId) {
           e.preventDefault();
-          cancelDelete(latest.photo);
+          void cancelPendingDelete(latestId);
         }
       }
     };
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
-  });
+  }, []);
 
 
   async function handleFiles(files: FileList | null) {
@@ -480,7 +377,7 @@ function Album() {
       ) : (
         <div className="mt-5 grid grid-cols-2 gap-2.5 px-5 pb-32">
           {visiblePhotos.map((p, i) => {
-            const isPendingDelete = undoDeletes.some((d) => d.photo.id === p.id);
+            const isPendingDelete = pendingDeleteIds.has(p.id);
             return (
               <motion.div
                 key={p.id}
