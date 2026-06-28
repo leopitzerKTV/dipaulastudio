@@ -407,7 +407,7 @@ function Editor() {
         <div className="flex items-center gap-2">
           <button
             onClick={onExport}
-            disabled={exporting || exportingPdf || exportingJpg}
+            disabled={anyExporting}
             className="inline-flex items-center gap-1.5 rounded-full border border-[var(--gold-deep)]/40 bg-[var(--ivory)] px-3 py-1.5 font-serif-caps text-[10px] text-[var(--gold-deep)] hover:bg-[var(--gold)]/10 disabled:opacity-60"
           >
             <Download className="h-3.5 w-3.5" />
@@ -415,7 +415,7 @@ function Editor() {
           </button>
           <button
             onClick={onExportJpg}
-            disabled={exporting || exportingPdf || exportingJpg}
+            disabled={anyExporting}
             className="inline-flex items-center gap-1.5 rounded-full border border-[var(--gold-deep)]/40 bg-[var(--ivory)] px-3 py-1.5 font-serif-caps text-[10px] text-[var(--gold-deep)] hover:bg-[var(--gold)]/10 disabled:opacity-60"
           >
             <FileImage className="h-3.5 w-3.5" />
@@ -423,7 +423,7 @@ function Editor() {
           </button>
           <button
             onClick={onExportPdf}
-            disabled={exporting || exportingPdf || exportingJpg}
+            disabled={anyExporting}
             className="inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 font-serif-caps text-[10px] text-[var(--ivory)] shadow-[var(--shadow-card)] disabled:opacity-60"
             style={{ background: palette.gradient }}
           >
@@ -585,25 +585,25 @@ function Editor() {
 
 
           <div className="grid grid-cols-3 gap-2">
-            <button
-              onClick={onExport}
-              disabled={exporting || exportingPdf || exportingJpg}
-              className="inline-flex flex-col items-center justify-center gap-1 rounded-2xl border border-[var(--gold-deep)]/40 bg-[var(--ivory)] py-3 font-serif-caps text-[10px] text-[var(--gold-deep)] hover:bg-[var(--gold)]/10 disabled:opacity-60"
-            >
-              <Download className="h-4 w-4" />
-              {exporting ? "…" : "PNG 9:16"}
-            </button>
-            <button
-              onClick={onExportJpg}
-              disabled={exporting || exportingPdf || exportingJpg}
-              className="inline-flex flex-col items-center justify-center gap-1 rounded-2xl border border-[var(--gold-deep)]/40 bg-[var(--ivory)] py-3 font-serif-caps text-[10px] text-[var(--gold-deep)] hover:bg-[var(--gold)]/10 disabled:opacity-60"
-            >
-              <FileImage className="h-4 w-4" />
-              {exportingJpg ? "…" : "JPG 9:16"}
-            </button>
-            <button
-              onClick={onExportPdf}
-              disabled={exporting || exportingPdf || exportingJpg}
+          <button
+            onClick={onExport}
+            disabled={anyExporting}
+            className="inline-flex flex-col items-center justify-center gap-1 rounded-2xl border border-[var(--gold-deep)]/40 bg-[var(--ivory)] py-3 font-serif-caps text-[10px] text-[var(--gold-deep)] hover:bg-[var(--gold)]/10 disabled:opacity-60"
+          >
+            <Download className="h-4 w-4" />
+            {exporting ? "…" : "PNG 9:16"}
+          </button>
+          <button
+            onClick={onExportJpg}
+            disabled={anyExporting}
+            className="inline-flex flex-col items-center justify-center gap-1 rounded-2xl border border-[var(--gold-deep)]/40 bg-[var(--ivory)] py-3 font-serif-caps text-[10px] text-[var(--gold-deep)] hover:bg-[var(--gold)]/10 disabled:opacity-60"
+          >
+            <FileImage className="h-4 w-4" />
+            {exportingJpg ? "…" : "JPG 9:16"}
+          </button>
+          <button
+            onClick={onExportPdf}
+            disabled={anyExporting}
               className="inline-flex flex-col items-center justify-center gap-1 rounded-2xl py-3 font-serif-caps text-[10px] text-[var(--ivory)] shadow-[var(--shadow-card)] disabled:opacity-60"
               style={{ background: palette.gradient }}
             >
