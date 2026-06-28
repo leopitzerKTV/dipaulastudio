@@ -256,8 +256,50 @@ function EditarHistoria() {
       ) : (
         <div className="mt-5 space-y-4 px-5 pb-32">
           {sorted.map((c, i) => (
-            <article key={c.id} className="rounded-2xl border border-[var(--gold)]/20 bg-[var(--card)] p-4 shadow-[var(--shadow-card)]">
+            <article
+              key={c.id}
+              draggable
+              onDragStart={(e) => {
+                setDragId(c.id);
+                e.dataTransfer.effectAllowed = "move";
+                e.dataTransfer.setData("text/plain", c.id);
+              }}
+              onDragOver={(e) => {
+                if (!dragId || dragId === c.id) return;
+                e.preventDefault();
+                e.dataTransfer.dropEffect = "move";
+                if (dragOverId !== c.id) setDragOverId(c.id);
+              }}
+              onDragLeave={() => {
+                if (dragOverId === c.id) setDragOverId(null);
+              }}
+              onDrop={(e) => {
+                e.preventDefault();
+                const fromId = dragId ?? e.dataTransfer.getData("text/plain");
+                setDragId(null);
+                setDragOverId(null);
+                if (fromId) void reorderTo(fromId, c.id);
+              }}
+              onDragEnd={() => {
+                setDragId(null);
+                setDragOverId(null);
+              }}
+              className={`rounded-2xl border bg-[var(--card)] p-4 shadow-[var(--shadow-card)] transition ${
+                dragId === c.id
+                  ? "opacity-50 border-[var(--gold)]/40"
+                  : dragOverId === c.id
+                    ? "border-[var(--gold)] ring-2 ring-[var(--gold)]/40"
+                    : "border-[var(--gold)]/20"
+              }`}
+            >
               <div className="flex gap-3">
+                <span
+                  aria-hidden
+                  className="grid w-5 flex-none place-items-center text-[var(--cocoa)]/40 cursor-grab active:cursor-grabbing"
+                  title="Arraste para reordenar"
+                >
+                  <GripVertical className="h-4 w-4" />
+                </span>
                 <div className="relative aspect-[3/4] w-24 flex-none overflow-hidden rounded-lg bg-[var(--ivory)]">
                   {c.imageUrl ? (
                     <img src={c.imageUrl} alt={c.title} className="h-full w-full object-cover" />
