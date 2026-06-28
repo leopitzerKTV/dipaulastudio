@@ -284,7 +284,7 @@ function Album() {
               <div className="absolute inset-0 bg-gradient-to-t from-[var(--cocoa)]/70 via-transparent to-transparent" />
               <div className="absolute inset-x-0 bottom-0 flex items-end justify-between p-2.5 text-[var(--ivory)]">
                 <div>
-                  <p className="font-serif-caps text-[8.5px] opacity-80">Álbum</p>
+                  <p className="font-serif-caps text-[8.5px] opacity-80">{p.tag}</p>
                   <p className="font-display text-xs leading-tight">por {p.author_name ?? "convidado"}</p>
                 </div>
                 <Heart className="h-3.5 w-3.5" fill="currentColor" />
