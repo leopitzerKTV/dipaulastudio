@@ -139,33 +139,93 @@ function Album() {
     }
   }
 
-  async function commitDelete(photo: Photo) {
+  async function commitDelete(photo: Photo, trashPath: string) {
     setUndoDeletes((prev) => prev.filter((d) => d.photo.id !== photo.id));
-    setPhotos((prev) => prev.filter((p) => p.id !== photo.id));
-    const { error } = await supabase.from("album_photos").delete().eq("id", photo.id);
+    const { error } = await supabase.storage.from(BUCKET).remove([trashPath]);
     if (error) {
       console.error(error);
-      setPhotos((prev) => (prev.some((p) => p.id === photo.id) ? prev : [photo, ...prev]));
-      toast.error("Não foi possível excluir a foto", { description: "Tente novamente em instantes." });
+      toast.error("Não foi possível remover o arquivo do armazenamento", {
+        description: "O registro foi excluído, mas o arquivo ficou órfão.",
+      });
       return;
     }
-    await supabase.storage.from(BUCKET).remove([photo.storage_path]);
     toast.success("Foto excluída", { description: "A foto foi removida do álbum." });
   }
 
-  function cancelDelete(photo: Photo) {
+  async function cancelDelete(photo: Photo) {
     const entry = undoDeletes.find((d) => d.photo.id === photo.id);
     if (!entry) return;
     window.clearTimeout(entry.timeoutId);
     setUndoDeletes((prev) => prev.filter((d) => d.photo.id !== photo.id));
+
+    // Move the file back from trash to its original path
+    const { error: moveErr } = await supabase.storage
+      .from(BUCKET)
+      .move(entry.trashPath, photo.storage_path);
+    if (moveErr) {
+      console.error(moveErr);
+      toast.error("Não foi possível restaurar o arquivo", {
+        description: "O arquivo original não pôde ser recuperado do armazenamento.",
+      });
+      return;
+    }
+
+    // Re-insert the DB row with the same id so realtime restores it everywhere
+    const { error: insertErr } = await supabase.from("album_photos").insert({
+      id: photo.id,
+      storage_path: photo.storage_path,
+      author_name: photo.author_name,
+      caption: photo.caption,
+      tag: photo.tag,
+      created_at: photo.created_at,
+    });
+    if (insertErr) {
+      console.error(insertErr);
+      toast.error("Não foi possível restaurar a foto", {
+        description: "O arquivo foi recuperado, mas o registro não pôde ser recriado.",
+      });
+      return;
+    }
+
+    // Refresh signed URL and put the photo back into the local grid
+    const [hydrated] = await hydrateUrls([photo]);
+    setPhotos((prev) => (prev.some((p) => p.id === hydrated.id) ? prev : [hydrated, ...prev]));
     toast.success("Exclusão desfeita", { description: "A foto voltou ao álbum." });
   }
 
-  function deletePhoto(photo: Photo) {
+  async function deletePhoto(photo: Photo) {
     setConfirmDelete(null);
     setEditing((cur) => (cur?.id === photo.id ? null : cur));
-    const timeoutId = window.setTimeout(() => commitDelete(photo), 5000);
-    setUndoDeletes((prev) => [...prev, { photo, timeoutId }]);
+
+    // 1) Optimistically remove from local grid
+    setPhotos((prev) => prev.filter((p) => p.id !== photo.id));
+
+    // 2) Move the file to a trash path so it stops being served immediately
+    const trashPath = `_trash/${photo.id}-${Date.now()}`;
+    const { error: moveErr } = await supabase.storage
+      .from(BUCKET)
+      .move(photo.storage_path, trashPath);
+    if (moveErr) {
+      console.error(moveErr);
+      setPhotos((prev) => (prev.some((p) => p.id === photo.id) ? prev : [photo, ...prev]));
+      toast.error("Não foi possível excluir a foto", { description: "Tente novamente em instantes." });
+      return;
+    }
+
+    // 3) Delete the DB row so other clients also see it disappear via realtime
+    const { error: delErr } = await supabase.from("album_photos").delete().eq("id", photo.id);
+    if (delErr) {
+      console.error(delErr);
+      // Roll back the storage move
+      await supabase.storage.from(BUCKET).move(trashPath, photo.storage_path);
+      setPhotos((prev) => (prev.some((p) => p.id === photo.id) ? prev : [photo, ...prev]));
+      toast.error("Não foi possível excluir a foto", { description: "Tente novamente em instantes." });
+      return;
+    }
+
+    // 4) Schedule permanent deletion; cancelling will restore both file and row
+    const timeoutId = window.setTimeout(() => commitDelete(photo, trashPath), 5000);
+    setUndoDeletes((prev) => [...prev, { photo, trashPath, timeoutId }]);
     toast("Foto excluída", {
       description: "Você pode desfazer em até 5 segundos.",
       action: { label: "Desfazer", onClick: () => cancelDelete(photo) },
