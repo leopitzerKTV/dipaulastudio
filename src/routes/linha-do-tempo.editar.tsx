@@ -5,9 +5,15 @@ import { toast } from "sonner";
 import { AppShell } from "@/components/AppShell";
 import { supabase } from "@/integrations/supabase/client";
 
+import { CoupleGate } from "@/components/CoupleGate";
+
 export const Route = createFileRoute("/linha-do-tempo/editar")({
-  head: () => ({ meta: [{ title: "Editar Linha do Tempo" }] }),
-  component: EditarTimeline,
+  head: () => ({ meta: [{ title: "Editar Linha do Tempo" }, { name: "robots", content: "noindex,nofollow" }] }),
+  component: () => (
+    <CoupleGate>
+      <EditarTimeline />
+    </CoupleGate>
+  ),
 });
 
 const BUCKET = "timeline-photos";
