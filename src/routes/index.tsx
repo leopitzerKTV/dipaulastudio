@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { motion } from "motion/react";
-import { Mail, Calendar, MapPin, Gift, Heart, Wand2, BookOpen, Download, QrCode as QrCodeIcon, Edit3, Check, Loader2 } from "lucide-react";
+import { Mail, Calendar, MapPin, Gift, Heart, Wand2, BookOpen, Download, QrCode as QrCodeIcon, Edit3, Check, Loader2, Smartphone } from "lucide-react";
 import { useEffect, useRef, useState, useCallback } from "react";
 import { toast } from "sonner";
 import { AppShell } from "@/components/AppShell";
