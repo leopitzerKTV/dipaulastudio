@@ -177,11 +177,21 @@ function EditarHistoria() {
     const fromIdx = sorted.findIndex((x) => x.id === fromId);
     const toIdx = sorted.findIndex((x) => x.id === toId);
     if (fromIdx === -1 || toIdx === -1) return;
+    await reorderToIndex(fromId, toIdx, sorted);
+  }
+
+  async function reorderToIndex(fromId: string, toIdx: number, presorted?: Chapter[]) {
+    const sorted = presorted ?? [...chapters].sort((a, b) => a.position - b.position);
+    const fromIdx = sorted.findIndex((x) => x.id === fromId);
+    if (fromIdx === -1) return;
+    const clamped = Math.max(0, Math.min(sorted.length - 1, toIdx));
+    if (clamped === fromIdx) return;
     const next = [...sorted];
     const [moved] = next.splice(fromIdx, 1);
-    next.splice(toIdx, 0, moved);
+    next.splice(clamped, 0, moved);
     const renumbered = next.map((x, i) => ({ ...x, position: i }));
     setChapters(renumbered);
+    refocusId.current = fromId;
     const results = await Promise.all(
       renumbered.map((x) =>
         supabase.from("story_chapters").update({ position: x.position }).eq("id", x.id)
@@ -192,6 +202,26 @@ function EditarHistoria() {
       load();
     }
   }
+
+  function onGripKeyDown(e: React.KeyboardEvent<HTMLButtonElement>, c: Chapter, idx: number, total: number) {
+    const meta = e.metaKey || e.ctrlKey;
+    let target: number | null = null;
+    if (e.key === "ArrowUp") target = meta ? 0 : idx - 1;
+    else if (e.key === "ArrowDown") target = meta ? total - 1 : idx + 1;
+    else if (e.key === "Home") target = 0;
+    else if (e.key === "End") target = total - 1;
+    if (target === null) return;
+    e.preventDefault();
+    if (target === idx) return;
+    void reorderToIndex(c.id, target);
+  }
+
+  useEffect(() => {
+    if (!refocusId.current) return;
+    const el = gripRefs.current[refocusId.current];
+    if (el) el.focus();
+    refocusId.current = null;
+  }, [chapters]);
 
   async function uploadPhoto(c: Chapter, file: File) {
     if (!file.type.startsWith("image/")) {
