@@ -241,13 +241,40 @@ function Index() {
           )}
         </div>
         {guestMode ? (
-          <div className="mt-6 flex justify-center px-4 pb-4">
-            <div className="relative w-full max-w-[22rem] rounded-[2.5rem] border-[10px] border-[var(--cocoa)] bg-[var(--cocoa)] shadow-[var(--shadow-luxe)]">
-              <div className="absolute left-1/2 top-2 z-10 h-1.5 w-20 -translate-x-1/2 rounded-full bg-[var(--cocoa)]/60" />
-              <div className="max-h-[80vh] overflow-y-auto rounded-[2rem] bg-[var(--ivory)]">
-                <ManualView data={manual} linkAlbum={false} />
+          <div className="mt-4 flex flex-col items-center gap-3 px-4 pb-4">
+            <div className="flex flex-wrap items-center justify-center gap-2">
+              <div className="inline-flex rounded-full border border-[var(--gold)]/40 bg-white/60 p-0.5">
+                {[320, 375, 414].map((w) => (
+                  <ModeBtn key={w} active={deviceWidth === w} onClick={() => setDeviceWidth(w as 320 | 375 | 414)}>
+                    {w}px
+                  </ModeBtn>
+                ))}
+              </div>
+              <div className="inline-flex rounded-full border border-[var(--gold)]/40 bg-white/60 p-0.5">
+                <ModeBtn active={orientation === "portrait"} onClick={() => setOrientation("portrait")}>
+                  Retrato
+                </ModeBtn>
+                <ModeBtn active={orientation === "landscape"} onClick={() => setOrientation("landscape")}>
+                  Paisagem
+                </ModeBtn>
               </div>
             </div>
+            {(() => {
+              const isPortrait = orientation === "portrait";
+              const frameW = isPortrait ? deviceWidth : Math.round(deviceWidth * (16 / 9));
+              const frameH = isPortrait ? Math.round(deviceWidth * (16 / 9)) : deviceWidth;
+              return (
+                <div
+                  className="relative rounded-[2.5rem] border-[10px] border-[var(--cocoa)] bg-[var(--cocoa)] shadow-[var(--shadow-luxe)]"
+                  style={{ width: frameW, maxWidth: "100%" }}
+                >
+                  <div className="absolute left-1/2 top-2 z-10 h-1.5 w-20 -translate-x-1/2 rounded-full bg-[var(--cocoa)]/60" />
+                  <div className="overflow-y-auto rounded-[2rem] bg-[var(--ivory)]" style={{ height: Math.min(frameH, 720) }}>
+                    <ManualView data={manual} linkAlbum={false} />
+                  </div>
+                </div>
+              );
+            })()}
           </div>
         ) : (
           <div className="-mx-0 mt-2 border-y border-[var(--gold)]/20 bg-[var(--ivory)]">
