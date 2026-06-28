@@ -389,6 +389,17 @@ function Editor() {
     ),
   );
 
+  // Persist custom clear-confirmation title and message
+  useEffect(() => {
+    try {
+      window.localStorage.setItem(BATCH_CLEAR_TITLE_KEY, JSON.stringify(clearConfirmTitle));
+    } catch {}
+    try {
+      window.localStorage.setItem(BATCH_CLEAR_MESSAGE_KEY, JSON.stringify(clearConfirmMessage));
+    } catch {}
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [clearConfirmTitle, clearConfirmMessage]);
+
   function promptCancelBatch() {
     setShowCancelConfirm(true);
   }
