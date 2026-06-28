@@ -18,6 +18,7 @@ import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AlbumRouteImport } from './routes/album'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as PresentesIndexRouteImport } from './routes/presentes.index'
+import { Route as PresentesGerirRouteImport } from './routes/presentes.gerir'
 import { Route as ManualEditarRouteImport } from './routes/manual.editar'
 import { Route as LinhaDoTempoEditarRouteImport } from './routes/linha-do-tempo.editar'
 import { Route as HistoriaEditarRouteImport } from './routes/historia.editar'
@@ -68,6 +69,11 @@ const PresentesIndexRoute = PresentesIndexRouteImport.update({
   path: '/presentes/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PresentesGerirRoute = PresentesGerirRouteImport.update({
+  id: '/presentes/gerir',
+  path: '/presentes/gerir',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ManualEditarRoute = ManualEditarRouteImport.update({
   id: '/editar',
   path: '/editar',
@@ -101,6 +107,7 @@ export interface FileRoutesByFullPath {
   '/historia/editar': typeof HistoriaEditarRoute
   '/linha-do-tempo/editar': typeof LinhaDoTempoEditarRoute
   '/manual/editar': typeof ManualEditarRoute
+  '/presentes/gerir': typeof PresentesGerirRoute
   '/presentes/': typeof PresentesIndexRoute
   '/presentes/confirmar/$token': typeof PresentesConfirmarTokenRoute
 }
@@ -116,6 +123,7 @@ export interface FileRoutesByTo {
   '/historia/editar': typeof HistoriaEditarRoute
   '/linha-do-tempo/editar': typeof LinhaDoTempoEditarRoute
   '/manual/editar': typeof ManualEditarRoute
+  '/presentes/gerir': typeof PresentesGerirRoute
   '/presentes': typeof PresentesIndexRoute
   '/presentes/confirmar/$token': typeof PresentesConfirmarTokenRoute
 }
@@ -132,6 +140,7 @@ export interface FileRoutesById {
   '/historia/editar': typeof HistoriaEditarRoute
   '/linha-do-tempo/editar': typeof LinhaDoTempoEditarRoute
   '/manual/editar': typeof ManualEditarRoute
+  '/presentes/gerir': typeof PresentesGerirRoute
   '/presentes/': typeof PresentesIndexRoute
   '/presentes/confirmar/$token': typeof PresentesConfirmarTokenRoute
 }
@@ -149,6 +158,7 @@ export interface FileRouteTypes {
     | '/historia/editar'
     | '/linha-do-tempo/editar'
     | '/manual/editar'
+    | '/presentes/gerir'
     | '/presentes/'
     | '/presentes/confirmar/$token'
   fileRoutesByTo: FileRoutesByTo
@@ -164,6 +174,7 @@ export interface FileRouteTypes {
     | '/historia/editar'
     | '/linha-do-tempo/editar'
     | '/manual/editar'
+    | '/presentes/gerir'
     | '/presentes'
     | '/presentes/confirmar/$token'
   id:
@@ -179,6 +190,7 @@ export interface FileRouteTypes {
     | '/historia/editar'
     | '/linha-do-tempo/editar'
     | '/manual/editar'
+    | '/presentes/gerir'
     | '/presentes/'
     | '/presentes/confirmar/$token'
   fileRoutesById: FileRoutesById
@@ -192,6 +204,7 @@ export interface RootRouteChildren {
   LinhaDoTempoRoute: typeof LinhaDoTempoRouteWithChildren
   ManualRoute: typeof ManualRouteWithChildren
   PainelRoute: typeof PainelRoute
+  PresentesGerirRoute: typeof PresentesGerirRoute
   PresentesIndexRoute: typeof PresentesIndexRoute
   PresentesConfirmarTokenRoute: typeof PresentesConfirmarTokenRoute
 }
@@ -259,6 +272,13 @@ declare module '@tanstack/react-router' {
       path: '/presentes'
       fullPath: '/presentes/'
       preLoaderRoute: typeof PresentesIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/presentes/gerir': {
+      id: '/presentes/gerir'
+      path: '/presentes/gerir'
+      fullPath: '/presentes/gerir'
+      preLoaderRoute: typeof PresentesGerirRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/manual/editar': {
@@ -336,6 +356,7 @@ const rootRouteChildren: RootRouteChildren = {
   LinhaDoTempoRoute: LinhaDoTempoRouteWithChildren,
   ManualRoute: ManualRouteWithChildren,
   PainelRoute: PainelRoute,
+  PresentesGerirRoute: PresentesGerirRoute,
   PresentesIndexRoute: PresentesIndexRoute,
   PresentesConfirmarTokenRoute: PresentesConfirmarTokenRoute,
 }
