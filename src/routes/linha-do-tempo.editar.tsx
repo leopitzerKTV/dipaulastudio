@@ -28,6 +28,7 @@ function EditarTimeline() {
   const [uploadingId, setUploadingId] = useState<string | null>(null);
   const [adding, setAdding] = useState(false);
   const [showAddCard, setShowAddCard] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
   const [showPreview, setShowPreview] = useState(true);
   const [dragId, setDragId] = useState<string | null>(null);
   const [dragOverId, setDragOverId] = useState<string | null>(null);
@@ -35,7 +36,7 @@ function EditarTimeline() {
   const gripRefs = useRef<Record<string, HTMLButtonElement | null>>({});
   const refocusId = useRef<string | null>(null);
 
-  // Quick-add (foto + texto em um passo só)
+  // Quick-add / edit (foto + texto em um passo só)
   const [newDate, setNewDate] = useState("");
   const [newTitle, setNewTitle] = useState("");
   const [newFile, setNewFile] = useState<File | null>(null);
@@ -46,7 +47,18 @@ function EditarTimeline() {
     setNewDate("");
     setNewTitle("");
     setNewFile(null);
+    setEditingId(null);
     if (newFileRef.current) newFileRef.current.value = "";
+  }
+
+  function startEdit(c: Milestone) {
+    setNewDate(c.date_label);
+    setNewTitle(c.title);
+    setNewFile(null);
+    setNewPreview(c.imageUrl || null);
+    setEditingId(c.id);
+    setShowAddCard(true);
+    window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
   useEffect(() => {
