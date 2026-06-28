@@ -585,6 +585,59 @@ function Editor() {
         </aside>
       </div>
 
+      {preparingBatch && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-[var(--cocoa)]/70 p-4 backdrop-blur-sm">
+          <div className="w-full max-w-sm rounded-3xl border border-[var(--gold)]/30 bg-[var(--ivory)] p-6 shadow-[var(--shadow-luxe)]">
+            <div className="mb-3 flex items-center gap-2">
+              <Package className="h-4 w-4 animate-pulse text-[var(--gold-deep)]" />
+              <h3 className="font-display text-base text-[var(--cocoa)]">Gerando arquivos…</h3>
+            </div>
+            <div className="h-2 w-full overflow-hidden rounded-full bg-[var(--gold)]/15">
+              <div
+                className="h-full rounded-full transition-all duration-300"
+                style={{
+                  width: `${Math.round((batchProgress.step / batchProgress.total) * 100)}%`,
+                  background: palette.gradient,
+                }}
+              />
+            </div>
+            <div className="mt-3 flex items-center justify-between font-serif-caps text-[10px] text-[var(--gold-deep)]/80">
+              <span>{batchProgress.label || "Preparando…"}</span>
+              <span>
+                {batchProgress.step}/{batchProgress.total}
+              </span>
+            </div>
+            <ul className="mt-3 space-y-1 font-serif-caps text-[10px]">
+              {["Bibliotecas", "PNG 9:16", "JPG 9:16", "PDF A4"].map((name, i) => {
+                const done = batchProgress.step > i;
+                const active = batchProgress.step === i;
+                return (
+                  <li
+                    key={name}
+                    className={`flex items-center gap-2 ${
+                      done
+                        ? "text-[var(--gold-deep)]"
+                        : active
+                        ? "text-[var(--cocoa)]"
+                        : "text-[var(--cocoa)]/40"
+                    }`}
+                  >
+                    {done ? (
+                      <Check className="h-3 w-3" />
+                    ) : active ? (
+                      <span className="h-2 w-2 animate-pulse rounded-full bg-[var(--gold-deep)]" />
+                    ) : (
+                      <span className="h-2 w-2 rounded-full border border-current opacity-50" />
+                    )}
+                    {name}
+                  </li>
+                );
+              })}
+            </ul>
+          </div>
+        </div>
+      )}
+
       {batchPreview && (
         <div
           className="fixed inset-0 z-50 flex items-center justify-center bg-[var(--cocoa)]/70 p-4 backdrop-blur-sm"
