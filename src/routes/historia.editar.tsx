@@ -32,6 +32,8 @@ function EditarHistoria() {
   const [dragId, setDragId] = useState<string | null>(null);
   const [dragOverId, setDragOverId] = useState<string | null>(null);
   const fileInputs = useRef<Record<string, HTMLInputElement | null>>({});
+  const gripRefs = useRef<Record<string, HTMLButtonElement | null>>({});
+  const refocusId = useRef<string | null>(null);
 
   async function load() {
     setLoading(true);
