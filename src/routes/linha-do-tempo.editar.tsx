@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { ArrowLeft, Plus, Trash2, ArrowUp, ArrowDown, Loader2, Upload, Save, Eye, EyeOff, GripVertical } from "lucide-react";
+import { ArrowLeft, Plus, Trash2, ArrowUp, ArrowDown, Loader2, Upload, Save, Eye, EyeOff, GripVertical, X } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { AppShell } from "@/components/AppShell";
@@ -27,6 +27,7 @@ function EditarTimeline() {
   const [savingId, setSavingId] = useState<string | null>(null);
   const [uploadingId, setUploadingId] = useState<string | null>(null);
   const [adding, setAdding] = useState(false);
+  const [showAddCard, setShowAddCard] = useState(false);
   const [showPreview, setShowPreview] = useState(true);
   const [dragId, setDragId] = useState<string | null>(null);
   const [dragOverId, setDragOverId] = useState<string | null>(null);
@@ -40,6 +41,13 @@ function EditarTimeline() {
   const [newFile, setNewFile] = useState<File | null>(null);
   const [newPreview, setNewPreview] = useState<string | null>(null);
   const newFileRef = useRef<HTMLInputElement | null>(null);
+
+  function resetNewMilestone() {
+    setNewDate("");
+    setNewTitle("");
+    setNewFile(null);
+    if (newFileRef.current) newFileRef.current.value = "";
+  }
 
   useEffect(() => {
     if (!newFile) {
@@ -163,10 +171,8 @@ function EditarTimeline() {
       imageUrl = signed?.signedUrl;
     }
     setItems((prev) => [...prev, { ...(data as Milestone), imageUrl }]);
-    setNewDate("");
-    setNewTitle("");
-    setNewFile(null);
-    if (newFileRef.current) newFileRef.current.value = "";
+    resetNewMilestone();
+    setShowAddCard(false);
     setAdding(false);
     toast.success("Marco adicionado");
   }
@@ -347,71 +353,114 @@ function EditarTimeline() {
       )}
 
       <section className="px-5 pt-5">
-        <div className="rounded-2xl border-2 border-dashed border-[var(--gold)]/40 bg-[var(--card)] p-4 shadow-[var(--shadow-card)]">
-          <div className="flex items-center gap-2">
-            <span className="grid h-7 w-7 place-items-center rounded-full text-[var(--ivory)]" style={{ background: "var(--gradient-gold)" }}>
-              <Plus className="h-4 w-4" />
+        {showAddCard ? (
+          <div className="rounded-2xl border-2 border-dashed border-[var(--gold)]/40 bg-[var(--card)] p-4 shadow-[var(--shadow-card)]">
+            <div className="flex items-center justify-between gap-2">
+              <div className="flex items-center gap-2">
+                <span className="grid h-7 w-7 place-items-center rounded-full text-[var(--ivory)]" style={{ background: "var(--gradient-gold)" }}>
+                  <Plus className="h-4 w-4" />
+                </span>
+                <div>
+                  <p className="font-display text-base text-[var(--cocoa)]">Adicionar novo marco</p>
+                  <p className="font-serif-caps text-[9px] text-[var(--cocoa)]/60">Envie uma foto e escreva data + título</p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  resetNewMilestone();
+                  setShowAddCard(false);
+                }}
+                className="grid h-8 w-8 place-items-center rounded-full text-[var(--cocoa)]/60 transition hover:bg-[var(--gold)]/10 hover:text-[var(--cocoa)]"
+                aria-label="Fechar formulário"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+
+            <div className="mt-3 flex gap-3">
+              <button
+                type="button"
+                onClick={() => newFileRef.current?.click()}
+                className="relative aspect-square w-24 flex-none overflow-hidden rounded-lg border border-dashed border-[var(--gold)]/40 bg-[var(--ivory)] transition hover:border-[var(--gold)]"
+                aria-label={newPreview ? "Trocar foto do novo marco" : "Escolher foto do novo marco"}
+              >
+                {newPreview ? (
+                  <img src={newPreview} alt="Pré-visualização" className="h-full w-full object-cover" />
+                ) : (
+                  <div className="grid h-full w-full place-items-center gap-1 px-1 text-center text-[var(--cocoa)]/50">
+                    <Upload className="h-4 w-4" />
+                    <span className="font-serif-caps text-[9px] leading-tight">Escolher foto</span>
+                  </div>
+                )}
+              </button>
+              <input
+                ref={newFileRef}
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={(e) => {
+                  const f = e.target.files?.[0] ?? null;
+                  setNewFile(f);
+                }}
+              />
+              <div className="flex flex-1 flex-col gap-2">
+                <input
+                  type="text"
+                  value={newDate}
+                  onChange={(e) => setNewDate(e.target.value)}
+                  placeholder="Data (ex: 24 · Mai · 2025)"
+                  className="rounded-md border border-[var(--gold)]/25 bg-[var(--ivory)] px-2 py-1.5 font-serif-caps text-[10px] text-[var(--cocoa)] focus:border-[var(--gold)] focus:outline-none"
+                />
+                <input
+                  type="text"
+                  value={newTitle}
+                  onChange={(e) => setNewTitle(e.target.value)}
+                  placeholder="Título do marco"
+                  className="rounded-md border border-[var(--gold)]/25 bg-[var(--ivory)] px-2 py-1.5 font-display text-sm text-[var(--cocoa)] focus:border-[var(--gold)] focus:outline-none"
+                />
+              </div>
+            </div>
+
+            <div className="mt-3 flex gap-2">
+              <button
+                onClick={quickAdd}
+                disabled={adding}
+                className="inline-flex flex-1 items-center justify-center gap-2 rounded-full px-4 py-3 font-serif-caps text-[11px] text-[var(--ivory)] shadow-[var(--shadow-card)] disabled:opacity-60"
+                style={{ background: "var(--gradient-gold)" }}
+              >
+                {adding ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />}
+                Adicionar marco
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  resetNewMilestone();
+                  setShowAddCard(false);
+                }}
+                disabled={adding}
+                className="inline-flex flex-1 items-center justify-center gap-2 rounded-full border border-[var(--gold)]/40 bg-[var(--ivory)] px-4 py-3 font-serif-caps text-[11px] text-[var(--cocoa)] transition hover:bg-[var(--gold)]/10 disabled:opacity-60"
+              >
+                <X className="h-4 w-4" />
+                Cancelar
+              </button>
+            </div>
+          </div>
+        ) : (
+          <button
+            type="button"
+            onClick={() => setShowAddCard(true)}
+            className="flex w-full items-center gap-3 rounded-2xl border-2 border-dashed border-[var(--gold)]/40 bg-[var(--card)] p-4 text-left shadow-[var(--shadow-card)] transition hover:border-[var(--gold)]/70"
+          >
+            <span className="grid h-10 w-10 place-items-center rounded-full text-[var(--ivory)]" style={{ background: "var(--gradient-gold)" }}>
+              <Plus className="h-5 w-5" />
             </span>
             <div>
               <p className="font-display text-base text-[var(--cocoa)]">Adicionar novo marco</p>
-              <p className="font-serif-caps text-[9px] text-[var(--cocoa)]/60">Envie uma foto e escreva data + título</p>
+              <p className="font-serif-caps text-[9px] text-[var(--cocoa)]/60">Toque para adicionar foto e texto</p>
             </div>
-          </div>
-
-          <div className="mt-3 flex gap-3">
-            <button
-              type="button"
-              onClick={() => newFileRef.current?.click()}
-              className="relative aspect-square w-24 flex-none overflow-hidden rounded-lg border border-dashed border-[var(--gold)]/40 bg-[var(--ivory)] transition hover:border-[var(--gold)]"
-              aria-label={newPreview ? "Trocar foto do novo marco" : "Escolher foto do novo marco"}
-            >
-              {newPreview ? (
-                <img src={newPreview} alt="Pré-visualização" className="h-full w-full object-cover" />
-              ) : (
-                <div className="grid h-full w-full place-items-center gap-1 px-1 text-center text-[var(--cocoa)]/50">
-                  <Upload className="h-4 w-4" />
-                  <span className="font-serif-caps text-[9px] leading-tight">Escolher foto</span>
-                </div>
-              )}
-            </button>
-            <input
-              ref={newFileRef}
-              type="file"
-              accept="image/*"
-              className="hidden"
-              onChange={(e) => {
-                const f = e.target.files?.[0] ?? null;
-                setNewFile(f);
-              }}
-            />
-            <div className="flex flex-1 flex-col gap-2">
-              <input
-                type="text"
-                value={newDate}
-                onChange={(e) => setNewDate(e.target.value)}
-                placeholder="Data (ex: 24 · Mai · 2025)"
-                className="rounded-md border border-[var(--gold)]/25 bg-[var(--ivory)] px-2 py-1.5 font-serif-caps text-[10px] text-[var(--cocoa)] focus:border-[var(--gold)] focus:outline-none"
-              />
-              <input
-                type="text"
-                value={newTitle}
-                onChange={(e) => setNewTitle(e.target.value)}
-                placeholder="Título do marco"
-                className="rounded-md border border-[var(--gold)]/25 bg-[var(--ivory)] px-2 py-1.5 font-display text-sm text-[var(--cocoa)] focus:border-[var(--gold)] focus:outline-none"
-              />
-            </div>
-          </div>
-
-          <button
-            onClick={quickAdd}
-            disabled={adding}
-            className="mt-3 inline-flex w-full items-center justify-center gap-2 rounded-full px-4 py-3 font-serif-caps text-[11px] text-[var(--ivory)] shadow-[var(--shadow-card)] disabled:opacity-60"
-            style={{ background: "var(--gradient-gold)" }}
-          >
-            {adding ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />}
-            Adicionar marco
           </button>
-        </div>
+        )}
       </section>
 
 
@@ -421,7 +470,7 @@ function EditarTimeline() {
         </div>
       ) : sorted.length === 0 ? (
         <p className="mt-10 px-6 text-center font-display italic text-[var(--cocoa)]/60">
-          Nenhum marco ainda. Use o formulário acima para adicionar o primeiro.
+          Nenhum marco ainda. Toque em "Adicionar novo marco" para começar.
         </p>
       ) : (
         <div className="mt-5 space-y-4 px-5 pb-32">
