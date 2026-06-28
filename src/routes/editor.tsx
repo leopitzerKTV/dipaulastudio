@@ -381,6 +381,15 @@ function Editor() {
   const [skipClearConfirm, setSkipClearConfirm] = useState(() =>
     loadJSON<boolean>(BATCH_CLEAR_SKIP_CONFIRM_KEY, false),
   );
+  const [clearConfirmTitle, setClearConfirmTitle] = useState(() =>
+    loadJSON<string>(BATCH_CLEAR_TITLE_KEY, "Apagar progresso salvo?"),
+  );
+  const [clearConfirmMessage, setClearConfirmMessage] = useState(() =>
+    loadJSON<string>(
+      BATCH_CLEAR_MESSAGE_KEY,
+      "Você tem um progresso de geração salvo. Se apagar, perderá o que já foi renderizado de PNG, JPG e PDF e terá que começar do zero.",
+    ),
+  );
 
   function promptCancelBatch() {
     setShowCancelConfirm(true);
