@@ -62,19 +62,28 @@ async function hydrateUrl(photo: AlbumPhoto): Promise<AlbumPhoto> {
   return { ...photo, url: data?.signedUrl ?? photo.url };
 }
 
+const CONSOLIDATED_TOAST_ID = "album-undo";
+
 function UndoToast({
   id,
-  photo,
+  count,
+  latestPhoto,
   onUndo,
 }: {
   id: string | number;
-  photo: AlbumPhoto;
+  count: number;
+  latestPhoto: AlbumPhoto;
   onUndo: () => void;
 }) {
   const buttonRef = useRef<HTMLButtonElement>(null);
   useEffect(() => {
     buttonRef.current?.focus();
   }, []);
+  const title = count > 1 ? `${count} fotos excluídas` : "Foto excluída";
+  const description =
+    count > 1
+      ? "Desfazer restaura a exclusão mais recente. Repita para reverter as anteriores."
+      : "Você pode desfazer dentro do tempo restante.";
   return (
     <div
       role="alertdialog"
@@ -92,19 +101,16 @@ function UndoToast({
     >
       <div>
         <p id={`undo-title-${id}`} className="font-display text-sm text-[var(--cocoa)]">
-          Foto excluída
+          {title}
         </p>
         <p id={`undo-desc-${id}`} className="font-serif-caps text-[10px] text-[var(--cocoa)]/70">
-          Você pode desfazer dentro do tempo restante.
+          {description}
         </p>
       </div>
       <button
         ref={buttonRef}
-        onClick={() => {
-          onUndo();
-          toast.dismiss(id);
-        }}
-        aria-label={`Desfazer exclusão da foto de ${photo.author_name ?? "convidado"}`}
+        onClick={onUndo}
+        aria-label={`Desfazer exclusão da foto de ${latestPhoto.author_name ?? "convidado"}`}
         className="rounded-full bg-[var(--gold)] px-3 py-1.5 font-serif-caps text-[10px] text-[var(--ivory)] transition hover:brightness-110 focus:outline-none focus:ring-2 focus:ring-[var(--gold)] focus:ring-offset-1"
       >
         Desfazer
@@ -113,10 +119,28 @@ function UndoToast({
   );
 }
 
-function showUndoToast(photo: AlbumPhoto, durationMs: number) {
+function refreshConsolidatedToast() {
+  if (entries.size === 0) {
+    toast.dismiss(CONSOLIDATED_TOAST_ID);
+    return;
+  }
+  let latest: Entry | null = null;
+  for (const e of entries.values()) {
+    if (!latest || e.expiresAt > latest.expiresAt) latest = e;
+  }
+  const remaining = Math.max(0, (latest as Entry).expiresAt - Date.now());
+  const count = entries.size;
+  const latestPhoto = (latest as Entry).photo;
   toast.custom(
-    (id) => <UndoToast id={id} photo={photo} onUndo={() => cancelPendingDelete(photo.id)} />,
-    { duration: durationMs, id: `undo-${photo.id}` }
+    (id) => (
+      <UndoToast
+        id={id}
+        count={count}
+        latestPhoto={latestPhoto}
+        onUndo={() => void cancelPendingDelete(latestPhoto.id)}
+      />
+    ),
+    { duration: remaining, id: CONSOLIDATED_TOAST_ID }
   );
 }
 
@@ -127,7 +151,7 @@ export function schedulePendingDelete(photo: AlbumPhoto, trashPath: string) {
   }, UNDO_DURATION_MS);
   entries.set(photo.id, { photo, trashPath, expiresAt, timeoutId });
   notify();
-  showUndoToast(photo, UNDO_DURATION_MS);
+  refreshConsolidatedToast();
 }
 
 async function commitPendingDelete(photoId: string) {
@@ -135,6 +159,7 @@ async function commitPendingDelete(photoId: string) {
   if (!entry) return;
   entries.delete(photoId);
   notify();
+  refreshConsolidatedToast();
   const { error } = await supabase.storage.from(BUCKET).remove([entry.trashPath]);
   if (error) {
     console.error(error);
@@ -154,7 +179,8 @@ export async function cancelPendingDelete(photoId: string) {
   window.clearTimeout(entry.timeoutId);
   entries.delete(photoId);
   notify();
-  toast.dismiss(`undo-${photoId}`);
+  refreshConsolidatedToast();
+
 
   const restoringToast = toast.loading("Restaurando foto...", {
     description: "Recriando o registro e devolvendo o arquivo ao álbum.",
