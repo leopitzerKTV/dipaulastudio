@@ -346,39 +346,49 @@ function Album() {
         </div>
       ) : (
         <div className="mt-5 grid grid-cols-2 gap-2.5 px-5 pb-32">
-          {visiblePhotos.map((p, i) => (
-            <motion.div
-              key={p.id}
-              initial={{ opacity: 0, y: 16 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: (i % 4) * 0.06 }}
-              className={`group relative overflow-hidden rounded-2xl shadow-[var(--shadow-card)] ${i % 5 === 0 ? "row-span-2 aspect-[9/16]" : "aspect-[3/4]"}`}
-            >
-              {p.url && (
-                <img
-                  src={p.url}
-                  alt={`Foto de ${p.author_name ?? "convidado"}`}
-                  className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
-                  loading="lazy"
-                />
-              )}
-              <div className="absolute inset-0 bg-gradient-to-t from-[var(--cocoa)]/70 via-transparent to-transparent" />
-              <button
-                onClick={() => setEditing(p)}
-                aria-label="Editar foto"
-                className="absolute right-1.5 top-1.5 grid h-7 w-7 place-items-center rounded-full bg-[var(--cocoa)]/45 text-[var(--ivory)] backdrop-blur-md transition hover:bg-[var(--cocoa)]/70"
+          {visiblePhotos.map((p, i) => {
+            const isPendingDelete = undoDeletes.some((d) => d.photo.id === p.id);
+            return (
+              <motion.div
+                key={p.id}
+                initial={{ opacity: 0, y: 16 }}
+                animate={{ opacity: isPendingDelete ? 0.5 : 1, y: 0 }}
+                transition={{ duration: 0.5, delay: (i % 4) * 0.06 }}
+                className={`group relative overflow-hidden rounded-2xl shadow-[var(--shadow-card)] ${i % 5 === 0 ? "row-span-2 aspect-[9/16]" : "aspect-[3/4]"}`}
               >
-                <MoreVertical className="h-3.5 w-3.5" />
-              </button>
-              <div className="absolute inset-x-0 bottom-0 flex items-end justify-between p-2.5 text-[var(--ivory)]">
-                <div>
-                  <p className="font-serif-caps text-[8.5px] opacity-80">{p.tag}</p>
-                  <p className="font-display text-xs leading-tight">por {p.author_name ?? "convidado"}</p>
+                {p.url && (
+                  <img
+                    src={p.url}
+                    alt={`Foto de ${p.author_name ?? "convidado"}`}
+                    className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
+                    loading="lazy"
+                  />
+                )}
+                <div className="absolute inset-0 bg-gradient-to-t from-[var(--cocoa)]/70 via-transparent to-transparent" />
+                {isPendingDelete && (
+                  <div className="absolute inset-0 z-10 flex flex-col items-center justify-center bg-[var(--cocoa)]/35 text-[var(--ivory)] backdrop-blur-[2px]">
+                    <Loader2 className="h-5 w-5 animate-spin" />
+                    <p className="mt-1 font-serif-caps text-[9px] opacity-90">Exclusão pendente</p>
+                  </div>
+                )}
+                <button
+                  onClick={() => setEditing(p)}
+                  aria-label="Editar foto"
+                  disabled={isPendingDelete}
+                  className="absolute right-1.5 top-1.5 z-20 grid h-7 w-7 place-items-center rounded-full bg-[var(--cocoa)]/45 text-[var(--ivory)] backdrop-blur-md transition hover:bg-[var(--cocoa)]/70 disabled:opacity-30"
+                >
+                  <MoreVertical className="h-3.5 w-3.5" />
+                </button>
+                <div className="absolute inset-x-0 bottom-0 z-20 flex items-end justify-between p-2.5 text-[var(--ivory)]">
+                  <div>
+                    <p className="font-serif-caps text-[8.5px] opacity-80">{p.tag}</p>
+                    <p className="font-display text-xs leading-tight">por {p.author_name ?? "convidado"}</p>
+                  </div>
+                  <Heart className="h-3.5 w-3.5" fill="currentColor" />
                 </div>
-                <Heart className="h-3.5 w-3.5" fill="currentColor" />
-              </div>
-            </motion.div>
-          ))}
+              </motion.div>
+            );
+          })}
         </div>
       )}
 
