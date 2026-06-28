@@ -1,9 +1,38 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { toPng } from "html-to-image";
-import { ArrowLeft, Download, Image as ImageIcon, Palette, Type, Calendar, MapPin } from "lucide-react";
+import { ArrowLeft, Download, Image as ImageIcon, Palette, Type, Calendar, MapPin, History, Save, Trash2, Check } from "lucide-react";
 import { Ornament } from "@/components/Ornament";
 import ceremonyImg from "@/assets/ceremony.jpg";
+
+const DRAFT_KEY = "nossahistoria.invite.draft";
+const VERSIONS_KEY = "nossahistoria.invite.versions";
+const MAX_VERSIONS = 12;
+
+type InviteDraft = {
+  brideName: string;
+  groomName: string;
+  date: string;
+  time: string;
+  venue: string;
+  city: string;
+  message: string;
+  tagline: string;
+  paletteId: string;
+  imageSrc: string;
+};
+
+type SavedVersion = InviteDraft & { id: string; savedAt: number; label: string };
+
+function loadJSON<T>(key: string, fallback: T): T {
+  if (typeof window === "undefined") return fallback;
+  try {
+    const raw = window.localStorage.getItem(key);
+    return raw ? (JSON.parse(raw) as T) : fallback;
+  } catch {
+    return fallback;
+  }
+}
 
 export const Route = createFileRoute("/editor")({
   head: () => ({
