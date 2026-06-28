@@ -377,16 +377,24 @@ function Album() {
       )}
 
 
-      <motion.button
-        whileTap={{ scale: 0.94 }}
-        onClick={() => !uploading && fileRef.current?.click()}
-        disabled={uploading}
-        className="fixed bottom-24 left-1/2 z-40 -translate-x-1/2 flex items-center gap-2 rounded-full px-6 py-3.5 font-serif-caps text-[10px] text-[var(--ivory)] shadow-[var(--shadow-luxe)] disabled:opacity-70"
-        style={{ background: "var(--gradient-gold)" }}
-      >
-        {uploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
-        {uploading ? "Enviando..." : "Enviar Fotos"}
-      </motion.button>
+      <div className="fixed bottom-24 left-1/2 z-40 -translate-x-1/2 flex flex-col items-center gap-1.5">
+        <motion.button
+          whileTap={{ scale: 0.94 }}
+          onClick={() => !uploading && fileRef.current?.click()}
+          disabled={uploading}
+          className="flex items-center gap-2 rounded-full px-6 py-3.5 font-serif-caps text-[10px] text-[var(--ivory)] shadow-[var(--shadow-luxe)] disabled:opacity-70"
+          style={{ background: "var(--gradient-gold)" }}
+        >
+          {uploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
+          {uploading ? "Enviando..." : `Enviar para ${uploadTag}`}
+        </motion.button>
+        <p className="font-serif-caps text-[9px] text-[var(--cocoa)]/55">
+          {filterTag === "Todas"
+            ? "Toque em um evento acima para mudar a categoria"
+            : `Categoria selecionada: ${filterTag}`}
+        </p>
+      </div>
+
     </AppShell>
   );
 }
