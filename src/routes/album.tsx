@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { motion } from "motion/react";
-import { ArrowLeft, Camera, Upload, Heart, Loader2, Check, X, AlertCircle } from "lucide-react";
+import { ArrowLeft, Camera, Upload, Heart, Loader2, Check, X, AlertCircle, ArrowDownUp } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { AppShell } from "@/components/AppShell";
 import { Ornament } from "@/components/Ornament";
