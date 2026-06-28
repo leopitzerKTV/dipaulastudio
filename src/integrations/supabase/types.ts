@@ -41,6 +41,45 @@ export type Database = {
         }
         Relationships: []
       }
+      guest_manual: {
+        Row: {
+          ceremony_date: string | null
+          ceremony_location: string | null
+          ceremony_time: string | null
+          created_at: string
+          gift_list_url: string | null
+          id: string
+          location_info: string | null
+          parking_info: string | null
+          updated_at: string
+          welcome_note: string | null
+        }
+        Insert: {
+          ceremony_date?: string | null
+          ceremony_location?: string | null
+          ceremony_time?: string | null
+          created_at?: string
+          gift_list_url?: string | null
+          id?: string
+          location_info?: string | null
+          parking_info?: string | null
+          updated_at?: string
+          welcome_note?: string | null
+        }
+        Update: {
+          ceremony_date?: string | null
+          ceremony_location?: string | null
+          ceremony_time?: string | null
+          created_at?: string
+          gift_list_url?: string | null
+          id?: string
+          location_info?: string | null
+          parking_info?: string | null
+          updated_at?: string
+          welcome_note?: string | null
+        }
+        Relationships: []
+      }
       story_chapters: {
         Row: {
           body: string

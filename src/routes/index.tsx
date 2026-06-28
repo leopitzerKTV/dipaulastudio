@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { motion } from "motion/react";
-import { Mail, Calendar, MapPin, Gift, Heart, Wand2 } from "lucide-react";
+import { Mail, Calendar, MapPin, Gift, Heart, Wand2, BookOpen } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
 import { Ornament } from "@/components/Ornament";
 import ceremonyImg from "@/assets/ceremony.jpg";
@@ -81,6 +81,7 @@ function Index() {
           <ActionCard to="/historia" Icon={Heart} title="Nossa História" sub="O começo, o pedido, o agora" />
           <ActionCard to="/linha-do-tempo" Icon={Calendar} title="Linha do Tempo" sub="Pedido, casamento, festa, lua de mel" />
           <ActionCard to="/album" Icon={Mail} title="Álbum Colaborativo" sub="Fotos dos convidados em tempo real" />
+          <ActionCard to="/manual" Icon={BookOpen} title="Manual do Convidado" sub="Dress code, cerimônia, recepção e mais" />
           <ActionCard to="/editor" Icon={Wand2} title="Editor do Convite" sub="Personalize nomes, data, cores e imagem" />
           <ActionCard to="/painel" Icon={Gift} title="Painel Privado do Casal" sub="RSVP, presentes, mensagens" />
         </div>
