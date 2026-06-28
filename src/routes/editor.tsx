@@ -99,21 +99,89 @@ const PALETTES: Palette[] = [
 ];
 
 function Editor() {
-  const [brideName, setBrideName] = useState("Amanda");
-  const [groomName, setGroomName] = useState("Ricardo");
-  const [date, setDate] = useState("24 · Maio · 2025");
-  const [time, setTime] = useState("Sábado, às 16h30");
-  const [venue, setVenue] = useState("Espaço Jardim Secreto");
-  const [city, setCity] = useState("São Paulo · SP");
+  const initial = loadJSON<InviteDraft | null>(DRAFT_KEY, null);
+  const initialPalette =
+    PALETTES.find((p) => p.id === initial?.paletteId) ?? PALETTES[0];
+
+  const [brideName, setBrideName] = useState(initial?.brideName ?? "Amanda");
+  const [groomName, setGroomName] = useState(initial?.groomName ?? "Ricardo");
+  const [date, setDate] = useState(initial?.date ?? "24 · Maio · 2025");
+  const [time, setTime] = useState(initial?.time ?? "Sábado, às 16h30");
+  const [venue, setVenue] = useState(initial?.venue ?? "Espaço Jardim Secreto");
+  const [city, setCity] = useState(initial?.city ?? "São Paulo · SP");
   const [message, setMessage] = useState(
-    "Com a bênção de nossas famílias, convidamos você para celebrar o nosso amor.",
+    initial?.message ??
+      "Com a bênção de nossas famílias, convidamos você para celebrar o nosso amor.",
   );
-  const [tagline, setTagline] = useState("você está convidado para o nosso casamento");
-  const [palette, setPalette] = useState<Palette>(PALETTES[0]);
-  const [imageSrc, setImageSrc] = useState<string>(ceremonyImg);
+  const [tagline, setTagline] = useState(
+    initial?.tagline ?? "você está convidado para o nosso casamento",
+  );
+  const [palette, setPalette] = useState<Palette>(initialPalette);
+  const [imageSrc, setImageSrc] = useState<string>(initial?.imageSrc ?? ceremonyImg);
   const [exporting, setExporting] = useState(false);
+  const [versions, setVersions] = useState<SavedVersion[]>(() =>
+    loadJSON<SavedVersion[]>(VERSIONS_KEY, []),
+  );
+  const [autoStatus, setAutoStatus] = useState<"idle" | "saving" | "saved">("idle");
 
   const previewRef = useRef<HTMLDivElement>(null);
+
+  const draft: InviteDraft = {
+    brideName, groomName, date, time, venue, city, message, tagline,
+    paletteId: palette.id, imageSrc,
+  };
+
+  // Autosave (debounced) to localStorage
+  useEffect(() => {
+    setAutoStatus("saving");
+    const t = setTimeout(() => {
+      try {
+        window.localStorage.setItem(DRAFT_KEY, JSON.stringify(draft));
+        setAutoStatus("saved");
+      } catch {
+        setAutoStatus("idle");
+      }
+    }, 600);
+    return () => clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [brideName, groomName, date, time, venue, city, message, tagline, palette.id, imageSrc]);
+
+  function saveVersion() {
+    const v: SavedVersion = {
+      ...draft,
+      id: `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+      savedAt: Date.now(),
+      label: `${brideName} & ${groomName}`,
+    };
+    const next = [v, ...versions].slice(0, MAX_VERSIONS);
+    setVersions(next);
+    try {
+      window.localStorage.setItem(VERSIONS_KEY, JSON.stringify(next));
+    } catch {
+      /* quota exceeded — skip */
+    }
+  }
+
+  function loadVersion(v: SavedVersion) {
+    setBrideName(v.brideName);
+    setGroomName(v.groomName);
+    setDate(v.date);
+    setTime(v.time);
+    setVenue(v.venue);
+    setCity(v.city);
+    setMessage(v.message);
+    setTagline(v.tagline);
+    setPalette(PALETTES.find((p) => p.id === v.paletteId) ?? PALETTES[0]);
+    setImageSrc(v.imageSrc);
+  }
+
+  function deleteVersion(id: string) {
+    const next = versions.filter((v) => v.id !== id);
+    setVersions(next);
+    window.localStorage.setItem(VERSIONS_KEY, JSON.stringify(next));
+  }
+
+
 
   function onPickImage(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
