@@ -393,20 +393,34 @@ function Editor() {
   }
 
   function promptClearBatchProgress() {
-    setShowClearConfirm(true);
+    const skip = loadJSON<boolean>(BATCH_CLEAR_SKIP_CONFIRM_KEY, false);
+    if (skip) {
+      confirmClearBatchProgress(false);
+    } else {
+      setShowClearConfirm(true);
+    }
   }
 
   function dismissClearBatchProgress() {
     setShowClearConfirm(false);
   }
 
-  function confirmClearBatchProgress() {
+  function confirmClearBatchProgress(saveSkipPreference: boolean) {
     try {
       window.localStorage.removeItem(BATCH_PARTIAL_KEY);
+      if (saveSkipPreference) {
+        window.localStorage.setItem(BATCH_CLEAR_SKIP_CONFIRM_KEY, JSON.stringify(true));
+      }
     } catch {}
     if (batchPartial?.pdfBlobUrl) URL.revokeObjectURL(batchPartial.pdfBlobUrl);
     setBatchPartial(null);
     setShowClearConfirm(false);
+  }
+
+  function clearSkipPreference() {
+    try {
+      window.localStorage.removeItem(BATCH_CLEAR_SKIP_CONFIRM_KEY);
+    } catch {}
   }
 
   async function onPrepareBatch() {
