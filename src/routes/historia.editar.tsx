@@ -349,7 +349,11 @@ function EditarHistoria() {
               }`}
             >
               <div className="flex gap-3">
-                <span
+                <button
+                  type="button"
+                  ref={(el) => {
+                    gripRefs.current[c.id] = el;
+                  }}
                   draggable
                   onDragStart={(e) => {
                     setDragId(c.id);
@@ -360,13 +364,14 @@ function EditarHistoria() {
                     setDragId(null);
                     setDragOverId(null);
                   }}
-                  role="button"
-                  aria-label="Arraste para reordenar"
-                  className="grid w-5 flex-none place-items-center text-[var(--cocoa)]/40 cursor-grab active:cursor-grabbing select-none"
-                  title="Arraste para reordenar"
+                  onKeyDown={(e) => onGripKeyDown(e, c, i, sorted.length)}
+                  aria-label={`Reordenar capítulo ${i + 1} de ${sorted.length}: ${c.title || "sem título"}. Use as setas para mover, Ctrl+setas ou Home/End para extremos.`}
+                  aria-keyshortcuts="ArrowUp ArrowDown Home End"
+                  className="grid w-5 flex-none place-items-center self-start py-1 text-[var(--cocoa)]/40 cursor-grab active:cursor-grabbing select-none rounded focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--gold)]"
+                  title="Arraste ou use as setas para reordenar"
                 >
                   <GripVertical className="h-4 w-4" />
-                </span>
+                </button>
                 <div className="relative aspect-[3/4] w-24 flex-none overflow-hidden rounded-lg bg-[var(--ivory)]">
                   {c.imageUrl ? (
                     <img src={c.imageUrl} alt={c.title} className="h-full w-full object-cover" />
