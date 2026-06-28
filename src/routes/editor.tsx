@@ -453,23 +453,31 @@ function Editor() {
           </Section>
 
 
-          <div className="grid grid-cols-2 gap-2">
+          <div className="grid grid-cols-3 gap-2">
             <button
               onClick={onExport}
-              disabled={exporting || exportingPdf}
-              className="inline-flex items-center justify-center gap-2 rounded-full border border-[var(--gold-deep)]/40 bg-[var(--ivory)] py-3 font-serif-caps text-[10px] text-[var(--gold-deep)] hover:bg-[var(--gold)]/10 disabled:opacity-60"
+              disabled={exporting || exportingPdf || exportingJpg}
+              className="inline-flex flex-col items-center justify-center gap-1 rounded-2xl border border-[var(--gold-deep)]/40 bg-[var(--ivory)] py-3 font-serif-caps text-[10px] text-[var(--gold-deep)] hover:bg-[var(--gold)]/10 disabled:opacity-60"
             >
-              <Download className="h-3.5 w-3.5" />
-              {exporting ? "Exportando…" : "PNG 9:16"}
+              <Download className="h-4 w-4" />
+              {exporting ? "…" : "PNG 9:16"}
+            </button>
+            <button
+              onClick={onExportJpg}
+              disabled={exporting || exportingPdf || exportingJpg}
+              className="inline-flex flex-col items-center justify-center gap-1 rounded-2xl border border-[var(--gold-deep)]/40 bg-[var(--ivory)] py-3 font-serif-caps text-[10px] text-[var(--gold-deep)] hover:bg-[var(--gold)]/10 disabled:opacity-60"
+            >
+              <FileImage className="h-4 w-4" />
+              {exportingJpg ? "…" : "JPG 9:16"}
             </button>
             <button
               onClick={onExportPdf}
-              disabled={exporting || exportingPdf}
-              className="inline-flex items-center justify-center gap-2 rounded-full py-3 font-serif-caps text-[10px] text-[var(--ivory)] shadow-[var(--shadow-card)] disabled:opacity-60"
+              disabled={exporting || exportingPdf || exportingJpg}
+              className="inline-flex flex-col items-center justify-center gap-1 rounded-2xl py-3 font-serif-caps text-[10px] text-[var(--ivory)] shadow-[var(--shadow-card)] disabled:opacity-60"
               style={{ background: palette.gradient }}
             >
-              <FileDown className="h-3.5 w-3.5" />
-              {exportingPdf ? "Gerando…" : "PDF A4"}
+              <FileDown className="h-4 w-4" />
+              {exportingPdf ? "…" : "PDF A4"}
             </button>
           </div>
         </aside>
