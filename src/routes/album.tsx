@@ -515,12 +515,50 @@ function Album() {
             </div>
 
             <button
-              onClick={() => deletePhoto(editing)}
+              onClick={() => openDeleteConfirm(editing)}
               className="mt-5 flex w-full items-center justify-center gap-2 rounded-full border border-red-200 bg-red-50 px-4 py-3 font-serif-caps text-[10px] text-red-600 transition hover:bg-red-100"
             >
               <Trash2 className="h-3.5 w-3.5" />
               Excluir foto
             </button>
+          </div>
+        </div>
+      )}
+
+      {confirmDelete && (
+        <div
+          className="fixed inset-0 z-50 flex items-end justify-center bg-[var(--cocoa)]/55 backdrop-blur-sm sm:items-center"
+          onClick={() => !deleting && setConfirmDelete(null)}
+        >
+          <div
+            className="w-full max-w-sm rounded-t-3xl bg-[var(--card)] p-5 shadow-[var(--shadow-luxe)] sm:rounded-3xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="mx-auto grid h-12 w-12 place-items-center rounded-full bg-red-100 text-red-600">
+              <AlertTriangle className="h-5 w-5" />
+            </div>
+            <p className="mt-4 text-center font-display text-lg text-[var(--cocoa)]">Excluir foto?</p>
+            <p className="mt-1 px-2 text-center text-sm leading-snug text-[var(--cocoa)]/65">
+              A foto de <strong>{confirmDelete.author_name ?? "convidado"}</strong> será removida permanentemente do álbum e do armazenamento. Esta ação não pode ser desfeita.
+            </p>
+
+            <div className="mt-5 grid grid-cols-2 gap-3">
+              <button
+                onClick={() => setConfirmDelete(null)}
+                disabled={deleting}
+                className="flex items-center justify-center gap-2 rounded-full border border-[var(--gold)]/30 bg-[var(--ivory)] px-4 py-3 font-serif-caps text-[10px] text-[var(--cocoa)] transition hover:bg-[var(--gold)]/10 disabled:opacity-60"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={() => deletePhoto(confirmDelete)}
+                disabled={deleting}
+                className="flex items-center justify-center gap-2 rounded-full bg-red-600 px-4 py-3 font-serif-caps text-[10px] text-white shadow-[var(--shadow-card)] transition hover:bg-red-700 disabled:opacity-70"
+              >
+                {deleting ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Trash2 className="h-3.5 w-3.5" />}
+                {deleting ? "Excluindo..." : "Sim, excluir"}
+              </button>
+            </div>
           </div>
         </div>
       )}
