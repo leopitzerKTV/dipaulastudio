@@ -17,6 +17,7 @@ import { Route as EditorRouteImport } from './routes/editor'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AlbumRouteImport } from './routes/album'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as PresentesIndexRouteImport } from './routes/presentes.index'
 import { Route as ManualEditarRouteImport } from './routes/manual.editar'
 import { Route as LinhaDoTempoEditarRouteImport } from './routes/linha-do-tempo.editar'
 import { Route as HistoriaEditarRouteImport } from './routes/historia.editar'
@@ -61,6 +62,11 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PresentesIndexRoute = PresentesIndexRouteImport.update({
+  id: '/presentes/',
+  path: '/presentes/',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ManualEditarRoute = ManualEditarRouteImport.update({
   id: '/editar',
   path: '/editar',
@@ -89,6 +95,7 @@ export interface FileRoutesByFullPath {
   '/historia/editar': typeof HistoriaEditarRoute
   '/linha-do-tempo/editar': typeof LinhaDoTempoEditarRoute
   '/manual/editar': typeof ManualEditarRoute
+  '/presentes/': typeof PresentesIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -102,6 +109,7 @@ export interface FileRoutesByTo {
   '/historia/editar': typeof HistoriaEditarRoute
   '/linha-do-tempo/editar': typeof LinhaDoTempoEditarRoute
   '/manual/editar': typeof ManualEditarRoute
+  '/presentes': typeof PresentesIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -116,6 +124,7 @@ export interface FileRoutesById {
   '/historia/editar': typeof HistoriaEditarRoute
   '/linha-do-tempo/editar': typeof LinhaDoTempoEditarRoute
   '/manual/editar': typeof ManualEditarRoute
+  '/presentes/': typeof PresentesIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -131,6 +140,7 @@ export interface FileRouteTypes {
     | '/historia/editar'
     | '/linha-do-tempo/editar'
     | '/manual/editar'
+    | '/presentes/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -144,6 +154,7 @@ export interface FileRouteTypes {
     | '/historia/editar'
     | '/linha-do-tempo/editar'
     | '/manual/editar'
+    | '/presentes'
   id:
     | '__root__'
     | '/'
@@ -157,6 +168,7 @@ export interface FileRouteTypes {
     | '/historia/editar'
     | '/linha-do-tempo/editar'
     | '/manual/editar'
+    | '/presentes/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -168,6 +180,7 @@ export interface RootRouteChildren {
   LinhaDoTempoRoute: typeof LinhaDoTempoRouteWithChildren
   ManualRoute: typeof ManualRouteWithChildren
   PainelRoute: typeof PainelRoute
+  PresentesIndexRoute: typeof PresentesIndexRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -226,6 +239,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/presentes/': {
+      id: '/presentes/'
+      path: '/presentes'
+      fullPath: '/presentes/'
+      preLoaderRoute: typeof PresentesIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/manual/editar': {
@@ -296,6 +316,7 @@ const rootRouteChildren: RootRouteChildren = {
   LinhaDoTempoRoute: LinhaDoTempoRouteWithChildren,
   ManualRoute: ManualRouteWithChildren,
   PainelRoute: PainelRoute,
+  PresentesIndexRoute: PresentesIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
