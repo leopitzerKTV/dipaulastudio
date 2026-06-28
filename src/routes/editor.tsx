@@ -758,6 +758,30 @@ function Editor() {
             )}
           </Section>
 
+          <Section icon={AlertTriangle} title="Aviso de apagar progresso">
+            <Field
+              label="Título do modal"
+              value={clearConfirmTitle}
+              onChange={setClearConfirmTitle}
+            />
+            <Field
+              label="Mensagem do modal"
+              value={clearConfirmMessage}
+              onChange={setClearConfirmMessage}
+              multiline
+            />
+            <button
+              onClick={() => {
+                setClearConfirmTitle("Apagar progresso salvo?");
+                setClearConfirmMessage(
+                  "Você tem um progresso de geração salvo. Se apagar, perderá o que já foi renderizado de PNG, JPG e PDF e terá que começar do zero.",
+                );
+              }}
+              className="flex w-full items-center justify-center gap-2 rounded-lg border border-[var(--gold)]/30 bg-[var(--gold)]/10 px-3 py-2 font-serif-caps text-[10px] text-[var(--gold-deep)] hover:bg-[var(--gold)]/20"
+            >
+              <Trash2 className="h-3 w-3" /> Restaurar texto padrão
+            </button>
+          </Section>
 
           <div className="grid grid-cols-3 gap-2">
           <button
