@@ -28,6 +28,7 @@ function EditarHistoria() {
   const [savingId, setSavingId] = useState<string | null>(null);
   const [uploadingId, setUploadingId] = useState<string | null>(null);
   const [adding, setAdding] = useState(false);
+  const [showPreview, setShowPreview] = useState(true);
   const fileInputs = useRef<Record<string, HTMLInputElement | null>>({});
 
   async function load() {
