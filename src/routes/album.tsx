@@ -42,6 +42,7 @@ function Album() {
   const [uploads, setUploads] = useState<UploadItem[]>([]);
   const [filterTag, setFilterTag] = useState<"Todas" | Tag>("Todas");
   const [sortOrder, setSortOrder] = useState<SortOrder>("recent");
+  const [editing, setEditing] = useState<Photo | null>(null);
   const [authorName, setAuthorName] = useState<string>(() =>
     typeof window !== "undefined" ? localStorage.getItem("album.authorName") ?? "" : ""
   );
