@@ -149,7 +149,7 @@ function Album() {
       });
       return;
     }
-    toast.success("Foto excluída", { description: "A foto foi removida do álbum." });
+    toast.success("Foto excluída permanentemente", { description: "A foto foi removida do álbum e do armazenamento." });
   }
 
   async function cancelDelete(photo: Photo) {
@@ -158,14 +158,19 @@ function Album() {
     window.clearTimeout(entry.timeoutId);
     setUndoDeletes((prev) => prev.filter((d) => d.photo.id !== photo.id));
 
+    const restoringToast = toast.loading("Restaurando foto...", {
+      description: "Recriando o registro e devolvendo o arquivo ao álbum.",
+    });
+
     // Move the file back from trash to its original path
     const { error: moveErr } = await supabase.storage
       .from(BUCKET)
       .move(entry.trashPath, photo.storage_path);
     if (moveErr) {
       console.error(moveErr);
-      toast.error("Não foi possível restaurar o arquivo", {
-        description: "O arquivo original não pôde ser recuperado do armazenamento.",
+      toast.dismiss(restoringToast);
+      toast.error("Falha na restauração do arquivo", {
+        description: "O arquivo original não pôde ser recuperado do armazenamento. A foto permanece excluída.",
       });
       return;
     }
@@ -181,8 +186,9 @@ function Album() {
     });
     if (insertErr) {
       console.error(insertErr);
-      toast.error("Não foi possível restaurar a foto", {
-        description: "O arquivo foi recuperado, mas o registro não pôde ser recriado.",
+      toast.dismiss(restoringToast);
+      toast.error("Falha na restauração do registro", {
+        description: "O arquivo foi recuperado, mas o registro não pôde ser recriado. Tente recarregar a página.",
       });
       return;
     }
@@ -190,7 +196,8 @@ function Album() {
     // Refresh signed URL and put the photo back into the local grid
     const [hydrated] = await hydrateUrls([photo]);
     setPhotos((prev) => (prev.some((p) => p.id === hydrated.id) ? prev : [hydrated, ...prev]));
-    toast.success("Exclusão desfeita", { description: "A foto voltou ao álbum." });
+    toast.dismiss(restoringToast);
+    toast.success("Exclusão desfeita", { description: "A foto foi restaurada e voltou ao álbum." });
   }
 
   async function deletePhoto(photo: Photo) {
