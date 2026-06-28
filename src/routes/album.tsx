@@ -99,11 +99,55 @@ function Album() {
           );
         }
       )
+      .on(
+        "postgres_changes",
+        { event: "UPDATE", schema: "public", table: "album_photos" },
+        (payload) => {
+          const row = payload.new as Photo;
+          setPhotos((prev) =>
+            prev.map((p) => (p.id === row.id ? { ...p, ...row, url: p.url } : p))
+          );
+        }
+      )
+      .on(
+        "postgres_changes",
+        { event: "DELETE", schema: "public", table: "album_photos" },
+        (payload) => {
+          const row = payload.old as { id: string };
+          setPhotos((prev) => prev.filter((p) => p.id !== row.id));
+        }
+      )
       .subscribe();
     return () => {
       supabase.removeChannel(channel);
     };
   }, []);
+
+  async function updatePhotoTag(photo: Photo, tag: Tag) {
+    setPhotos((prev) => prev.map((p) => (p.id === photo.id ? { ...p, tag } : p)));
+    const { error } = await supabase
+      .from("album_photos")
+      .update({ tag })
+      .eq("id", photo.id);
+    if (error) {
+      console.error(error);
+      setPhotos((prev) => prev.map((p) => (p.id === photo.id ? { ...p, tag: photo.tag } : p)));
+    }
+  }
+
+  async function deletePhoto(photo: Photo) {
+    if (!window.confirm("Excluir esta foto do álbum?")) return;
+    setPhotos((prev) => prev.filter((p) => p.id !== photo.id));
+    setEditing((cur) => (cur?.id === photo.id ? null : cur));
+    const { error } = await supabase.from("album_photos").delete().eq("id", photo.id);
+    if (error) {
+      console.error(error);
+      setPhotos((prev) => (prev.some((p) => p.id === photo.id) ? prev : [photo, ...prev]));
+      return;
+    }
+    await supabase.storage.from(BUCKET).remove([photo.storage_path]);
+  }
+
 
   async function handleFiles(files: FileList | null) {
     if (!files || files.length === 0) return;
