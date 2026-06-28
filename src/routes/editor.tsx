@@ -1,9 +1,38 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { toPng } from "html-to-image";
-import { ArrowLeft, Download, Image as ImageIcon, Palette, Type, Calendar, MapPin } from "lucide-react";
+import { ArrowLeft, Download, Image as ImageIcon, Palette, Type, Calendar, MapPin, History, Save, Trash2, Check } from "lucide-react";
 import { Ornament } from "@/components/Ornament";
 import ceremonyImg from "@/assets/ceremony.jpg";
+
+const DRAFT_KEY = "nossahistoria.invite.draft";
+const VERSIONS_KEY = "nossahistoria.invite.versions";
+const MAX_VERSIONS = 12;
+
+type InviteDraft = {
+  brideName: string;
+  groomName: string;
+  date: string;
+  time: string;
+  venue: string;
+  city: string;
+  message: string;
+  tagline: string;
+  paletteId: string;
+  imageSrc: string;
+};
+
+type SavedVersion = InviteDraft & { id: string; savedAt: number; label: string };
+
+function loadJSON<T>(key: string, fallback: T): T {
+  if (typeof window === "undefined") return fallback;
+  try {
+    const raw = window.localStorage.getItem(key);
+    return raw ? (JSON.parse(raw) as T) : fallback;
+  } catch {
+    return fallback;
+  }
+}
 
 export const Route = createFileRoute("/editor")({
   head: () => ({
@@ -70,21 +99,89 @@ const PALETTES: Palette[] = [
 ];
 
 function Editor() {
-  const [brideName, setBrideName] = useState("Amanda");
-  const [groomName, setGroomName] = useState("Ricardo");
-  const [date, setDate] = useState("24 · Maio · 2025");
-  const [time, setTime] = useState("Sábado, às 16h30");
-  const [venue, setVenue] = useState("Espaço Jardim Secreto");
-  const [city, setCity] = useState("São Paulo · SP");
+  const initial = loadJSON<InviteDraft | null>(DRAFT_KEY, null);
+  const initialPalette =
+    PALETTES.find((p) => p.id === initial?.paletteId) ?? PALETTES[0];
+
+  const [brideName, setBrideName] = useState(initial?.brideName ?? "Amanda");
+  const [groomName, setGroomName] = useState(initial?.groomName ?? "Ricardo");
+  const [date, setDate] = useState(initial?.date ?? "24 · Maio · 2025");
+  const [time, setTime] = useState(initial?.time ?? "Sábado, às 16h30");
+  const [venue, setVenue] = useState(initial?.venue ?? "Espaço Jardim Secreto");
+  const [city, setCity] = useState(initial?.city ?? "São Paulo · SP");
   const [message, setMessage] = useState(
-    "Com a bênção de nossas famílias, convidamos você para celebrar o nosso amor.",
+    initial?.message ??
+      "Com a bênção de nossas famílias, convidamos você para celebrar o nosso amor.",
   );
-  const [tagline, setTagline] = useState("você está convidado para o nosso casamento");
-  const [palette, setPalette] = useState<Palette>(PALETTES[0]);
-  const [imageSrc, setImageSrc] = useState<string>(ceremonyImg);
+  const [tagline, setTagline] = useState(
+    initial?.tagline ?? "você está convidado para o nosso casamento",
+  );
+  const [palette, setPalette] = useState<Palette>(initialPalette);
+  const [imageSrc, setImageSrc] = useState<string>(initial?.imageSrc ?? ceremonyImg);
   const [exporting, setExporting] = useState(false);
+  const [versions, setVersions] = useState<SavedVersion[]>(() =>
+    loadJSON<SavedVersion[]>(VERSIONS_KEY, []),
+  );
+  const [autoStatus, setAutoStatus] = useState<"idle" | "saving" | "saved">("idle");
 
   const previewRef = useRef<HTMLDivElement>(null);
+
+  const draft: InviteDraft = {
+    brideName, groomName, date, time, venue, city, message, tagline,
+    paletteId: palette.id, imageSrc,
+  };
+
+  // Autosave (debounced) to localStorage
+  useEffect(() => {
+    setAutoStatus("saving");
+    const t = setTimeout(() => {
+      try {
+        window.localStorage.setItem(DRAFT_KEY, JSON.stringify(draft));
+        setAutoStatus("saved");
+      } catch {
+        setAutoStatus("idle");
+      }
+    }, 600);
+    return () => clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [brideName, groomName, date, time, venue, city, message, tagline, palette.id, imageSrc]);
+
+  function saveVersion() {
+    const v: SavedVersion = {
+      ...draft,
+      id: `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+      savedAt: Date.now(),
+      label: `${brideName} & ${groomName}`,
+    };
+    const next = [v, ...versions].slice(0, MAX_VERSIONS);
+    setVersions(next);
+    try {
+      window.localStorage.setItem(VERSIONS_KEY, JSON.stringify(next));
+    } catch {
+      /* quota exceeded — skip */
+    }
+  }
+
+  function loadVersion(v: SavedVersion) {
+    setBrideName(v.brideName);
+    setGroomName(v.groomName);
+    setDate(v.date);
+    setTime(v.time);
+    setVenue(v.venue);
+    setCity(v.city);
+    setMessage(v.message);
+    setTagline(v.tagline);
+    setPalette(PALETTES.find((p) => p.id === v.paletteId) ?? PALETTES[0]);
+    setImageSrc(v.imageSrc);
+  }
+
+  function deleteVersion(id: string) {
+    const next = versions.filter((v) => v.id !== id);
+    setVersions(next);
+    window.localStorage.setItem(VERSIONS_KEY, JSON.stringify(next));
+  }
+
+
 
   function onPickImage(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
@@ -124,7 +221,18 @@ function Editor() {
           <ArrowLeft className="h-4 w-4" />
           <span className="font-serif-caps text-[10px]">voltar</span>
         </Link>
-        <h1 className="font-display text-lg text-[var(--cocoa)]">Editor do Convite</h1>
+        <div className="flex flex-col items-center">
+          <h1 className="font-display text-lg text-[var(--cocoa)]">Editor do Convite</h1>
+          <span className="font-serif-caps text-[9px] text-[var(--gold-deep)]/80 flex items-center gap-1">
+            {autoStatus === "saving" ? (
+              <><Save className="h-2.5 w-2.5 animate-pulse" /> salvando…</>
+            ) : autoStatus === "saved" ? (
+              <><Check className="h-2.5 w-2.5" /> rascunho salvo</>
+            ) : (
+              <>rascunho automático</>
+            )}
+          </span>
+        </div>
         <button
           onClick={onExport}
           disabled={exporting}
@@ -238,6 +346,46 @@ function Editor() {
               <input type="file" accept="image/*" className="hidden" onChange={onPickImage} />
             </label>
           </Section>
+
+          <Section icon={History} title="Versões salvas">
+            <button
+              onClick={saveVersion}
+              className="flex w-full items-center justify-center gap-2 rounded-lg border border-[var(--gold)]/30 bg-[var(--gold)]/10 px-3 py-2 font-serif-caps text-[10px] text-[var(--gold-deep)] hover:bg-[var(--gold)]/20"
+            >
+              <Save className="h-3 w-3" /> Salvar versão atual
+            </button>
+            {versions.length === 0 ? (
+              <p className="text-center font-display text-[12px] italic text-[var(--cocoa)]/50">
+                Nenhuma versão salva ainda. Seu rascunho é guardado automaticamente.
+              </p>
+            ) : (
+              <ul className="space-y-1.5">
+                {versions.map((v) => (
+                  <li
+                    key={v.id}
+                    className="flex items-center justify-between gap-2 rounded-lg border border-[var(--gold)]/20 bg-[var(--ivory)] px-2.5 py-2"
+                  >
+                    <button onClick={() => loadVersion(v)} className="flex-1 text-left">
+                      <p className="font-display text-sm text-[var(--cocoa)] leading-tight">{v.label}</p>
+                      <p className="font-serif-caps text-[9px] text-[var(--gold-deep)]/70">
+                        {new Date(v.savedAt).toLocaleString("pt-BR", {
+                          day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit",
+                        })}
+                      </p>
+                    </button>
+                    <button
+                      onClick={() => deleteVersion(v.id)}
+                      className="rounded-md p-1.5 text-[var(--cocoa)]/40 hover:bg-red-50 hover:text-red-500"
+                      aria-label="Excluir versão"
+                    >
+                      <Trash2 className="h-3.5 w-3.5" />
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </Section>
+
 
           <button
             onClick={onExport}
