@@ -660,6 +660,13 @@ function EditarTimeline() {
                   {c.storage_path ? "Trocar foto" : "Enviar foto"}
                 </button>
                 <button
+                  onClick={() => startEdit(c)}
+                  className="inline-flex items-center gap-1.5 rounded-full border border-[var(--gold)]/30 bg-[var(--ivory)] px-3 py-1.5 font-serif-caps text-[10px] text-[var(--cocoa)]"
+                >
+                  <Pencil className="h-3 w-3" />
+                  Editar
+                </button>
+                <button
                   onClick={() => saveItem(c)}
                   disabled={savingId === c.id}
                   className="inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 font-serif-caps text-[10px] text-[var(--ivory)] disabled:opacity-60"
