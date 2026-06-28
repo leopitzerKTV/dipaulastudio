@@ -19,6 +19,7 @@ import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AlbumRouteImport } from './routes/album'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as PresentesIndexRouteImport } from './routes/presentes.index'
+import { Route as RsvpGerirRouteImport } from './routes/rsvp.gerir'
 import { Route as PresentesGerirRouteImport } from './routes/presentes.gerir'
 import { Route as ManualEditarRouteImport } from './routes/manual.editar'
 import { Route as LinhaDoTempoEditarRouteImport } from './routes/linha-do-tempo.editar'
@@ -75,6 +76,11 @@ const PresentesIndexRoute = PresentesIndexRouteImport.update({
   path: '/presentes/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const RsvpGerirRoute = RsvpGerirRouteImport.update({
+  id: '/gerir',
+  path: '/gerir',
+  getParentRoute: () => RsvpRoute,
+} as any)
 const PresentesGerirRoute = PresentesGerirRouteImport.update({
   id: '/presentes/gerir',
   path: '/presentes/gerir',
@@ -110,11 +116,12 @@ export interface FileRoutesByFullPath {
   '/linha-do-tempo': typeof LinhaDoTempoRouteWithChildren
   '/manual': typeof ManualRouteWithChildren
   '/painel': typeof PainelRoute
-  '/rsvp': typeof RsvpRoute
+  '/rsvp': typeof RsvpRouteWithChildren
   '/historia/editar': typeof HistoriaEditarRoute
   '/linha-do-tempo/editar': typeof LinhaDoTempoEditarRoute
   '/manual/editar': typeof ManualEditarRoute
   '/presentes/gerir': typeof PresentesGerirRoute
+  '/rsvp/gerir': typeof RsvpGerirRoute
   '/presentes/': typeof PresentesIndexRoute
   '/presentes/confirmar/$token': typeof PresentesConfirmarTokenRoute
 }
@@ -127,11 +134,12 @@ export interface FileRoutesByTo {
   '/linha-do-tempo': typeof LinhaDoTempoRouteWithChildren
   '/manual': typeof ManualRouteWithChildren
   '/painel': typeof PainelRoute
-  '/rsvp': typeof RsvpRoute
+  '/rsvp': typeof RsvpRouteWithChildren
   '/historia/editar': typeof HistoriaEditarRoute
   '/linha-do-tempo/editar': typeof LinhaDoTempoEditarRoute
   '/manual/editar': typeof ManualEditarRoute
   '/presentes/gerir': typeof PresentesGerirRoute
+  '/rsvp/gerir': typeof RsvpGerirRoute
   '/presentes': typeof PresentesIndexRoute
   '/presentes/confirmar/$token': typeof PresentesConfirmarTokenRoute
 }
@@ -145,11 +153,12 @@ export interface FileRoutesById {
   '/linha-do-tempo': typeof LinhaDoTempoRouteWithChildren
   '/manual': typeof ManualRouteWithChildren
   '/painel': typeof PainelRoute
-  '/rsvp': typeof RsvpRoute
+  '/rsvp': typeof RsvpRouteWithChildren
   '/historia/editar': typeof HistoriaEditarRoute
   '/linha-do-tempo/editar': typeof LinhaDoTempoEditarRoute
   '/manual/editar': typeof ManualEditarRoute
   '/presentes/gerir': typeof PresentesGerirRoute
+  '/rsvp/gerir': typeof RsvpGerirRoute
   '/presentes/': typeof PresentesIndexRoute
   '/presentes/confirmar/$token': typeof PresentesConfirmarTokenRoute
 }
@@ -169,6 +178,7 @@ export interface FileRouteTypes {
     | '/linha-do-tempo/editar'
     | '/manual/editar'
     | '/presentes/gerir'
+    | '/rsvp/gerir'
     | '/presentes/'
     | '/presentes/confirmar/$token'
   fileRoutesByTo: FileRoutesByTo
@@ -186,6 +196,7 @@ export interface FileRouteTypes {
     | '/linha-do-tempo/editar'
     | '/manual/editar'
     | '/presentes/gerir'
+    | '/rsvp/gerir'
     | '/presentes'
     | '/presentes/confirmar/$token'
   id:
@@ -203,6 +214,7 @@ export interface FileRouteTypes {
     | '/linha-do-tempo/editar'
     | '/manual/editar'
     | '/presentes/gerir'
+    | '/rsvp/gerir'
     | '/presentes/'
     | '/presentes/confirmar/$token'
   fileRoutesById: FileRoutesById
@@ -216,7 +228,7 @@ export interface RootRouteChildren {
   LinhaDoTempoRoute: typeof LinhaDoTempoRouteWithChildren
   ManualRoute: typeof ManualRouteWithChildren
   PainelRoute: typeof PainelRoute
-  RsvpRoute: typeof RsvpRoute
+  RsvpRoute: typeof RsvpRouteWithChildren
   PresentesGerirRoute: typeof PresentesGerirRoute
   PresentesIndexRoute: typeof PresentesIndexRoute
   PresentesConfirmarTokenRoute: typeof PresentesConfirmarTokenRoute
@@ -294,6 +306,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PresentesIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/rsvp/gerir': {
+      id: '/rsvp/gerir'
+      path: '/gerir'
+      fullPath: '/rsvp/gerir'
+      preLoaderRoute: typeof RsvpGerirRouteImport
+      parentRoute: typeof RsvpRoute
+    }
     '/presentes/gerir': {
       id: '/presentes/gerir'
       path: '/presentes/gerir'
@@ -367,6 +386,16 @@ const ManualRouteChildren: ManualRouteChildren = {
 const ManualRouteWithChildren =
   ManualRoute._addFileChildren(ManualRouteChildren)
 
+interface RsvpRouteChildren {
+  RsvpGerirRoute: typeof RsvpGerirRoute
+}
+
+const RsvpRouteChildren: RsvpRouteChildren = {
+  RsvpGerirRoute: RsvpGerirRoute,
+}
+
+const RsvpRouteWithChildren = RsvpRoute._addFileChildren(RsvpRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AlbumRoute: AlbumRoute,
@@ -376,7 +405,7 @@ const rootRouteChildren: RootRouteChildren = {
   LinhaDoTempoRoute: LinhaDoTempoRouteWithChildren,
   ManualRoute: ManualRouteWithChildren,
   PainelRoute: PainelRoute,
-  RsvpRoute: RsvpRoute,
+  RsvpRoute: RsvpRouteWithChildren,
   PresentesGerirRoute: PresentesGerirRoute,
   PresentesIndexRoute: PresentesIndexRoute,
   PresentesConfirmarTokenRoute: PresentesConfirmarTokenRoute,
