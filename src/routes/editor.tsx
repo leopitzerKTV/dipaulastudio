@@ -275,6 +275,7 @@ function Editor() {
 
   const cancelBatchRef = useRef(false);
   const [cancelled, setCancelled] = useState(false);
+  const [cancellingBatch, setCancellingBatch] = useState(false);
   const [showCancelConfirm, setShowCancelConfirm] = useState(false);
 
   function promptCancelBatch() {
@@ -284,12 +285,14 @@ function Editor() {
   function confirmCancelBatch() {
     cancelBatchRef.current = true;
     setCancelled(true);
+    setCancellingBatch(true);
     setShowCancelConfirm(false);
   }
 
   function dismissCancelConfirm() {
     setShowCancelConfirm(false);
   }
+
 
 
   async function onPrepareBatch() {
