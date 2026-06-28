@@ -666,14 +666,36 @@ function Editor() {
                 );
               })}
             </ul>
-            <button
-              onClick={cancelBatch}
-              disabled={cancelled}
-              className="mt-4 flex w-full items-center justify-center gap-2 rounded-full border border-red-300 bg-white px-3 py-2 font-serif-caps text-[10px] text-red-600 hover:bg-red-50 disabled:opacity-60"
-            >
-              <Trash2 className="h-3 w-3" />
-              {cancelled ? "Cancelando…" : "Cancelar geração"}
-            </button>
+            {showCancelConfirm ? (
+              <div className="mt-4 rounded-2xl border border-red-200 bg-red-50 p-3">
+                <p className="text-center font-display text-xs text-red-700">
+                  Tem certeza que deseja cancelar a geração?
+                </p>
+                <div className="mt-2 flex gap-2">
+                  <button
+                    onClick={dismissCancelConfirm}
+                    className="flex-1 rounded-full border border-[var(--gold-deep)]/40 bg-white px-3 py-2 font-serif-caps text-[10px] text-[var(--cocoa)] hover:bg-[var(--gold)]/10"
+                  >
+                    Voltar
+                  </button>
+                  <button
+                    onClick={confirmCancelBatch}
+                    className="flex-1 rounded-full bg-red-600 px-3 py-2 font-serif-caps text-[10px] text-white hover:bg-red-700"
+                  >
+                    Sim, cancelar
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <button
+                onClick={promptCancelBatch}
+                disabled={cancelled}
+                className="mt-4 flex w-full items-center justify-center gap-2 rounded-full border border-red-300 bg-white px-3 py-2 font-serif-caps text-[10px] text-red-600 hover:bg-red-50 disabled:opacity-60"
+              >
+                <Trash2 className="h-3 w-3" />
+                {cancelled ? "Cancelando…" : "Cancelar geração"}
+              </button>
+            )}
           </div>
         </div>
       )}
