@@ -27,7 +27,9 @@ function Index() {
   const [manual, setManual] = useState<ManualData | null>(null);
   const [rowId, setRowId] = useState<string | null>(null);
   const [isCouple, setIsCouple] = useState(false);
-  const [editMode, setEditMode] = useState(false);
+  const [viewMode, setViewMode] = useState<"normal" | "edit" | "guest">("normal");
+  const editMode = viewMode === "edit";
+  const guestMode = viewMode === "guest";
   const [saveState, setSaveState] = useState<"idle" | "saving" | "saved">("idle");
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
