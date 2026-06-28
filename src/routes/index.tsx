@@ -1,11 +1,10 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { motion } from "motion/react";
-import { Mail, Calendar, MapPin, Gift, Heart, Wand2, BookOpen, Download, QrCode as QrCodeIcon, Edit3, Check, Loader2, Smartphone } from "lucide-react";
+import { Mail, Calendar, MapPin, Gift, Heart, Wand2, Edit3, Check, Loader2, Smartphone } from "lucide-react";
 import { useEffect, useRef, useState, useCallback } from "react";
 import { toast } from "sonner";
 import { AppShell } from "@/components/AppShell";
 import { Ornament } from "@/components/Ornament";
-import { QrCode } from "@/components/QrCode";
 import { ManualView, type ManualData } from "@/components/ManualView";
 import { supabase } from "@/integrations/supabase/client";
 import ceremonyImg from "@/assets/ceremony.jpg";
