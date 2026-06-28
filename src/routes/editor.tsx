@@ -554,15 +554,77 @@ function Editor() {
             </button>
           </div>
           <button
-            onClick={onExportZip}
+            onClick={onPrepareBatch}
             disabled={anyExporting}
             className="flex w-full items-center justify-center gap-2 rounded-2xl bg-[var(--cocoa)] py-3 font-serif-caps text-[10px] text-[var(--ivory)] shadow-[var(--shadow-card)] hover:opacity-90 disabled:opacity-60"
           >
             <Package className="h-4 w-4" />
-            {exportingZip ? "Gerando ZIP…" : "Baixar tudo (ZIP: PNG + JPG + PDF)"}
+            {preparingBatch ? "Preparando prévia…" : "Prévia em lote (PNG + JPG + PDF)"}
           </button>
         </aside>
       </div>
+
+      {batchPreview && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-[var(--cocoa)]/70 p-4 backdrop-blur-sm"
+          onClick={closeBatchPreview}
+        >
+          <div
+            className="w-full max-w-2xl rounded-3xl border border-[var(--gold)]/30 bg-[var(--ivory)] p-6 shadow-[var(--shadow-luxe)]"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="mb-4 flex items-start justify-between gap-4">
+              <div>
+                <h3 className="font-display text-xl text-[var(--cocoa)]">Confira antes de gerar o ZIP</h3>
+                <p className="font-serif-caps text-[10px] text-[var(--gold-deep)]/80">
+                  prévia dos 3 arquivos que serão incluídos
+                </p>
+              </div>
+              <button
+                onClick={closeBatchPreview}
+                className="rounded-full border border-[var(--gold)]/30 px-3 py-1 font-serif-caps text-[10px] text-[var(--cocoa)]/70 hover:bg-[var(--gold)]/10"
+              >
+                Cancelar
+              </button>
+            </div>
+
+            <div className="grid grid-cols-3 gap-3">
+              <PreviewTile label="PNG 9:16" sub="alta resolução">
+                <img src={batchPreview.pngUrl} alt="Prévia PNG" className="h-full w-full object-cover" />
+              </PreviewTile>
+              <PreviewTile label="JPG 9:16" sub="qualidade 95%">
+                <img src={batchPreview.jpgUrl} alt="Prévia JPG" className="h-full w-full object-cover" />
+              </PreviewTile>
+              <PreviewTile label="PDF A4" sub="vertical">
+                <iframe
+                  src={`${batchPreview.pdfBlobUrl}#toolbar=0&navpanes=0&view=FitH`}
+                  title="Prévia PDF"
+                  className="h-full w-full"
+                />
+              </PreviewTile>
+            </div>
+
+            <div className="mt-5 flex flex-col gap-2 sm:flex-row sm:justify-end">
+              <button
+                onClick={onPrepareBatch}
+                disabled={preparingBatch || exportingZip}
+                className="rounded-full border border-[var(--gold-deep)]/40 px-4 py-2 font-serif-caps text-[10px] text-[var(--gold-deep)] hover:bg-[var(--gold)]/10 disabled:opacity-60"
+              >
+                {preparingBatch ? "Atualizando…" : "Atualizar prévia"}
+              </button>
+              <button
+                onClick={confirmDownloadZip}
+                disabled={exportingZip}
+                className="inline-flex items-center justify-center gap-2 rounded-full px-5 py-2 font-serif-caps text-[10px] text-[var(--ivory)] shadow-[var(--shadow-card)] disabled:opacity-60"
+                style={{ background: palette.gradient }}
+              >
+                <Package className="h-3.5 w-3.5" />
+                {exportingZip ? "Gerando ZIP…" : "Confirmar e baixar ZIP"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
