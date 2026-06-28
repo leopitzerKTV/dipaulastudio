@@ -22,11 +22,25 @@ type Chapter = {
   id: string;
   position: number;
   storage_path: string | null;
+  event_date: string | null;
   date_label: string;
   title: string;
   body: string;
   imageUrl?: string;
 };
+
+const MONTHS_PT = [
+  "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
+  "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro",
+];
+
+function formatDateLabel(iso: string): string {
+  const [y, m] = iso.split("-");
+  const idx = Number(m) - 1;
+  if (!y || Number.isNaN(idx) || idx < 0 || idx > 11) return "";
+  return `${MONTHS_PT[idx]} · ${y}`;
+}
+
 
 function EditarHistoria() {
   const [chapters, setChapters] = useState<Chapter[]>([]);
