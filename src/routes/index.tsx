@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { motion } from "motion/react";
-import { Mail, Calendar, MapPin, Gift, Heart, Wand2, BookOpen, Download, QrCode as QrCodeIcon, Edit3, Check, Loader2 } from "lucide-react";
+import { Mail, Calendar, MapPin, Gift, Heart, Wand2, BookOpen, Download, QrCode as QrCodeIcon, Edit3, Check, Loader2, Smartphone } from "lucide-react";
 import { useEffect, useRef, useState, useCallback } from "react";
 import { toast } from "sonner";
 import { AppShell } from "@/components/AppShell";
@@ -27,7 +27,9 @@ function Index() {
   const [manual, setManual] = useState<ManualData | null>(null);
   const [rowId, setRowId] = useState<string | null>(null);
   const [isCouple, setIsCouple] = useState(false);
-  const [editMode, setEditMode] = useState(false);
+  const [viewMode, setViewMode] = useState<"normal" | "edit" | "guest">("normal");
+  const editMode = viewMode === "edit";
+  const guestMode = viewMode === "guest";
   const [saveState, setSaveState] = useState<"idle" | "saving" | "saved">("idle");
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -199,21 +201,20 @@ function Index() {
           <p className="mt-1 text-sm text-[var(--cocoa)]/65">
             {editMode
               ? "Toque em qualquer item para editar. Salva automaticamente."
-              : "Cada item personalizado pela noiva — role para conhecer."}
+              : guestMode
+                ? "Pré-visualização exatamente como o convidado verá no celular."
+                : "Cada item personalizado pela noiva — role para conhecer."}
           </p>
           {isCouple ? (
-            <div className="mt-4 flex items-center justify-center gap-2">
-              <button
-                onClick={() => setEditMode((v) => !v)}
-                className={
-                  editMode
-                    ? "inline-flex items-center gap-1.5 rounded-full bg-[var(--gold-deep)] px-3 py-1.5 text-[10px] font-serif-caps text-white"
-                    : "inline-flex items-center gap-1.5 rounded-full border border-[var(--gold)]/40 bg-white/60 px-3 py-1.5 text-[10px] font-serif-caps text-[var(--gold-deep)] hover:bg-white"
-                }
-              >
-                {editMode ? <Check className="h-3 w-3" /> : <Edit3 className="h-3 w-3" />}
-                {editMode ? "Concluir edição" : "Editar aqui"}
-              </button>
+            <div className="mt-4 flex flex-wrap items-center justify-center gap-2">
+              <div className="inline-flex rounded-full border border-[var(--gold)]/40 bg-white/60 p-0.5">
+                <ModeBtn active={viewMode === "edit"} onClick={() => setViewMode(viewMode === "edit" ? "normal" : "edit")}>
+                  <Edit3 className="h-3 w-3" /> Editar
+                </ModeBtn>
+                <ModeBtn active={viewMode === "guest"} onClick={() => setViewMode(viewMode === "guest" ? "normal" : "guest")}>
+                  <Smartphone className="h-3 w-3" /> Como convidado
+                </ModeBtn>
+              </div>
               {editMode && saveState !== "idle" && (
                 <span className="inline-flex items-center gap-1 text-[10px] font-serif-caps text-[var(--cocoa)]/55">
                   {saveState === "saving" ? (
@@ -237,13 +238,20 @@ function Index() {
             </Link>
           )}
         </div>
-        <div className="-mx-0 mt-2 border-y border-[var(--gold)]/20 bg-[var(--ivory)]">
-          <ManualView
-            data={manual}
-            editable={editMode && isCouple}
-            onFieldChange={handleFieldChange}
-          />
-        </div>
+        {guestMode ? (
+          <div className="mt-6 flex justify-center px-4 pb-4">
+            <div className="relative w-full max-w-[22rem] rounded-[2.5rem] border-[10px] border-[var(--cocoa)] bg-[var(--cocoa)] shadow-[var(--shadow-luxe)]">
+              <div className="absolute left-1/2 top-2 z-10 h-1.5 w-20 -translate-x-1/2 rounded-full bg-[var(--cocoa)]/60" />
+              <div className="max-h-[80vh] overflow-y-auto rounded-[2rem] bg-[var(--ivory)]">
+                <ManualView data={manual} linkAlbum={false} />
+              </div>
+            </div>
+          </div>
+        ) : (
+          <div className="-mx-0 mt-2 border-y border-[var(--gold)]/20 bg-[var(--ivory)]">
+            <ManualView data={manual} editable={editMode && isCouple} onFieldChange={handleFieldChange} />
+          </div>
+        )}
       </section>
 
       {/* QR Code para o Manual */}
@@ -307,5 +315,19 @@ function ActionCard({ to, Icon, title, sub }: { to: string; Icon: React.Componen
       </div>
       <span className="font-serif-caps text-[10px] text-[var(--gold-deep)] opacity-0 transition-opacity group-hover:opacity-100">abrir</span>
     </Link>
+  );
+}
+
+function ModeBtn({ active, onClick, children }: { active: boolean; onClick: () => void; children: React.ReactNode }) {
+  return (
+    <button
+      onClick={onClick}
+      className={
+        "inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[10px] font-serif-caps transition-colors " +
+        (active ? "bg-[var(--gold-deep)] text-white" : "text-[var(--gold-deep)] hover:bg-white")
+      }
+    >
+      {children}
+    </button>
   );
 }
