@@ -1163,6 +1163,8 @@ function Editor() {
           </div>
         </div>
       )}
+
+      <EditorTour steps={TOUR_STEPS} open={tourOpen} onClose={closeTour} />
     </div>
   );
 }
