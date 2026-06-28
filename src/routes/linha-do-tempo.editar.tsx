@@ -63,13 +63,13 @@ function EditarTimeline() {
 
   useEffect(() => {
     if (!newFile) {
-      setNewPreview(null);
+      if (!editingId) setNewPreview(null);
       return;
     }
     const url = URL.createObjectURL(newFile);
     setNewPreview(url);
     return () => URL.revokeObjectURL(url);
-  }, [newFile]);
+  }, [newFile, editingId]);
 
   async function load() {
     setLoading(true);
