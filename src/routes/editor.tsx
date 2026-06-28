@@ -960,6 +960,77 @@ function Editor() {
             </div>
           </div>
         </div>
+      {showClearConfirm && (
+        <div
+          className="fixed inset-0 z-[70] flex items-center justify-center bg-[var(--cocoa)]/70 p-4 backdrop-blur-sm"
+          onClick={dismissClearBatchProgress}
+        >
+          <div
+            className="w-full max-w-sm rounded-3xl border border-red-200 bg-[var(--ivory)] p-6 shadow-[var(--shadow-luxe)]"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="mb-3 flex items-center gap-2">
+              <AlertTriangle className="h-5 w-5 text-red-600" />
+              <h3 className="font-display text-base text-[var(--cocoa)]">Apagar progresso salvo?</h3>
+            </div>
+            <p className="font-display text-xs leading-relaxed text-[var(--cocoa)]/80">
+              Você tem um progresso de geração salvo. Se apagar, perderá o que já foi renderizado de
+              <strong> PNG, JPG e PDF</strong> e terá que começar do zero.
+            </p>
+            <div className="mt-4 rounded-2xl bg-red-50 p-3">
+              <p className="font-serif-caps text-[10px] text-red-700">
+                Etapas concluídas que serão perdidas:
+              </p>
+              <ul className="mt-1.5 space-y-1 font-serif-caps text-[10px] text-red-700/80">
+                {batchPartial?.pngUrl && (
+                  <li className="flex items-center gap-1.5">
+                    <Check className="h-3 w-3" /> PNG 9:16
+                  </li>
+                )}
+                {batchPartial?.jpgUrl && (
+                  <li className="flex items-center gap-1.5">
+                    <Check className="h-3 w-3" /> JPG 9:16
+                  </li>
+                )}
+                {batchPartial?.pdfBlobUrl && (
+                  <li className="flex items-center gap-1.5">
+                    <Check className="h-3 w-3" /> PDF A4
+                  </li>
+                )}
+                {!batchPartial?.pngUrl && !batchPartial?.jpgUrl && !batchPartial?.pdfBlobUrl && (
+                  <li>Nenhuma etapa concluída ainda.</li>
+                )}
+              </ul>
+            </div>
+            <label className="mt-4 flex cursor-pointer items-center gap-2">
+              <input
+                type="checkbox"
+                checked={skipClearConfirm}
+                onChange={(e) => setSkipClearConfirm(e.target.checked)}
+                className="h-4 w-4 rounded border-red-300 text-red-600 focus:ring-red-500"
+              />
+              <span className="font-serif-caps text-[10px] text-[var(--cocoa)]/80">
+                Não perguntar novamente
+              </span>
+            </label>
+            <div className="mt-5 flex flex-col gap-2 sm:flex-row">
+              <button
+                onClick={dismissClearBatchProgress}
+                disabled={preparingBatch}
+                className="flex-1 rounded-full border border-[var(--gold-deep)]/40 bg-white px-4 py-2 font-serif-caps text-[10px] text-[var(--cocoa)] hover:bg-[var(--gold)]/10 disabled:opacity-60"
+              >
+                Manter progresso
+              </button>
+              <button
+                onClick={() => confirmClearBatchProgress(skipClearConfirm)}
+                disabled={preparingBatch}
+                className="flex-1 rounded-full bg-red-600 px-4 py-2 font-serif-caps text-[10px] text-white hover:bg-red-700 disabled:opacity-60"
+              >
+                Apagar e recomeçar
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );
