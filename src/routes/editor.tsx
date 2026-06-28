@@ -1,9 +1,55 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import { toJpeg, toPng } from "html-to-image";
-import { ArrowLeft, Download, FileDown, FileImage, Image as ImageIcon, Palette, Type, Calendar, MapPin, History, Save, Trash2, Check, Package, AlertTriangle } from "lucide-react";
+import { ArrowLeft, Download, FileDown, FileImage, Image as ImageIcon, Palette, Type, Calendar, MapPin, History, Save, Trash2, Check, Package, AlertTriangle, Sparkles } from "lucide-react";
 import { Ornament } from "@/components/Ornament";
+import { EditorTour, type TourStep } from "@/components/EditorTour";
 import ceremonyImg from "@/assets/ceremony.jpg";
+
+const TOUR_SEEN_KEY = "nossahistoria.invite.tourSeen";
+
+const TOUR_STEPS: TourStep[] = [
+  {
+    selector: "[data-tour='preview']",
+    title: "Preview ao vivo",
+    body: "Aqui está seu convite. Tudo que você editar à direita aparece aqui na hora, sem precisar salvar.",
+  },
+  {
+    selector: "[data-tour='names']",
+    title: "Nomes do casal",
+    body: "Comece pelos nomes da noiva e do noivo — eles ganham destaque no centro do convite.",
+  },
+  {
+    selector: "[data-tour='date']",
+    title: "Data, hora e local",
+    body: "Defina quando e onde a cerimônia acontece. A data aparece sobre a imagem principal.",
+  },
+  {
+    selector: "[data-tour='message']",
+    title: "Mensagem e chamada",
+    body: "A 'chamada' é o convite curto no topo; a 'mensagem' é a frase em itálico abaixo da foto.",
+  },
+  {
+    selector: "[data-tour='palette']",
+    title: "Paleta de cores",
+    body: "Escolha entre Champanhe, Marfim, Blush e Mogno. Toda a identidade visual muda junto.",
+  },
+  {
+    selector: "[data-tour='image']",
+    title: "Imagem principal",
+    body: "Use uma foto sua na proporção 9:16 para um resultado ideal. Ela vira o coração do convite.",
+  },
+  {
+    selector: "[data-tour='versions']",
+    title: "Versões salvas",
+    body: "Salve quantas variações quiser e volte a qualquer uma com um clique. Seu rascunho atual é guardado automaticamente.",
+  },
+  {
+    selector: "[data-tour='export']",
+    title: "Exportar arquivos",
+    body: "Baixe o convite em PNG, JPG ou PDF A4, ou gere o ZIP em lote com os três arquivos prontos.",
+  },
+];
 
 const DRAFT_KEY = "nossahistoria.invite.draft";
 const VERSIONS_KEY = "nossahistoria.invite.versions";
