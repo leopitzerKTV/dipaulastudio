@@ -57,6 +57,7 @@ function EditarTimeline() {
     setNewFile(null);
     setNewPreview(c.imageUrl || null);
     setEditingId(c.id);
+    if (newFileRef.current) newFileRef.current.value = "";
     setShowAddCard(true);
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
