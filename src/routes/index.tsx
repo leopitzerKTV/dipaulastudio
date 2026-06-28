@@ -283,36 +283,6 @@ function Index() {
         )}
       </section>
 
-      {/* QR Code para o Manual */}
-      <section className="mt-10 px-6">
-        <Ornament />
-        <div className="mt-5 rounded-2xl border border-[var(--gold)]/25 bg-[var(--card)] p-5 text-center shadow-[var(--shadow-card)]">
-          <div className="mx-auto grid h-12 w-12 place-items-center rounded-2xl bg-[var(--gold)]/12 text-[var(--gold-deep)]">
-            <QrCodeIcon className="h-5 w-5" strokeWidth={1.4} />
-          </div>
-          <h2 className="mt-4 font-display text-2xl text-[var(--cocoa)]">Manual do Convidado</h2>
-          <p className="mt-1 text-sm text-[var(--cocoa)]/65">
-            Aponte a câmera do celular para acessar o manual completo.
-          </p>
-          <div className="mt-4 flex justify-center">
-            <QrCode value={manualUrl || "https://dipaulastudio.lovable.app/manual"} size={180} />
-          </div>
-          <button
-            onClick={() => {
-              const img = document.querySelector<HTMLImageElement>("img[alt='QR code para o Manual do Convidado']");
-              if (!img?.src) return;
-              const a = document.createElement("a");
-              a.href = img.src;
-              a.download = "qr-code-manual.png";
-              a.click();
-            }}
-            className="mt-4 inline-flex items-center gap-1.5 rounded-full bg-[var(--gold-deep)] px-4 py-2 text-[10px] font-serif-caps text-white"
-          >
-            <Download className="h-3 w-3" /> Baixar QR code
-          </button>
-        </div>
-      </section>
-
       <p className="mt-10 text-center font-serif-caps text-[10px] text-[var(--gold-deep)]/70">Nossa História · App de Casamento</p>
     </AppShell>
   );
