@@ -59,7 +59,7 @@ function Historia() {
       if (paths.length > 0) {
         const { data: signed } = await supabase.storage.from(BUCKET).createSignedUrls(paths, 60 * 60);
         signed?.forEach((s) => {
-          if (s.signedUrl) urlMap.set(s.path, s.signedUrl);
+          if (s.signedUrl && s.path) urlMap.set(s.path, s.signedUrl);
         });
       }
       setChapters(rows.map((r) => ({ ...r, imageUrl: r.storage_path ? urlMap.get(r.storage_path) : undefined })));
