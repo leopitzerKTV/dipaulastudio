@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { ArrowLeft, Plus, Trash2, ArrowUp, ArrowDown, Loader2, Upload, Save } from "lucide-react";
+import { ArrowLeft, Plus, Trash2, ArrowUp, ArrowDown, Loader2, Upload, Save, Eye, EyeOff } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { AppShell } from "@/components/AppShell";
@@ -28,6 +28,7 @@ function EditarHistoria() {
   const [savingId, setSavingId] = useState<string | null>(null);
   const [uploadingId, setUploadingId] = useState<string | null>(null);
   const [adding, setAdding] = useState(false);
+  const [showPreview, setShowPreview] = useState(true);
   const fileInputs = useRef<Record<string, HTMLInputElement | null>>({});
 
   async function load() {
@@ -178,8 +179,35 @@ function EditarHistoria() {
           <ArrowLeft className="h-4 w-4" />
         </Link>
         <p className="font-serif-caps text-[11px] text-[var(--cocoa)]/70">Editar capítulos</p>
-        <span className="h-9 w-9" />
+        <button
+          onClick={() => setShowPreview((v) => !v)}
+          aria-label={showPreview ? "Ocultar preview" : "Mostrar preview"}
+          className="grid h-9 w-9 place-items-center rounded-full bg-[var(--gold)]/12 text-[var(--gold-deep)]"
+        >
+          {showPreview ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+        </button>
       </header>
+
+      {showPreview && (
+        <section className="px-5 pt-4">
+          <div className="overflow-hidden rounded-2xl border border-[var(--gold)]/25 bg-[var(--card)] shadow-[var(--shadow-card)]">
+            <div className="flex items-center justify-between border-b border-[var(--gold)]/15 bg-[var(--ivory)]/70 px-3 py-2">
+              <p className="font-serif-caps text-[10px] text-[var(--cocoa)]/70">Preview ao vivo · /historia</p>
+              <span className="relative flex h-2 w-2">
+                <span className="absolute inset-0 animate-ping rounded-full bg-[var(--gold)] opacity-70" />
+                <span className="relative h-2 w-2 rounded-full bg-[var(--gold-deep)]" />
+              </span>
+            </div>
+            <iframe
+              key="historia-preview"
+              src="/historia"
+              title="Preview de Nossa História"
+              className="h-[420px] w-full border-0"
+              loading="lazy"
+            />
+          </div>
+        </section>
+      )}
 
       <section className="px-5 pt-5">
         <button

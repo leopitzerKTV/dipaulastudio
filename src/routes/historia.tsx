@@ -66,8 +66,21 @@ function Historia() {
       setLoading(false);
     }
     load();
+
+    const channel = supabase
+      .channel("story_chapters_changes")
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "story_chapters" },
+        () => {
+          load();
+        }
+      )
+      .subscribe();
+
     return () => {
       cancelled = true;
+      supabase.removeChannel(channel);
     };
   }, []);
 
