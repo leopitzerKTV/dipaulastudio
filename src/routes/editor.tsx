@@ -221,7 +221,18 @@ function Editor() {
           <ArrowLeft className="h-4 w-4" />
           <span className="font-serif-caps text-[10px]">voltar</span>
         </Link>
-        <h1 className="font-display text-lg text-[var(--cocoa)]">Editor do Convite</h1>
+        <div className="flex flex-col items-center">
+          <h1 className="font-display text-lg text-[var(--cocoa)]">Editor do Convite</h1>
+          <span className="font-serif-caps text-[9px] text-[var(--gold-deep)]/80 flex items-center gap-1">
+            {autoStatus === "saving" ? (
+              <><Save className="h-2.5 w-2.5 animate-pulse" /> salvando…</>
+            ) : autoStatus === "saved" ? (
+              <><Check className="h-2.5 w-2.5" /> rascunho salvo</>
+            ) : (
+              <>rascunho automático</>
+            )}
+          </span>
+        </div>
         <button
           onClick={onExport}
           disabled={exporting}
