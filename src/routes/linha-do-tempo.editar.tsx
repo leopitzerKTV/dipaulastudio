@@ -171,10 +171,8 @@ function EditarTimeline() {
       imageUrl = signed?.signedUrl;
     }
     setItems((prev) => [...prev, { ...(data as Milestone), imageUrl }]);
-    setNewDate("");
-    setNewTitle("");
-    setNewFile(null);
-    if (newFileRef.current) newFileRef.current.value = "";
+    resetNewMilestone();
+    setShowAddCard(false);
     setAdding(false);
     toast.success("Marco adicionado");
   }
