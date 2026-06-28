@@ -12,13 +12,22 @@ export type ManualData = {
   welcome_note: string | null;
 };
 
-export function ManualView({ data, linkAlbum = true }: { data: ManualData | null; linkAlbum?: boolean }) {
+export function ManualView({
+  data,
+  linkAlbum = true,
+  innerRef,
+}: {
+  data: ManualData | null;
+  linkAlbum?: boolean;
+  innerRef?: React.Ref<HTMLDivElement>;
+}) {
   const m = data;
   const ph = (v: string | null | undefined, fallback = "A confirmar") =>
     v && v.trim() ? v : <span className="italic text-[var(--cocoa)]/45">{fallback}</span>;
 
   return (
-    <div>
+    <div ref={innerRef} className="bg-[var(--ivory)]">
+
       <section className="px-6 pt-8 text-center">
         <p className="font-serif-caps text-[10px] text-[var(--gold-deep)]">Manual do Convidado</p>
         <Ornament className="mt-4" />
