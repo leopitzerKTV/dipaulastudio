@@ -146,6 +146,17 @@ function Editor() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [brideName, groomName, date, time, venue, city, message, tagline, palette.id, imageSrc]);
 
+  // Invalidate partial batch results when the invitation content changes
+  useEffect(() => {
+    if (batchPartial) setBatchPartial(null);
+    if (batchPreview) {
+      URL.revokeObjectURL(batchPreview.pdfBlobUrl);
+      setBatchPreview(null);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [brideName, groomName, date, time, venue, city, message, tagline, palette.id, imageSrc]);
+
+
   function saveVersion() {
     const v: SavedVersion = {
       ...draft,
