@@ -919,6 +919,7 @@ function Editor() {
               Limpar progresso salvo e recomeçar
             </button>
           )}
+          </div>
         </aside>
       </div>
 
