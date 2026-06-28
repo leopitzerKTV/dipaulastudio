@@ -93,30 +93,75 @@ function Album() {
       localStorage.setItem("album.authorName", name);
     }
 
-    setUploading(true);
-    try {
-      for (const file of Array.from(files)) {
-        if (!file.type.startsWith("image/")) continue;
-        const ext = file.name.split(".").pop() || "jpg";
-        const path = `${crypto.randomUUID()}.${ext}`;
-        const { error: upErr } = await supabase.storage
+    const items: UploadItem[] = Array.from(files)
+      .filter((f) => f.type.startsWith("image/"))
+      .map((f) => ({
+        id: crypto.randomUUID(),
+        name: f.name,
+        previewUrl: URL.createObjectURL(f),
+        progress: 0,
+        status: "pending" as UploadStatus,
+      }));
+    if (items.length === 0) return;
+    setUploads((prev) => [...items, ...prev]);
+
+    const fileMap = new Map(items.map((it, i) => [it.id, Array.from(files).filter((f) => f.type.startsWith("image/"))[i]]));
+
+    const updateItem = (id: string, patch: Partial<UploadItem>) =>
+      setUploads((prev) => prev.map((u) => (u.id === id ? { ...u, ...patch } : u)));
+
+    for (const item of items) {
+      const file = fileMap.get(item.id)!;
+      const ext = file.name.split(".").pop() || "jpg";
+      const path = `${crypto.randomUUID()}.${ext}`;
+      updateItem(item.id, { status: "uploading", progress: 0 });
+
+      try {
+        const { data: signed, error: signErr } = await supabase.storage
           .from(BUCKET)
-          .upload(path, file, { cacheControl: "3600", upsert: false });
-        if (upErr) {
-          console.error(upErr);
-          continue;
-        }
+          .createSignedUploadUrl(path);
+        if (signErr || !signed) throw signErr ?? new Error("Falha ao iniciar upload");
+
+        await new Promise<void>((resolve, reject) => {
+          const xhr = new XMLHttpRequest();
+          xhr.open("PUT", signed.signedUrl, true);
+          xhr.setRequestHeader("Content-Type", file.type || "application/octet-stream");
+          xhr.setRequestHeader("x-upsert", "false");
+          xhr.upload.onprogress = (e) => {
+            if (e.lengthComputable) {
+              updateItem(item.id, { progress: Math.round((e.loaded / e.total) * 100) });
+            }
+          };
+          xhr.onload = () =>
+            xhr.status >= 200 && xhr.status < 300
+              ? resolve()
+              : reject(new Error(`HTTP ${xhr.status}`));
+          xhr.onerror = () => reject(new Error("Erro de rede"));
+          xhr.send(file);
+        });
+
+        updateItem(item.id, { progress: 100, status: "saving" });
         const { error: insErr } = await supabase
           .from("album_photos")
           .insert({ storage_path: path, author_name: name, caption: null });
-        if (insErr) console.error(insErr);
+        if (insErr) throw insErr;
+
+        updateItem(item.id, { status: "done" });
+        // remove from queue after a short delay
+        setTimeout(() => {
+          URL.revokeObjectURL(item.previewUrl);
+          setUploads((prev) => prev.filter((u) => u.id !== item.id));
+        }, 1500);
+      } catch (err) {
+        console.error(err);
+        updateItem(item.id, {
+          status: "error",
+          error: err instanceof Error ? err.message : "Falha no envio",
+        });
       }
-      // Fallback in case realtime is not enabled
-      await load();
-    } finally {
-      setUploading(false);
-      if (fileRef.current) fileRef.current.value = "";
     }
+
+    if (fileRef.current) fileRef.current.value = "";
   }
 
   return (
