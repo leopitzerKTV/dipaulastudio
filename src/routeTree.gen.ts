@@ -15,6 +15,7 @@ import { Route as HistoriaRouteImport } from './routes/historia'
 import { Route as EditorRouteImport } from './routes/editor'
 import { Route as AlbumRouteImport } from './routes/album'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as LinhaDoTempoEditarRouteImport } from './routes/linha-do-tempo.editar'
 import { Route as HistoriaEditarRouteImport } from './routes/historia.editar'
 
 const PainelRoute = PainelRouteImport.update({
@@ -47,6 +48,11 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const LinhaDoTempoEditarRoute = LinhaDoTempoEditarRouteImport.update({
+  id: '/editar',
+  path: '/editar',
+  getParentRoute: () => LinhaDoTempoRoute,
+} as any)
 const HistoriaEditarRoute = HistoriaEditarRouteImport.update({
   id: '/editar',
   path: '/editar',
@@ -58,18 +64,20 @@ export interface FileRoutesByFullPath {
   '/album': typeof AlbumRoute
   '/editor': typeof EditorRoute
   '/historia': typeof HistoriaRouteWithChildren
-  '/linha-do-tempo': typeof LinhaDoTempoRoute
+  '/linha-do-tempo': typeof LinhaDoTempoRouteWithChildren
   '/painel': typeof PainelRoute
   '/historia/editar': typeof HistoriaEditarRoute
+  '/linha-do-tempo/editar': typeof LinhaDoTempoEditarRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/album': typeof AlbumRoute
   '/editor': typeof EditorRoute
   '/historia': typeof HistoriaRouteWithChildren
-  '/linha-do-tempo': typeof LinhaDoTempoRoute
+  '/linha-do-tempo': typeof LinhaDoTempoRouteWithChildren
   '/painel': typeof PainelRoute
   '/historia/editar': typeof HistoriaEditarRoute
+  '/linha-do-tempo/editar': typeof LinhaDoTempoEditarRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -77,9 +85,10 @@ export interface FileRoutesById {
   '/album': typeof AlbumRoute
   '/editor': typeof EditorRoute
   '/historia': typeof HistoriaRouteWithChildren
-  '/linha-do-tempo': typeof LinhaDoTempoRoute
+  '/linha-do-tempo': typeof LinhaDoTempoRouteWithChildren
   '/painel': typeof PainelRoute
   '/historia/editar': typeof HistoriaEditarRoute
+  '/linha-do-tempo/editar': typeof LinhaDoTempoEditarRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -91,6 +100,7 @@ export interface FileRouteTypes {
     | '/linha-do-tempo'
     | '/painel'
     | '/historia/editar'
+    | '/linha-do-tempo/editar'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -100,6 +110,7 @@ export interface FileRouteTypes {
     | '/linha-do-tempo'
     | '/painel'
     | '/historia/editar'
+    | '/linha-do-tempo/editar'
   id:
     | '__root__'
     | '/'
@@ -109,6 +120,7 @@ export interface FileRouteTypes {
     | '/linha-do-tempo'
     | '/painel'
     | '/historia/editar'
+    | '/linha-do-tempo/editar'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -116,7 +128,7 @@ export interface RootRouteChildren {
   AlbumRoute: typeof AlbumRoute
   EditorRoute: typeof EditorRoute
   HistoriaRoute: typeof HistoriaRouteWithChildren
-  LinhaDoTempoRoute: typeof LinhaDoTempoRoute
+  LinhaDoTempoRoute: typeof LinhaDoTempoRouteWithChildren
   PainelRoute: typeof PainelRoute
 }
 
@@ -164,6 +176,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/linha-do-tempo/editar': {
+      id: '/linha-do-tempo/editar'
+      path: '/editar'
+      fullPath: '/linha-do-tempo/editar'
+      preLoaderRoute: typeof LinhaDoTempoEditarRouteImport
+      parentRoute: typeof LinhaDoTempoRoute
+    }
     '/historia/editar': {
       id: '/historia/editar'
       path: '/editar'
@@ -186,12 +205,24 @@ const HistoriaRouteWithChildren = HistoriaRoute._addFileChildren(
   HistoriaRouteChildren,
 )
 
+interface LinhaDoTempoRouteChildren {
+  LinhaDoTempoEditarRoute: typeof LinhaDoTempoEditarRoute
+}
+
+const LinhaDoTempoRouteChildren: LinhaDoTempoRouteChildren = {
+  LinhaDoTempoEditarRoute: LinhaDoTempoEditarRoute,
+}
+
+const LinhaDoTempoRouteWithChildren = LinhaDoTempoRoute._addFileChildren(
+  LinhaDoTempoRouteChildren,
+)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AlbumRoute: AlbumRoute,
   EditorRoute: EditorRoute,
   HistoriaRoute: HistoriaRouteWithChildren,
-  LinhaDoTempoRoute: LinhaDoTempoRoute,
+  LinhaDoTempoRoute: LinhaDoTempoRouteWithChildren,
   PainelRoute: PainelRoute,
 }
 export const routeTree = rootRouteImport
