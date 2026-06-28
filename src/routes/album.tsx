@@ -45,7 +45,7 @@ function Album() {
   const [sortOrder, setSortOrder] = useState<SortOrder>("recent");
   const [editing, setEditing] = useState<Photo | null>(null);
   const [confirmDelete, setConfirmDelete] = useState<Photo | null>(null);
-  const [deleting, setDeleting] = useState(false);
+  const [undoDeletes, setUndoDeletes] = useState<{ photo: Photo; timeoutId: number }[]>([]);
   const [authorName, setAuthorName] = useState<string>(() =>
     typeof window !== "undefined" ? localStorage.getItem("album.authorName") ?? "" : ""
   );
@@ -139,27 +139,51 @@ function Album() {
     }
   }
 
-  async function deletePhoto(photo: Photo) {
-    setDeleting(true);
+  async function commitDelete(photo: Photo) {
+    setUndoDeletes((prev) => prev.filter((d) => d.photo.id !== photo.id));
     setPhotos((prev) => prev.filter((p) => p.id !== photo.id));
-    setEditing((cur) => (cur?.id === photo.id ? null : cur));
-    setConfirmDelete(null);
     const { error } = await supabase.from("album_photos").delete().eq("id", photo.id);
     if (error) {
       console.error(error);
       setPhotos((prev) => (prev.some((p) => p.id === photo.id) ? prev : [photo, ...prev]));
       toast.error("Não foi possível excluir a foto", { description: "Tente novamente em instantes." });
-      setDeleting(false);
       return;
     }
     await supabase.storage.from(BUCKET).remove([photo.storage_path]);
     toast.success("Foto excluída", { description: "A foto foi removida do álbum." });
-    setDeleting(false);
+  }
+
+  function cancelDelete(photo: Photo) {
+    const entry = undoDeletes.find((d) => d.photo.id === photo.id);
+    if (!entry) return;
+    window.clearTimeout(entry.timeoutId);
+    setUndoDeletes((prev) => prev.filter((d) => d.photo.id !== photo.id));
+    toast.success("Exclusão desfeita", { description: "A foto voltou ao álbum." });
+  }
+
+  function deletePhoto(photo: Photo) {
+    setConfirmDelete(null);
+    setEditing((cur) => (cur?.id === photo.id ? null : cur));
+    const timeoutId = window.setTimeout(() => commitDelete(photo), 5000);
+    setUndoDeletes((prev) => [...prev, { photo, timeoutId }]);
+    toast("Foto excluída", {
+      description: "Você pode desfazer em até 5 segundos.",
+      action: { label: "Desfazer", onClick: () => cancelDelete(photo) },
+      duration: 5000,
+    });
   }
 
   function openDeleteConfirm(photo: Photo) {
     setConfirmDelete(photo);
   }
+
+  const undoDeletesRef = useRef(undoDeletes);
+  undoDeletesRef.current = undoDeletes;
+  useEffect(() => {
+    return () => {
+      undoDeletesRef.current.forEach((d) => window.clearTimeout(d.timeoutId));
+    };
+  }, []);
 
 
   async function handleFiles(files: FileList | null) {
@@ -322,39 +346,49 @@ function Album() {
         </div>
       ) : (
         <div className="mt-5 grid grid-cols-2 gap-2.5 px-5 pb-32">
-          {visiblePhotos.map((p, i) => (
-            <motion.div
-              key={p.id}
-              initial={{ opacity: 0, y: 16 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: (i % 4) * 0.06 }}
-              className={`group relative overflow-hidden rounded-2xl shadow-[var(--shadow-card)] ${i % 5 === 0 ? "row-span-2 aspect-[9/16]" : "aspect-[3/4]"}`}
-            >
-              {p.url && (
-                <img
-                  src={p.url}
-                  alt={`Foto de ${p.author_name ?? "convidado"}`}
-                  className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
-                  loading="lazy"
-                />
-              )}
-              <div className="absolute inset-0 bg-gradient-to-t from-[var(--cocoa)]/70 via-transparent to-transparent" />
-              <button
-                onClick={() => setEditing(p)}
-                aria-label="Editar foto"
-                className="absolute right-1.5 top-1.5 grid h-7 w-7 place-items-center rounded-full bg-[var(--cocoa)]/45 text-[var(--ivory)] backdrop-blur-md transition hover:bg-[var(--cocoa)]/70"
+          {visiblePhotos.map((p, i) => {
+            const isPendingDelete = undoDeletes.some((d) => d.photo.id === p.id);
+            return (
+              <motion.div
+                key={p.id}
+                initial={{ opacity: 0, y: 16 }}
+                animate={{ opacity: isPendingDelete ? 0.5 : 1, y: 0 }}
+                transition={{ duration: 0.5, delay: (i % 4) * 0.06 }}
+                className={`group relative overflow-hidden rounded-2xl shadow-[var(--shadow-card)] ${i % 5 === 0 ? "row-span-2 aspect-[9/16]" : "aspect-[3/4]"}`}
               >
-                <MoreVertical className="h-3.5 w-3.5" />
-              </button>
-              <div className="absolute inset-x-0 bottom-0 flex items-end justify-between p-2.5 text-[var(--ivory)]">
-                <div>
-                  <p className="font-serif-caps text-[8.5px] opacity-80">{p.tag}</p>
-                  <p className="font-display text-xs leading-tight">por {p.author_name ?? "convidado"}</p>
+                {p.url && (
+                  <img
+                    src={p.url}
+                    alt={`Foto de ${p.author_name ?? "convidado"}`}
+                    className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
+                    loading="lazy"
+                  />
+                )}
+                <div className="absolute inset-0 bg-gradient-to-t from-[var(--cocoa)]/70 via-transparent to-transparent" />
+                {isPendingDelete && (
+                  <div className="absolute inset-0 z-10 flex flex-col items-center justify-center bg-[var(--cocoa)]/35 text-[var(--ivory)] backdrop-blur-[2px]">
+                    <Loader2 className="h-5 w-5 animate-spin" />
+                    <p className="mt-1 font-serif-caps text-[9px] opacity-90">Exclusão pendente</p>
+                  </div>
+                )}
+                <button
+                  onClick={() => setEditing(p)}
+                  aria-label="Editar foto"
+                  disabled={isPendingDelete}
+                  className="absolute right-1.5 top-1.5 z-20 grid h-7 w-7 place-items-center rounded-full bg-[var(--cocoa)]/45 text-[var(--ivory)] backdrop-blur-md transition hover:bg-[var(--cocoa)]/70 disabled:opacity-30"
+                >
+                  <MoreVertical className="h-3.5 w-3.5" />
+                </button>
+                <div className="absolute inset-x-0 bottom-0 z-20 flex items-end justify-between p-2.5 text-[var(--ivory)]">
+                  <div>
+                    <p className="font-serif-caps text-[8.5px] opacity-80">{p.tag}</p>
+                    <p className="font-display text-xs leading-tight">por {p.author_name ?? "convidado"}</p>
+                  </div>
+                  <Heart className="h-3.5 w-3.5" fill="currentColor" />
                 </div>
-                <Heart className="h-3.5 w-3.5" fill="currentColor" />
-              </div>
-            </motion.div>
-          ))}
+              </motion.div>
+            );
+          })}
         </div>
       )}
 
@@ -528,7 +562,7 @@ function Album() {
       {confirmDelete && (
         <div
           className="fixed inset-0 z-50 flex items-end justify-center bg-[var(--cocoa)]/55 backdrop-blur-sm sm:items-center"
-          onClick={() => !deleting && setConfirmDelete(null)}
+          onClick={() => setConfirmDelete(null)}
         >
           <div
             className="w-full max-w-sm rounded-t-3xl bg-[var(--card)] p-5 shadow-[var(--shadow-luxe)] sm:rounded-3xl"
@@ -539,24 +573,22 @@ function Album() {
             </div>
             <p className="mt-4 text-center font-display text-lg text-[var(--cocoa)]">Excluir foto?</p>
             <p className="mt-1 px-2 text-center text-sm leading-snug text-[var(--cocoa)]/65">
-              A foto de <strong>{confirmDelete.author_name ?? "convidado"}</strong> será removida permanentemente do álbum e do armazenamento. Esta ação não pode ser desfeita.
+              A foto de <strong>{confirmDelete.author_name ?? "convidado"}</strong> será removida. Você terá 5 segundos para desfazer a exclusão.
             </p>
 
             <div className="mt-5 grid grid-cols-2 gap-3">
               <button
                 onClick={() => setConfirmDelete(null)}
-                disabled={deleting}
-                className="flex items-center justify-center gap-2 rounded-full border border-[var(--gold)]/30 bg-[var(--ivory)] px-4 py-3 font-serif-caps text-[10px] text-[var(--cocoa)] transition hover:bg-[var(--gold)]/10 disabled:opacity-60"
+                className="flex items-center justify-center gap-2 rounded-full border border-[var(--gold)]/30 bg-[var(--ivory)] px-4 py-3 font-serif-caps text-[10px] text-[var(--cocoa)] transition hover:bg-[var(--gold)]/10"
               >
                 Cancelar
               </button>
               <button
                 onClick={() => deletePhoto(confirmDelete)}
-                disabled={deleting}
-                className="flex items-center justify-center gap-2 rounded-full bg-red-600 px-4 py-3 font-serif-caps text-[10px] text-white shadow-[var(--shadow-card)] transition hover:bg-red-700 disabled:opacity-70"
+                className="flex items-center justify-center gap-2 rounded-full bg-red-600 px-4 py-3 font-serif-caps text-[10px] text-white shadow-[var(--shadow-card)] transition hover:bg-red-700"
               >
-                {deleting ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Trash2 className="h-3.5 w-3.5" />}
-                {deleting ? "Excluindo..." : "Sim, excluir"}
+                <Trash2 className="h-3.5 w-3.5" />
+                Sim, excluir
               </button>
             </div>
           </div>
