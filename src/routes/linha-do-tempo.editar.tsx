@@ -27,6 +27,7 @@ function EditarTimeline() {
   const [savingId, setSavingId] = useState<string | null>(null);
   const [uploadingId, setUploadingId] = useState<string | null>(null);
   const [adding, setAdding] = useState(false);
+  const [showAddCard, setShowAddCard] = useState(false);
   const [showPreview, setShowPreview] = useState(true);
   const [dragId, setDragId] = useState<string | null>(null);
   const [dragOverId, setDragOverId] = useState<string | null>(null);
@@ -40,6 +41,13 @@ function EditarTimeline() {
   const [newFile, setNewFile] = useState<File | null>(null);
   const [newPreview, setNewPreview] = useState<string | null>(null);
   const newFileRef = useRef<HTMLInputElement | null>(null);
+
+  function resetNewMilestone() {
+    setNewDate("");
+    setNewTitle("");
+    setNewFile(null);
+    if (newFileRef.current) newFileRef.current.value = "";
+  }
 
   useEffect(() => {
     if (!newFile) {
