@@ -146,6 +146,17 @@ function Editor() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [brideName, groomName, date, time, venue, city, message, tagline, palette.id, imageSrc]);
 
+  // Invalidate partial batch results when the invitation content changes
+  useEffect(() => {
+    if (batchPartial) setBatchPartial(null);
+    if (batchPreview) {
+      URL.revokeObjectURL(batchPreview.pdfBlobUrl);
+      setBatchPreview(null);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [brideName, groomName, date, time, venue, city, message, tagline, palette.id, imageSrc]);
+
+
   function saveVersion() {
     const v: SavedVersion = {
       ...draft,
@@ -260,6 +271,12 @@ function Editor() {
   const [exportingZip, setExportingZip] = useState(false);
   const [preparingBatch, setPreparingBatch] = useState(false);
   const [cancellingBatch, setCancellingBatch] = useState(false);
+  const [batchPartial, setBatchPartial] = useState<{
+    pngUrl?: string;
+    jpgUrl?: string;
+    pdfBlobUrl?: string;
+    pdfBlob?: Blob;
+  } | null>(null);
   const [batchPreview, setBatchPreview] = useState<{
     pngUrl: string;
     jpgUrl: string;
@@ -267,6 +284,7 @@ function Editor() {
     pdfBlob: Blob;
   } | null>(null);
   const anyExporting = exporting || exportingPdf || exportingJpg || exportingZip || preparingBatch || cancellingBatch;
+
 
   const [batchProgress, setBatchProgress] = useState<{ step: number; total: number; label: string }>({
     step: 0,
@@ -300,44 +318,68 @@ function Editor() {
     if (!previewRef.current) return;
     cancelBatchRef.current = false;
     setCancelled(false);
+    setCancellingBatch(false);
     setPreparingBatch(true);
     const tick = (step: number, label: string) =>
       setBatchProgress({ step, total: 4, label });
     const checkCancel = () => {
       if (cancelBatchRef.current) throw new Error("CANCELLED");
     };
+    let pngUrl = batchPartial?.pngUrl;
+    let jpgUrl = batchPartial?.jpgUrl;
+    let pdfBlobUrl = batchPartial?.pdfBlobUrl;
+    let pdfBlob = batchPartial?.pdfBlob;
     try {
       tick(0, "Carregando bibliotecas…");
       const jsPDFMod = await import("jspdf");
       await new Promise((r) => setTimeout(r, 30));
       checkCancel();
 
-      tick(1, "Renderizando PNG em alta resolução…");
-      const pngUrl = await toPng(previewRef.current, {
-        pixelRatio: 4, cacheBust: true, backgroundColor: palette.bg,
-      });
+      if (!pngUrl) {
+        tick(1, "Renderizando PNG em alta resolução…");
+        pngUrl = await toPng(previewRef.current, {
+          pixelRatio: 4, cacheBust: true, backgroundColor: palette.bg,
+        });
+        setBatchPartial((prev) => ({ ...prev, pngUrl }));
+      } else {
+        tick(1, "PNG já renderizado. Retomando…");
+        await new Promise((r) => setTimeout(r, 30));
+      }
       checkCancel();
 
-      tick(2, "Renderizando JPG (qualidade 95%)…");
-      const jpgUrl = await toJpeg(previewRef.current, {
-        pixelRatio: 4, cacheBust: true, quality: 0.95, backgroundColor: palette.bg,
-      });
+      if (!jpgUrl) {
+        tick(2, "Renderizando JPG (qualidade 95%)…");
+        jpgUrl = await toJpeg(previewRef.current, {
+          pixelRatio: 4, cacheBust: true, quality: 0.95, backgroundColor: palette.bg,
+        });
+        setBatchPartial((prev) => ({ ...prev, pngUrl, jpgUrl }));
+      } else {
+        tick(2, "JPG já renderizado. Retomando…");
+        await new Promise((r) => setTimeout(r, 30));
+      }
       checkCancel();
 
-      tick(3, "Montando PDF A4…");
-      const pdf = new jsPDFMod.jsPDF({ orientation: "portrait", unit: "mm", format: "a4", compress: true });
-      const pageW = 210, pageH = 297, marginY = 12;
-      const imgH = pageH - marginY * 2;
-      const imgW = (imgH * 9) / 16;
-      const offsetX = (pageW - imgW) / 2;
-      pdf.addImage(pngUrl, "PNG", offsetX, marginY, imgW, imgH, undefined, "FAST");
-      const pdfBlob = pdf.output("blob");
-      const pdfBlobUrl = URL.createObjectURL(pdfBlob);
+      if (!pdfBlob || !pdfBlobUrl) {
+        tick(3, "Montando PDF A4…");
+        const pdf = new jsPDFMod.jsPDF({ orientation: "portrait", unit: "mm", format: "a4", compress: true });
+        const pageW = 210, pageH = 297, marginY = 12;
+        const imgH = pageH - marginY * 2;
+        const imgW = (imgH * 9) / 16;
+        const offsetX = (pageW - imgW) / 2;
+        pdf.addImage(pngUrl!, "PNG", offsetX, marginY, imgW, imgH, undefined, "FAST");
+        pdfBlob = pdf.output("blob");
+        pdfBlobUrl = URL.createObjectURL(pdfBlob);
+        setBatchPartial((prev) => ({ ...prev, pngUrl, jpgUrl, pdfBlobUrl, pdfBlob }));
+      } else {
+        tick(3, "PDF já montado. Retomando…");
+        await new Promise((r) => setTimeout(r, 30));
+      }
       checkCancel();
 
       tick(4, "Pronto!");
       if (batchPreview) URL.revokeObjectURL(batchPreview.pdfBlobUrl);
-      setBatchPreview({ pngUrl, jpgUrl, pdfBlobUrl, pdfBlob });
+      setBatchPreview({ pngUrl: pngUrl!, jpgUrl: jpgUrl!, pdfBlobUrl: pdfBlobUrl!, pdfBlob: pdfBlob! });
+      setBatchPartial(null);
     } catch (err) {
       if ((err as Error).message !== "CANCELLED") throw err;
     } finally {
@@ -346,6 +388,7 @@ function Editor() {
       cancelBatchRef.current = false;
     }
   }
+
 
 
 
@@ -436,7 +479,7 @@ function Editor() {
             className="inline-flex items-center gap-1.5 rounded-full border border-[var(--gold-deep)]/60 bg-[var(--cocoa)] px-3 py-1.5 font-serif-caps text-[10px] text-[var(--ivory)] hover:opacity-90 disabled:opacity-60"
           >
             <Package className="h-3.5 w-3.5" />
-            {preparingBatch ? "ZIP…" : "ZIP"}
+            {preparingBatch ? "ZIP…" : batchPartial ? "Retomar ZIP" : "ZIP"}
           </button>
         </div>
       </header>
@@ -617,7 +660,11 @@ function Editor() {
             className="flex w-full items-center justify-center gap-2 rounded-2xl bg-[var(--cocoa)] py-3 font-serif-caps text-[10px] text-[var(--ivory)] shadow-[var(--shadow-card)] hover:opacity-90 disabled:opacity-60"
           >
             <Package className="h-4 w-4" />
-            {preparingBatch ? "Preparando prévia…" : "Prévia em lote (PNG + JPG + PDF)"}
+            {preparingBatch
+              ? "Preparando prévia…"
+              : batchPartial
+              ? "Retomar prévia (PNG + JPG + PDF)"
+              : "Prévia em lote (PNG + JPG + PDF)"}
           </button>
         </aside>
       </div>
