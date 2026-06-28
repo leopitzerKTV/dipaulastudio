@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import { toPng } from "html-to-image";
-import { ArrowLeft, Download, Image as ImageIcon, Palette, Type, Calendar, MapPin, History, Save, Trash2, Check } from "lucide-react";
+import { ArrowLeft, Download, FileDown, Image as ImageIcon, Palette, Type, Calendar, MapPin, History, Save, Trash2, Check } from "lucide-react";
 import { Ornament } from "@/components/Ornament";
 import ceremonyImg from "@/assets/ceremony.jpg";
 
@@ -191,21 +191,49 @@ function Editor() {
     reader.readAsDataURL(file);
   }
 
+  const [exportingPdf, setExportingPdf] = useState(false);
+
+  async function renderHighResPng() {
+    if (!previewRef.current) return null;
+    return toPng(previewRef.current, {
+      pixelRatio: 4,
+      cacheBust: true,
+      backgroundColor: palette.bg,
+    });
+  }
+
   async function onExport() {
-    if (!previewRef.current) return;
     setExporting(true);
     try {
-      const dataUrl = await toPng(previewRef.current, {
-        pixelRatio: 3,
-        cacheBust: true,
-        backgroundColor: palette.bg,
-      });
+      const dataUrl = await renderHighResPng();
+      if (!dataUrl) return;
       const a = document.createElement("a");
       a.href = dataUrl;
       a.download = `convite-${brideName}-${groomName}.png`.toLowerCase().replace(/\s+/g, "-");
       a.click();
     } finally {
       setExporting(false);
+    }
+  }
+
+  async function onExportPdf() {
+    setExportingPdf(true);
+    try {
+      const dataUrl = await renderHighResPng();
+      if (!dataUrl) return;
+      const { jsPDF } = await import("jspdf");
+      const pdf = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4", compress: true });
+      // A4 portrait 210×297 mm — centraliza o convite 9:16 com margem segura.
+      const pageW = 210;
+      const pageH = 297;
+      const marginY = 12;
+      const imgH = pageH - marginY * 2; // 273 mm
+      const imgW = (imgH * 9) / 16; // ≈ 153.56 mm
+      const offsetX = (pageW - imgW) / 2;
+      pdf.addImage(dataUrl, "PNG", offsetX, marginY, imgW, imgH, undefined, "FAST");
+      pdf.save(`convite-${brideName}-${groomName}.pdf`.toLowerCase().replace(/\s+/g, "-"));
+    } finally {
+      setExportingPdf(false);
     }
   }
 
@@ -233,15 +261,25 @@ function Editor() {
             )}
           </span>
         </div>
-        <button
-          onClick={onExport}
-          disabled={exporting}
-          className="inline-flex items-center gap-2 rounded-full px-3 py-1.5 font-serif-caps text-[10px] text-[var(--ivory)] shadow-[var(--shadow-card)] disabled:opacity-60"
-          style={{ background: palette.gradient }}
-        >
-          <Download className="h-3.5 w-3.5" />
-          {exporting ? "Exportando…" : "Exportar PNG"}
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={onExport}
+            disabled={exporting || exportingPdf}
+            className="inline-flex items-center gap-1.5 rounded-full border border-[var(--gold-deep)]/40 bg-[var(--ivory)] px-3 py-1.5 font-serif-caps text-[10px] text-[var(--gold-deep)] hover:bg-[var(--gold)]/10 disabled:opacity-60"
+          >
+            <Download className="h-3.5 w-3.5" />
+            {exporting ? "PNG…" : "PNG"}
+          </button>
+          <button
+            onClick={onExportPdf}
+            disabled={exporting || exportingPdf}
+            className="inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 font-serif-caps text-[10px] text-[var(--ivory)] shadow-[var(--shadow-card)] disabled:opacity-60"
+            style={{ background: palette.gradient }}
+          >
+            <FileDown className="h-3.5 w-3.5" />
+            {exportingPdf ? "PDF…" : "PDF A4"}
+          </button>
+        </div>
       </header>
 
       <div className="mx-auto grid max-w-6xl gap-8 px-4 py-8 lg:grid-cols-[1fr_380px]">
@@ -387,14 +425,25 @@ function Editor() {
           </Section>
 
 
-          <button
-            onClick={onExport}
-            disabled={exporting}
-            className="w-full rounded-full py-3.5 font-serif-caps text-[11px] text-[var(--ivory)] shadow-[var(--shadow-card)] disabled:opacity-60"
-            style={{ background: palette.gradient }}
-          >
-            {exporting ? "Exportando…" : "Exportar layout em PNG"}
-          </button>
+          <div className="grid grid-cols-2 gap-2">
+            <button
+              onClick={onExport}
+              disabled={exporting || exportingPdf}
+              className="inline-flex items-center justify-center gap-2 rounded-full border border-[var(--gold-deep)]/40 bg-[var(--ivory)] py-3 font-serif-caps text-[10px] text-[var(--gold-deep)] hover:bg-[var(--gold)]/10 disabled:opacity-60"
+            >
+              <Download className="h-3.5 w-3.5" />
+              {exporting ? "Exportando…" : "PNG 9:16"}
+            </button>
+            <button
+              onClick={onExportPdf}
+              disabled={exporting || exportingPdf}
+              className="inline-flex items-center justify-center gap-2 rounded-full py-3 font-serif-caps text-[10px] text-[var(--ivory)] shadow-[var(--shadow-card)] disabled:opacity-60"
+              style={{ background: palette.gradient }}
+            >
+              <FileDown className="h-3.5 w-3.5" />
+              {exportingPdf ? "Gerando…" : "PDF A4"}
+            </button>
+          </div>
         </aside>
       </div>
     </div>
