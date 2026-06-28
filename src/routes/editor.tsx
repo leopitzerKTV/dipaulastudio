@@ -7,7 +7,36 @@ import ceremonyImg from "@/assets/ceremony.jpg";
 
 const DRAFT_KEY = "nossahistoria.invite.draft";
 const VERSIONS_KEY = "nossahistoria.invite.versions";
+const BATCH_PARTIAL_KEY = "nossahistoria.invite.batchPartial";
 const MAX_VERSIONS = 12;
+
+type PersistedBatchPartial = {
+  pngUrl?: string;
+  jpgUrl?: string;
+  pdfBase64?: string;
+};
+
+function blobToBase64(blob: Blob): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => {
+      const result = reader.result as string;
+      const idx = result.indexOf(",");
+      resolve(idx >= 0 ? result.slice(idx + 1) : result);
+    };
+    reader.onerror = () => reject(reader.error);
+    reader.readAsDataURL(blob);
+  });
+}
+
+function base64ToBlob(b64: string, type = "application/pdf"): Blob {
+  const bin = atob(b64);
+  const len = bin.length;
+  const bytes = new Uint8Array(len);
+  for (let i = 0; i < len; i++) bytes[i] = bin.charCodeAt(i);
+  return new Blob([bytes], { type });
+}
+
 
 type InviteDraft = {
   brideName: string;
