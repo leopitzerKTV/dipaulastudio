@@ -447,6 +447,72 @@ function Album() {
         </p>
       </div>
 
+      {editing && (
+        <div
+          className="fixed inset-0 z-50 flex items-end justify-center bg-[var(--cocoa)]/55 backdrop-blur-sm sm:items-center"
+          onClick={() => setEditing(null)}
+        >
+          <div
+            className="w-full max-w-sm rounded-t-3xl bg-[var(--card)] p-5 shadow-[var(--shadow-luxe)] sm:rounded-3xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between">
+              <p className="font-display text-lg text-[var(--cocoa)]">Editar foto</p>
+              <button
+                onClick={() => setEditing(null)}
+                aria-label="Fechar"
+                className="grid h-8 w-8 place-items-center rounded-full bg-[var(--gold)]/12 text-[var(--cocoa)]"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+
+            {editing.url && (
+              <img
+                src={editing.url}
+                alt=""
+                className="mt-3 h-40 w-full rounded-2xl object-cover"
+              />
+            )}
+
+            <p className="mt-4 inline-flex items-center gap-1.5 font-serif-caps text-[10px] text-[var(--cocoa)]/65">
+              <TagIcon className="h-3 w-3" /> Categoria
+            </p>
+            <div className="mt-2 flex flex-wrap gap-1.5">
+              {TAGS.map((t) => {
+                const active = editing.tag === t;
+                return (
+                  <button
+                    key={t}
+                    onClick={() => {
+                      const cur = editing;
+                      setEditing({ ...cur, tag: t });
+                      updatePhotoTag(cur, t);
+                    }}
+                    className={`rounded-full border px-3 py-1 font-serif-caps text-[10px] transition ${
+                      active
+                        ? "border-transparent text-[var(--ivory)]"
+                        : "border-[var(--gold)]/25 bg-[var(--ivory)] text-[var(--cocoa)]/75"
+                    }`}
+                    style={active ? { background: "var(--gradient-gold)" } : undefined}
+                  >
+                    {t}
+                  </button>
+                );
+              })}
+            </div>
+
+            <button
+              onClick={() => deletePhoto(editing)}
+              className="mt-5 flex w-full items-center justify-center gap-2 rounded-full border border-red-200 bg-red-50 px-4 py-3 font-serif-caps text-[10px] text-red-600 transition hover:bg-red-100"
+            >
+              <Trash2 className="h-3.5 w-3.5" />
+              Excluir foto
+            </button>
+          </div>
+        </div>
+      )}
+
     </AppShell>
   );
 }
