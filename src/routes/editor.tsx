@@ -261,15 +261,25 @@ function Editor() {
             )}
           </span>
         </div>
-        <button
-          onClick={onExport}
-          disabled={exporting}
-          className="inline-flex items-center gap-2 rounded-full px-3 py-1.5 font-serif-caps text-[10px] text-[var(--ivory)] shadow-[var(--shadow-card)] disabled:opacity-60"
-          style={{ background: palette.gradient }}
-        >
-          <Download className="h-3.5 w-3.5" />
-          {exporting ? "Exportando…" : "Exportar PNG"}
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={onExport}
+            disabled={exporting || exportingPdf}
+            className="inline-flex items-center gap-1.5 rounded-full border border-[var(--gold-deep)]/40 bg-[var(--ivory)] px-3 py-1.5 font-serif-caps text-[10px] text-[var(--gold-deep)] hover:bg-[var(--gold)]/10 disabled:opacity-60"
+          >
+            <Download className="h-3.5 w-3.5" />
+            {exporting ? "PNG…" : "PNG"}
+          </button>
+          <button
+            onClick={onExportPdf}
+            disabled={exporting || exportingPdf}
+            className="inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 font-serif-caps text-[10px] text-[var(--ivory)] shadow-[var(--shadow-card)] disabled:opacity-60"
+            style={{ background: palette.gradient }}
+          >
+            <FileDown className="h-3.5 w-3.5" />
+            {exportingPdf ? "PDF…" : "PDF A4"}
+          </button>
+        </div>
       </header>
 
       <div className="mx-auto grid max-w-6xl gap-8 px-4 py-8 lg:grid-cols-[1fr_380px]">
