@@ -655,6 +655,14 @@ function Editor() {
                 );
               })}
             </ul>
+            <button
+              onClick={cancelBatch}
+              disabled={cancelled}
+              className="mt-4 flex w-full items-center justify-center gap-2 rounded-full border border-red-300 bg-white px-3 py-2 font-serif-caps text-[10px] text-red-600 hover:bg-red-50 disabled:opacity-60"
+            >
+              <Trash2 className="h-3 w-3" />
+              {cancelled ? "Cancelando…" : "Cancelar geração"}
+            </button>
           </div>
         </div>
       )}
