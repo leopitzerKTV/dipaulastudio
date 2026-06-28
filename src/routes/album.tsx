@@ -214,22 +214,58 @@ function Album() {
             <span className="relative h-2 w-2 rounded-full bg-[var(--gold-deep)]" />
           </span>
           <span className="font-serif-caps text-[10px] text-[var(--gold-deep)]">
-            {photos.length} {photos.length === 1 ? "foto" : "fotos"} · ao vivo
+            {visiblePhotos.length} {visiblePhotos.length === 1 ? "foto" : "fotos"} · ao vivo
           </span>
         </div>
       </section>
+
+      {/* Filters */}
+      <div className="mt-5 px-5">
+        <div className="flex items-center justify-between gap-2">
+          <p className="font-serif-caps text-[10px] text-[var(--cocoa)]/60">Filtrar por evento</p>
+          <button
+            onClick={() => setSortOrder((s) => (s === "recent" ? "old" : "recent"))}
+            className="inline-flex items-center gap-1.5 rounded-full border border-[var(--gold)]/30 bg-[var(--card)] px-3 py-1 font-serif-caps text-[9px] text-[var(--cocoa)]"
+          >
+            <ArrowDownUp className="h-3 w-3" />
+            {sortOrder === "recent" ? "Mais recentes" : "Mais antigas"}
+          </button>
+        </div>
+        <div className="mt-2 -mx-5 flex gap-1.5 overflow-x-auto px-5 pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+          {(["Todas", ...TAGS] as const).map((t) => {
+            const active = filterTag === t;
+            const count = t === "Todas" ? photos.length : tagCounts[t] ?? 0;
+            return (
+              <button
+                key={t}
+                onClick={() => setFilterTag(t)}
+                className={`flex-none rounded-full border px-3 py-1 font-serif-caps text-[10px] transition ${
+                  active
+                    ? "border-transparent text-[var(--ivory)] shadow-[var(--shadow-card)]"
+                    : "border-[var(--gold)]/25 bg-[var(--card)] text-[var(--cocoa)]/75"
+                }`}
+                style={active ? { background: "var(--gradient-gold)" } : undefined}
+              >
+                {t} <span className="opacity-60">· {count}</span>
+              </button>
+            );
+          })}
+        </div>
+      </div>
 
       {loading ? (
         <div className="mt-10 flex justify-center">
           <Loader2 className="h-6 w-6 animate-spin text-[var(--gold-deep)]" />
         </div>
-      ) : photos.length === 0 ? (
+      ) : visiblePhotos.length === 0 ? (
         <div className="mt-8 px-6 text-center text-sm text-[var(--cocoa)]/60">
-          Ainda não há fotos. Seja o primeiro a enviar!
+          {photos.length === 0
+            ? "Ainda não há fotos. Seja o primeiro a enviar!"
+            : `Nenhuma foto em "${filterTag}" ainda.`}
         </div>
       ) : (
-        <div className="mt-7 grid grid-cols-2 gap-2.5 px-5 pb-32">
-          {photos.map((p, i) => (
+        <div className="mt-5 grid grid-cols-2 gap-2.5 px-5 pb-32">
+          {visiblePhotos.map((p, i) => (
             <motion.div
               key={p.id}
               initial={{ opacity: 0, y: 16 }}
