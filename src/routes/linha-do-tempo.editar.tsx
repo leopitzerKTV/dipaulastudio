@@ -34,6 +34,23 @@ function EditarTimeline() {
   const gripRefs = useRef<Record<string, HTMLButtonElement | null>>({});
   const refocusId = useRef<string | null>(null);
 
+  // Quick-add (foto + texto em um passo só)
+  const [newDate, setNewDate] = useState("");
+  const [newTitle, setNewTitle] = useState("");
+  const [newFile, setNewFile] = useState<File | null>(null);
+  const [newPreview, setNewPreview] = useState<string | null>(null);
+  const newFileRef = useRef<HTMLInputElement | null>(null);
+
+  useEffect(() => {
+    if (!newFile) {
+      setNewPreview(null);
+      return;
+    }
+    const url = URL.createObjectURL(newFile);
+    setNewPreview(url);
+    return () => URL.revokeObjectURL(url);
+  }, [newFile]);
+
   async function load() {
     setLoading(true);
     const { data, error } = await supabase
