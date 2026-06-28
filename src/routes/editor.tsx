@@ -840,6 +840,8 @@ function Editor() {
               </ul>
             )}
           </Section>
+          </div>
+
 
           <Section icon={AlertTriangle} title="Aviso de apagar progresso">
             <Field
