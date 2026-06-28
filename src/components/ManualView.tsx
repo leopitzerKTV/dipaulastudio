@@ -126,29 +126,12 @@ export function ManualView({
 
       <Section icon={Gift} title="Lista de Presentes">
         {block("gift_note", MANUAL_DEFAULTS.gift_note)}
-        {editable ? (
-          <div className="mt-3">
-            <p className="mb-1 font-serif-caps text-[10px] text-[var(--cocoa)]/55">Link da lista</p>
-            <EditableInline
-              editable
-              value={m?.gift_list_url ?? ""}
-              placeholder="https://…"
-              onChange={(v) => onFieldChange?.("gift_list_url", v)}
-              align="left"
-            />
-          </div>
-        ) : m?.gift_list_url && m.gift_list_url.trim() ? (
-          <a
-            href={m.gift_list_url}
-            target="_blank"
-            rel="noreferrer"
-            className="mt-3 inline-block rounded-full bg-[var(--gold-deep)] px-4 py-2 text-xs font-serif-caps text-white"
-          >
-            Ver lista de presentes
-          </a>
-        ) : (
-          <p className="mt-2 text-xs italic text-[var(--cocoa)]/55">Link a ser disponibilizado em breve.</p>
-        )}
+        <Link
+          to="/presentes"
+          className="mt-3 inline-block rounded-full bg-[var(--gold-deep)] px-4 py-2 text-xs font-serif-caps text-white"
+        >
+          Ver lista de presentes
+        </Link>
       </Section>
 
       <Section icon={Car} title="Transporte e Estacionamento">
