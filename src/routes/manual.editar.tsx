@@ -282,15 +282,34 @@ function EditManual() {
         {/* Preview column */}
         <div className={mobilePreviewOpen ? "block" : "hidden lg:block"}>
           <div className="lg:sticky lg:top-20">
-            <p className="mb-2 text-center font-serif-caps text-[10px] text-[var(--gold-deep)]">
-              Preview ao vivo
-            </p>
+            <div className="mb-2 flex items-center justify-between gap-2">
+              <p className="font-serif-caps text-[10px] text-[var(--gold-deep)]">Preview ao vivo</p>
+              <div className="flex items-center gap-1.5">
+                <button
+                  type="button"
+                  onClick={() => exportPdf("download")}
+                  disabled={pdfBusy !== null}
+                  className="inline-flex items-center gap-1 rounded-full border border-[var(--gold)]/40 bg-white/60 px-2.5 py-1 text-[10px] font-serif-caps text-[var(--gold-deep)] disabled:opacity-50"
+                >
+                  {pdfBusy === "download" ? <Loader2 className="h-3 w-3 animate-spin" /> : <Download className="h-3 w-3" />} PDF
+                </button>
+                <button
+                  type="button"
+                  onClick={() => exportPdf("share")}
+                  disabled={pdfBusy !== null}
+                  className="inline-flex items-center gap-1 rounded-full bg-[var(--gold-deep)] px-2.5 py-1 text-[10px] font-serif-caps text-white disabled:opacity-50"
+                >
+                  {pdfBusy === "share" ? <Loader2 className="h-3 w-3 animate-spin" /> : <Share2 className="h-3 w-3" />} Compartilhar
+                </button>
+              </div>
+            </div>
             <div className="mx-auto w-full max-w-sm overflow-hidden rounded-[2rem] border border-[var(--gold)]/30 bg-[var(--ivory)] shadow-[var(--shadow-luxe)]">
               <div className="max-h-[78vh] overflow-y-auto">
-                <ManualView data={previewData} linkAlbum={false} />
+                <ManualView data={previewData} linkAlbum={false} innerRef={previewRef} />
               </div>
             </div>
           </div>
+
         </div>
       </div>
     </div>
