@@ -41,6 +41,98 @@ export type Database = {
         }
         Relationships: []
       }
+      gift_items: {
+        Row: {
+          created_at: string
+          currency: string
+          description: string | null
+          id: string
+          image_url: string | null
+          is_active: boolean
+          price_cents: number | null
+          sort_order: number
+          store_url: string | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          currency?: string
+          description?: string | null
+          id?: string
+          image_url?: string | null
+          is_active?: boolean
+          price_cents?: number | null
+          sort_order?: number
+          store_url?: string | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          currency?: string
+          description?: string | null
+          id?: string
+          image_url?: string | null
+          is_active?: boolean
+          price_cents?: number | null
+          sort_order?: number
+          store_url?: string | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      gift_reservations: {
+        Row: {
+          confirm_token: string
+          confirmed_at: string | null
+          created_at: string
+          expires_at: string
+          gift_item_id: string
+          guest_email: string
+          guest_name: string
+          id: string
+          reserved_at: string
+          status: Database["public"]["Enums"]["gift_reservation_status"]
+          updated_at: string
+        }
+        Insert: {
+          confirm_token?: string
+          confirmed_at?: string | null
+          created_at?: string
+          expires_at?: string
+          gift_item_id: string
+          guest_email: string
+          guest_name: string
+          id?: string
+          reserved_at?: string
+          status?: Database["public"]["Enums"]["gift_reservation_status"]
+          updated_at?: string
+        }
+        Update: {
+          confirm_token?: string
+          confirmed_at?: string | null
+          created_at?: string
+          expires_at?: string
+          gift_item_id?: string
+          guest_email?: string
+          guest_name?: string
+          id?: string
+          reserved_at?: string
+          status?: Database["public"]["Enums"]["gift_reservation_status"]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "gift_reservations_gift_item_id_fkey"
+            columns: ["gift_item_id"]
+            isOneToOne: false
+            referencedRelation: "gift_items"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       guest_manual: {
         Row: {
           album_note: string | null
@@ -199,6 +291,14 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      cancel_gift_reservation: { Args: { _token: string }; Returns: boolean }
+      confirm_gift_purchase: {
+        Args: { _token: string }
+        Returns: {
+          gift_title: string
+          reservation_id: string
+        }[]
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -206,9 +306,37 @@ export type Database = {
         }
         Returns: boolean
       }
+      list_gift_catalog: {
+        Args: never
+        Returns: {
+          currency: string
+          description: string
+          id: string
+          image_url: string
+          is_available: boolean
+          price_cents: number
+          reserved_by_first_name: string
+          sort_order: number
+          store_url: string
+          title: string
+        }[]
+      }
+      reserve_gift_item: {
+        Args: {
+          _gift_item_id: string
+          _guest_email: string
+          _guest_name: string
+        }
+        Returns: {
+          confirm_token: string
+          expires_at: string
+          reservation_id: string
+        }[]
+      }
     }
     Enums: {
       app_role: "couple"
+      gift_reservation_status: "reserved" | "purchased" | "cancelled"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -337,6 +465,7 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["couple"],
+      gift_reservation_status: ["reserved", "purchased", "cancelled"],
     },
   },
 } as const
