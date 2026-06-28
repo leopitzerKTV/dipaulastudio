@@ -1,9 +1,55 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import { toJpeg, toPng } from "html-to-image";
-import { ArrowLeft, Download, FileDown, FileImage, Image as ImageIcon, Palette, Type, Calendar, MapPin, History, Save, Trash2, Check, Package, AlertTriangle } from "lucide-react";
+import { ArrowLeft, Download, FileDown, FileImage, Image as ImageIcon, Palette, Type, Calendar, MapPin, History, Save, Trash2, Check, Package, AlertTriangle, Sparkles } from "lucide-react";
 import { Ornament } from "@/components/Ornament";
+import { EditorTour, type TourStep } from "@/components/EditorTour";
 import ceremonyImg from "@/assets/ceremony.jpg";
+
+const TOUR_SEEN_KEY = "nossahistoria.invite.tourSeen";
+
+const TOUR_STEPS: TourStep[] = [
+  {
+    selector: "[data-tour='preview']",
+    title: "Preview ao vivo",
+    body: "Aqui está seu convite. Tudo que você editar à direita aparece aqui na hora, sem precisar salvar.",
+  },
+  {
+    selector: "[data-tour='names']",
+    title: "Nomes do casal",
+    body: "Comece pelos nomes da noiva e do noivo — eles ganham destaque no centro do convite.",
+  },
+  {
+    selector: "[data-tour='date']",
+    title: "Data, hora e local",
+    body: "Defina quando e onde a cerimônia acontece. A data aparece sobre a imagem principal.",
+  },
+  {
+    selector: "[data-tour='message']",
+    title: "Mensagem e chamada",
+    body: "A 'chamada' é o convite curto no topo; a 'mensagem' é a frase em itálico abaixo da foto.",
+  },
+  {
+    selector: "[data-tour='palette']",
+    title: "Paleta de cores",
+    body: "Escolha entre Champanhe, Marfim, Blush e Mogno. Toda a identidade visual muda junto.",
+  },
+  {
+    selector: "[data-tour='image']",
+    title: "Imagem principal",
+    body: "Use uma foto sua na proporção 9:16 para um resultado ideal. Ela vira o coração do convite.",
+  },
+  {
+    selector: "[data-tour='versions']",
+    title: "Versões salvas",
+    body: "Salve quantas variações quiser e volte a qualquer uma com um clique. Seu rascunho atual é guardado automaticamente.",
+  },
+  {
+    selector: "[data-tour='export']",
+    title: "Exportar arquivos",
+    body: "Baixe o convite em PNG, JPG ou PDF A4, ou gere o ZIP em lote com os três arquivos prontos.",
+  },
+];
 
 const DRAFT_KEY = "nossahistoria.invite.draft";
 const VERSIONS_KEY = "nossahistoria.invite.versions";
@@ -155,6 +201,24 @@ function Editor() {
     loadJSON<SavedVersion[]>(VERSIONS_KEY, []),
   );
   const [autoStatus, setAutoStatus] = useState<"idle" | "saving" | "saved">("idle");
+  const [tourOpen, setTourOpen] = useState(false);
+
+  // Auto-launch tour on first visit
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const seen = window.localStorage.getItem(TOUR_SEEN_KEY);
+    if (!seen) {
+      const t = window.setTimeout(() => setTourOpen(true), 400);
+      return () => window.clearTimeout(t);
+    }
+  }, []);
+
+  const closeTour = () => {
+    setTourOpen(false);
+    if (typeof window !== "undefined") {
+      window.localStorage.setItem(TOUR_SEEN_KEY, "1");
+    }
+  };
 
   const previewRef = useRef<HTMLDivElement>(null);
 
@@ -613,12 +677,19 @@ function Editor() {
             <Package className="h-3.5 w-3.5" />
             {preparingBatch ? "ZIP…" : batchPartial ? "Retomar ZIP" : "ZIP"}
           </button>
+          <button
+            onClick={() => setTourOpen(true)}
+            className="inline-flex items-center gap-1.5 rounded-full border border-[var(--gold-deep)]/40 bg-[var(--ivory)] px-3 py-1.5 font-serif-caps text-[10px] text-[var(--gold-deep)] hover:bg-[var(--gold)]/10"
+          >
+            <Sparkles className="h-3.5 w-3.5" />
+            Tour
+          </button>
         </div>
       </header>
 
       <div className="mx-auto grid max-w-6xl gap-8 px-4 py-8 lg:grid-cols-[1fr_380px]">
         {/* Preview */}
-        <div className="flex justify-center">
+        <div className="flex justify-center" data-tour="preview">
           <div
             ref={previewRef}
             className="relative aspect-[9/16] w-full max-w-[420px] overflow-hidden rounded-[2rem] shadow-[var(--shadow-luxe)]"
@@ -668,23 +739,30 @@ function Editor() {
 
         {/* Form */}
         <aside className="space-y-5">
+          <div data-tour="names">
           <Section icon={Type} title="Nomes do casal">
             <Field label="Noiva" value={brideName} onChange={setBrideName} />
             <Field label="Noivo" value={groomName} onChange={setGroomName} />
           </Section>
+          </div>
 
+          <div data-tour="date">
           <Section icon={Calendar} title="Data & cerimônia">
             <Field label="Data" value={date} onChange={setDate} />
             <Field label="Hora" value={time} onChange={setTime} />
             <Field label="Local" value={venue} onChange={setVenue} />
             <Field label="Cidade" value={city} onChange={setCity} />
           </Section>
+          </div>
 
+          <div data-tour="message">
           <Section icon={Type} title="Mensagem">
             <Field label="Chamada" value={tagline} onChange={setTagline} />
             <Field label="Convite" value={message} onChange={setMessage} multiline />
           </Section>
+          </div>
 
+          <div data-tour="palette">
           <Section icon={Palette} title="Paleta">
             <div className="grid grid-cols-2 gap-2">
               {PALETTES.map((p) => (
@@ -710,7 +788,9 @@ function Editor() {
               ))}
             </div>
           </Section>
+          </div>
 
+          <div data-tour="image">
           <Section icon={ImageIcon} title="Imagem principal">
             <label className="flex cursor-pointer items-center justify-center gap-2 rounded-xl border border-dashed border-[var(--gold)]/45 bg-[var(--card)] px-3 py-4 font-serif-caps text-[10px] text-[var(--gold-deep)] hover:bg-[var(--gold)]/5">
               <ImageIcon className="h-3.5 w-3.5" />
@@ -718,7 +798,10 @@ function Editor() {
               <input type="file" accept="image/*" className="hidden" onChange={onPickImage} />
             </label>
           </Section>
+          </div>
 
+
+          <div data-tour="versions">
           <Section icon={History} title="Versões salvas">
             <button
               onClick={saveVersion}
@@ -757,6 +840,8 @@ function Editor() {
               </ul>
             )}
           </Section>
+          </div>
+
 
           <Section icon={AlertTriangle} title="Aviso de apagar progresso">
             <Field
@@ -783,6 +868,7 @@ function Editor() {
             </button>
           </Section>
 
+          <div data-tour="export" className="space-y-2">
           <div className="grid grid-cols-3 gap-2">
           <button
             onClick={onExport}
@@ -833,6 +919,7 @@ function Editor() {
               Limpar progresso salvo e recomeçar
             </button>
           )}
+          </div>
         </aside>
       </div>
 
@@ -1076,6 +1163,8 @@ function Editor() {
           </div>
         </div>
       )}
+
+      <EditorTour steps={TOUR_STEPS} open={tourOpen} onClose={closeTour} />
     </div>
   );
 }
