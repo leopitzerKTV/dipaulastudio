@@ -135,6 +135,28 @@ function EditarHistoria() {
     }
   }
 
+  async function reorderTo(fromId: string, toId: string) {
+    if (fromId === toId) return;
+    const sorted = [...chapters].sort((a, b) => a.position - b.position);
+    const fromIdx = sorted.findIndex((x) => x.id === fromId);
+    const toIdx = sorted.findIndex((x) => x.id === toId);
+    if (fromIdx === -1 || toIdx === -1) return;
+    const next = [...sorted];
+    const [moved] = next.splice(fromIdx, 1);
+    next.splice(toIdx, 0, moved);
+    const renumbered = next.map((x, i) => ({ ...x, position: i }));
+    setChapters(renumbered);
+    const results = await Promise.all(
+      renumbered.map((x) =>
+        supabase.from("story_chapters").update({ position: x.position }).eq("id", x.id)
+      )
+    );
+    if (results.some((r) => r.error)) {
+      toast.error("Não foi possível reordenar");
+      load();
+    }
+  }
+
   async function uploadPhoto(c: Chapter, file: File) {
     if (!file.type.startsWith("image/")) {
       toast.error("Selecione uma imagem");
