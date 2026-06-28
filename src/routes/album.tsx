@@ -327,6 +327,13 @@ function Album() {
                 />
               )}
               <div className="absolute inset-0 bg-gradient-to-t from-[var(--cocoa)]/70 via-transparent to-transparent" />
+              <button
+                onClick={() => setEditing(p)}
+                aria-label="Editar foto"
+                className="absolute right-1.5 top-1.5 grid h-7 w-7 place-items-center rounded-full bg-[var(--cocoa)]/45 text-[var(--ivory)] backdrop-blur-md transition hover:bg-[var(--cocoa)]/70"
+              >
+                <MoreVertical className="h-3.5 w-3.5" />
+              </button>
               <div className="absolute inset-x-0 bottom-0 flex items-end justify-between p-2.5 text-[var(--ivory)]">
                 <div>
                   <p className="font-serif-caps text-[8.5px] opacity-80">{p.tag}</p>
