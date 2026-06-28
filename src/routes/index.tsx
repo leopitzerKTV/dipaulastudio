@@ -196,16 +196,53 @@ function Index() {
           <Ornament />
           <p className="mt-5 font-serif-caps text-[10px] text-[var(--gold-deep)]">No convite</p>
           <h2 className="mt-2 font-display text-3xl text-[var(--cocoa)]">Manual completo</h2>
-          <p className="mt-1 text-sm text-[var(--cocoa)]/65">Cada item personalizado pela noiva — role para conhecer.</p>
-          <Link
-            to="/manual/editar"
-            className="mt-4 inline-flex items-center gap-1.5 rounded-full border border-[var(--gold)]/40 bg-white/60 px-3 py-1.5 text-[10px] font-serif-caps text-[var(--gold-deep)] hover:bg-white"
-          >
-            <Edit3 className="h-3 w-3" /> Editar manual
-          </Link>
+          <p className="mt-1 text-sm text-[var(--cocoa)]/65">
+            {editMode
+              ? "Toque em qualquer item para editar. Salva automaticamente."
+              : "Cada item personalizado pela noiva — role para conhecer."}
+          </p>
+          {isCouple ? (
+            <div className="mt-4 flex items-center justify-center gap-2">
+              <button
+                onClick={() => setEditMode((v) => !v)}
+                className={
+                  editMode
+                    ? "inline-flex items-center gap-1.5 rounded-full bg-[var(--gold-deep)] px-3 py-1.5 text-[10px] font-serif-caps text-white"
+                    : "inline-flex items-center gap-1.5 rounded-full border border-[var(--gold)]/40 bg-white/60 px-3 py-1.5 text-[10px] font-serif-caps text-[var(--gold-deep)] hover:bg-white"
+                }
+              >
+                {editMode ? <Check className="h-3 w-3" /> : <Edit3 className="h-3 w-3" />}
+                {editMode ? "Concluir edição" : "Editar aqui"}
+              </button>
+              {editMode && saveState !== "idle" && (
+                <span className="inline-flex items-center gap-1 text-[10px] font-serif-caps text-[var(--cocoa)]/55">
+                  {saveState === "saving" ? (
+                    <>
+                      <Loader2 className="h-3 w-3 animate-spin" /> Salvando…
+                    </>
+                  ) : (
+                    <>
+                      <Check className="h-3 w-3 text-[var(--gold-deep)]" /> Salvo
+                    </>
+                  )}
+                </span>
+              )}
+            </div>
+          ) : (
+            <Link
+              to="/manual/editar"
+              className="mt-4 inline-flex items-center gap-1.5 rounded-full border border-[var(--gold)]/40 bg-white/60 px-3 py-1.5 text-[10px] font-serif-caps text-[var(--gold-deep)] hover:bg-white"
+            >
+              <Edit3 className="h-3 w-3" /> Editar manual
+            </Link>
+          )}
         </div>
         <div className="-mx-0 mt-2 border-y border-[var(--gold)]/20 bg-[var(--ivory)]">
-          <ManualView data={manual} />
+          <ManualView
+            data={manual}
+            editable={editMode && isCouple}
+            onFieldChange={handleFieldChange}
+          />
         </div>
       </section>
 
