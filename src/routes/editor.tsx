@@ -693,3 +693,23 @@ function OrnamentLine({ color, className = "" }: { color: string; className?: st
     </div>
   );
 }
+
+function PreviewTile({
+  label,
+  sub,
+  children,
+}: {
+  label: string;
+  sub: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="overflow-hidden rounded-xl border border-[var(--gold)]/25 bg-[var(--card)] shadow-[var(--shadow-card)]">
+      <div className="aspect-[9/16] w-full overflow-hidden bg-[var(--ivory)]">{children}</div>
+      <div className="px-2 py-1.5 text-center">
+        <p className="font-display text-xs text-[var(--cocoa)] leading-tight">{label}</p>
+        <p className="font-serif-caps text-[8px] text-[var(--gold-deep)]/70">{sub}</p>
+      </div>
+    </div>
+  );
+}
