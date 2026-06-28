@@ -342,6 +342,7 @@ function Editor() {
       if ((err as Error).message !== "CANCELLED") throw err;
     } finally {
       setPreparingBatch(false);
+      setCancellingBatch(false);
       cancelBatchRef.current = false;
     }
   }
