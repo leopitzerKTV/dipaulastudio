@@ -23,9 +23,23 @@ export const Route = createFileRoute("/")({
 
 function Index() {
   const [manualUrl, setManualUrl] = useState("");
+  const [manual, setManual] = useState<ManualData | null>(null);
 
   useEffect(() => {
     setManualUrl(`${window.location.origin}/manual`);
+    let cancelled = false;
+    supabase
+      .from("guest_manual")
+      .select("*")
+      .order("created_at", { ascending: true })
+      .limit(1)
+      .maybeSingle()
+      .then(({ data }) => {
+        if (!cancelled) setManual((data as ManualData) ?? null);
+      });
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   return (
