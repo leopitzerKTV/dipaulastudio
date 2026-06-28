@@ -258,17 +258,23 @@ function Editor() {
   }
 
   const [exportingZip, setExportingZip] = useState(false);
-  const anyExporting = exporting || exportingPdf || exportingJpg || exportingZip;
+  const [preparingBatch, setPreparingBatch] = useState(false);
+  const [batchPreview, setBatchPreview] = useState<{
+    pngUrl: string;
+    jpgUrl: string;
+    pdfBlobUrl: string;
+    pdfBlob: Blob;
+  } | null>(null);
+  const anyExporting = exporting || exportingPdf || exportingJpg || exportingZip || preparingBatch;
 
-  async function onExportZip() {
+  async function onPrepareBatch() {
     if (!previewRef.current) return;
-    setExportingZip(true);
+    setPreparingBatch(true);
     try {
-      const [pngUrl, jpgUrl, { jsPDF }, { default: JSZip }] = await Promise.all([
+      const [pngUrl, jpgUrl, { jsPDF }] = await Promise.all([
         toPng(previewRef.current, { pixelRatio: 4, cacheBust: true, backgroundColor: palette.bg }),
         toJpeg(previewRef.current, { pixelRatio: 4, cacheBust: true, quality: 0.95, backgroundColor: palette.bg }),
         import("jspdf"),
-        import("jszip"),
       ]);
       const pdf = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4", compress: true });
       const pageW = 210, pageH = 297, marginY = 12;
@@ -277,13 +283,29 @@ function Editor() {
       const offsetX = (pageW - imgW) / 2;
       pdf.addImage(pngUrl, "PNG", offsetX, marginY, imgW, imgH, undefined, "FAST");
       const pdfBlob = pdf.output("blob");
+      const pdfBlobUrl = URL.createObjectURL(pdfBlob);
+      if (batchPreview) URL.revokeObjectURL(batchPreview.pdfBlobUrl);
+      setBatchPreview({ pngUrl, jpgUrl, pdfBlobUrl, pdfBlob });
+    } finally {
+      setPreparingBatch(false);
+    }
+  }
 
+  function closeBatchPreview() {
+    if (batchPreview) URL.revokeObjectURL(batchPreview.pdfBlobUrl);
+    setBatchPreview(null);
+  }
+
+  async function confirmDownloadZip() {
+    if (!batchPreview) return;
+    setExportingZip(true);
+    try {
+      const { default: JSZip } = await import("jszip");
       const slug = `convite-${brideName}-${groomName}`.toLowerCase().replace(/\s+/g, "-");
       const zip = new JSZip();
-      zip.file(`${slug}.png`, pngUrl.split(",")[1], { base64: true });
-      zip.file(`${slug}.jpg`, jpgUrl.split(",")[1], { base64: true });
-      zip.file(`${slug}.pdf`, pdfBlob);
-
+      zip.file(`${slug}.png`, batchPreview.pngUrl.split(",")[1], { base64: true });
+      zip.file(`${slug}.jpg`, batchPreview.jpgUrl.split(",")[1], { base64: true });
+      zip.file(`${slug}.pdf`, batchPreview.pdfBlob);
       const blob = await zip.generateAsync({ type: "blob" });
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
@@ -291,10 +313,12 @@ function Editor() {
       a.download = `${slug}.zip`;
       a.click();
       setTimeout(() => URL.revokeObjectURL(url), 1000);
+      closeBatchPreview();
     } finally {
       setExportingZip(false);
     }
   }
+
 
 
 
@@ -349,12 +373,12 @@ function Editor() {
             {exportingPdf ? "PDF…" : "PDF A4"}
           </button>
           <button
-            onClick={onExportZip}
+            onClick={onPrepareBatch}
             disabled={anyExporting}
             className="inline-flex items-center gap-1.5 rounded-full border border-[var(--gold-deep)]/60 bg-[var(--cocoa)] px-3 py-1.5 font-serif-caps text-[10px] text-[var(--ivory)] hover:opacity-90 disabled:opacity-60"
           >
             <Package className="h-3.5 w-3.5" />
-            {exportingZip ? "ZIP…" : "ZIP"}
+            {preparingBatch ? "ZIP…" : "ZIP"}
           </button>
         </div>
       </header>
@@ -530,15 +554,77 @@ function Editor() {
             </button>
           </div>
           <button
-            onClick={onExportZip}
+            onClick={onPrepareBatch}
             disabled={anyExporting}
             className="flex w-full items-center justify-center gap-2 rounded-2xl bg-[var(--cocoa)] py-3 font-serif-caps text-[10px] text-[var(--ivory)] shadow-[var(--shadow-card)] hover:opacity-90 disabled:opacity-60"
           >
             <Package className="h-4 w-4" />
-            {exportingZip ? "Gerando ZIP…" : "Baixar tudo (ZIP: PNG + JPG + PDF)"}
+            {preparingBatch ? "Preparando prévia…" : "Prévia em lote (PNG + JPG + PDF)"}
           </button>
         </aside>
       </div>
+
+      {batchPreview && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-[var(--cocoa)]/70 p-4 backdrop-blur-sm"
+          onClick={closeBatchPreview}
+        >
+          <div
+            className="w-full max-w-2xl rounded-3xl border border-[var(--gold)]/30 bg-[var(--ivory)] p-6 shadow-[var(--shadow-luxe)]"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="mb-4 flex items-start justify-between gap-4">
+              <div>
+                <h3 className="font-display text-xl text-[var(--cocoa)]">Confira antes de gerar o ZIP</h3>
+                <p className="font-serif-caps text-[10px] text-[var(--gold-deep)]/80">
+                  prévia dos 3 arquivos que serão incluídos
+                </p>
+              </div>
+              <button
+                onClick={closeBatchPreview}
+                className="rounded-full border border-[var(--gold)]/30 px-3 py-1 font-serif-caps text-[10px] text-[var(--cocoa)]/70 hover:bg-[var(--gold)]/10"
+              >
+                Cancelar
+              </button>
+            </div>
+
+            <div className="grid grid-cols-3 gap-3">
+              <PreviewTile label="PNG 9:16" sub="alta resolução">
+                <img src={batchPreview.pngUrl} alt="Prévia PNG" className="h-full w-full object-cover" />
+              </PreviewTile>
+              <PreviewTile label="JPG 9:16" sub="qualidade 95%">
+                <img src={batchPreview.jpgUrl} alt="Prévia JPG" className="h-full w-full object-cover" />
+              </PreviewTile>
+              <PreviewTile label="PDF A4" sub="vertical">
+                <iframe
+                  src={`${batchPreview.pdfBlobUrl}#toolbar=0&navpanes=0&view=FitH`}
+                  title="Prévia PDF"
+                  className="h-full w-full"
+                />
+              </PreviewTile>
+            </div>
+
+            <div className="mt-5 flex flex-col gap-2 sm:flex-row sm:justify-end">
+              <button
+                onClick={onPrepareBatch}
+                disabled={preparingBatch || exportingZip}
+                className="rounded-full border border-[var(--gold-deep)]/40 px-4 py-2 font-serif-caps text-[10px] text-[var(--gold-deep)] hover:bg-[var(--gold)]/10 disabled:opacity-60"
+              >
+                {preparingBatch ? "Atualizando…" : "Atualizar prévia"}
+              </button>
+              <button
+                onClick={confirmDownloadZip}
+                disabled={exportingZip}
+                className="inline-flex items-center justify-center gap-2 rounded-full px-5 py-2 font-serif-caps text-[10px] text-[var(--ivory)] shadow-[var(--shadow-card)] disabled:opacity-60"
+                style={{ background: palette.gradient }}
+              >
+                <Package className="h-3.5 w-3.5" />
+                {exportingZip ? "Gerando ZIP…" : "Confirmar e baixar ZIP"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -604,6 +690,26 @@ function OrnamentLine({ color, className = "" }: { color: string; className?: st
         />
       </svg>
       <span className="h-px w-10" style={{ background: `linear-gradient(to left, transparent, ${color})` }} />
+    </div>
+  );
+}
+
+function PreviewTile({
+  label,
+  sub,
+  children,
+}: {
+  label: string;
+  sub: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="overflow-hidden rounded-xl border border-[var(--gold)]/25 bg-[var(--card)] shadow-[var(--shadow-card)]">
+      <div className="aspect-[9/16] w-full overflow-hidden bg-[var(--ivory)]">{children}</div>
+      <div className="px-2 py-1.5 text-center">
+        <p className="font-display text-xs text-[var(--cocoa)] leading-tight">{label}</p>
+        <p className="font-serif-caps text-[8px] text-[var(--gold-deep)]/70">{sub}</p>
+      </div>
     </div>
   );
 }
