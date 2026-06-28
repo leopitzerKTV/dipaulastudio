@@ -6,6 +6,14 @@ import { toast } from "sonner";
 import { AppShell } from "@/components/AppShell";
 import { Ornament } from "@/components/Ornament";
 import { supabase } from "@/integrations/supabase/client";
+import {
+  cancelPendingDelete,
+  getLatestPendingId,
+  getPendingDeleteIds,
+  schedulePendingDelete,
+  setAlbumRestoreHandler,
+  subscribePendingDeletes,
+} from "@/lib/album-undo";
 
 export const Route = createFileRoute("/album")({
   head: () => ({ meta: [{ title: "Álbum Colaborativo — Amanda & Ricardo" }] }),
