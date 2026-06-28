@@ -7,7 +7,36 @@ import ceremonyImg from "@/assets/ceremony.jpg";
 
 const DRAFT_KEY = "nossahistoria.invite.draft";
 const VERSIONS_KEY = "nossahistoria.invite.versions";
+const BATCH_PARTIAL_KEY = "nossahistoria.invite.batchPartial";
 const MAX_VERSIONS = 12;
+
+type PersistedBatchPartial = {
+  pngUrl?: string;
+  jpgUrl?: string;
+  pdfBase64?: string;
+};
+
+function blobToBase64(blob: Blob): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => {
+      const result = reader.result as string;
+      const idx = result.indexOf(",");
+      resolve(idx >= 0 ? result.slice(idx + 1) : result);
+    };
+    reader.onerror = () => reject(reader.error);
+    reader.readAsDataURL(blob);
+  });
+}
+
+function base64ToBlob(b64: string, type = "application/pdf"): Blob {
+  const bin = atob(b64);
+  const len = bin.length;
+  const bytes = new Uint8Array(len);
+  for (let i = 0; i < len; i++) bytes[i] = bin.charCodeAt(i);
+  return new Blob([bytes], { type });
+}
+
 
 type InviteDraft = {
   brideName: string;
@@ -153,8 +182,12 @@ function Editor() {
       URL.revokeObjectURL(batchPreview.pdfBlobUrl);
       setBatchPreview(null);
     }
+    try {
+      window.localStorage.removeItem(BATCH_PARTIAL_KEY);
+    } catch {}
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [brideName, groomName, date, time, venue, city, message, tagline, palette.id, imageSrc]);
+
 
 
   function saveVersion() {
@@ -276,7 +309,25 @@ function Editor() {
     jpgUrl?: string;
     pdfBlobUrl?: string;
     pdfBlob?: Blob;
-  } | null>(null);
+  } | null>(() => {
+    if (typeof window === "undefined") return null;
+    try {
+      const raw = window.localStorage.getItem(BATCH_PARTIAL_KEY);
+      if (!raw) return null;
+      const parsed = JSON.parse(raw) as PersistedBatchPartial;
+      if (!parsed.pngUrl && !parsed.jpgUrl && !parsed.pdfBase64) return null;
+      let pdfBlob: Blob | undefined;
+      let pdfBlobUrl: string | undefined;
+      if (parsed.pdfBase64) {
+        pdfBlob = base64ToBlob(parsed.pdfBase64);
+        pdfBlobUrl = URL.createObjectURL(pdfBlob);
+      }
+      return { pngUrl: parsed.pngUrl, jpgUrl: parsed.jpgUrl, pdfBlobUrl, pdfBlob };
+    } catch {
+      return null;
+    }
+  });
+
   const [batchPreview, setBatchPreview] = useState<{
     pngUrl: string;
     jpgUrl: string;
@@ -284,6 +335,34 @@ function Editor() {
     pdfBlob: Blob;
   } | null>(null);
   const anyExporting = exporting || exportingPdf || exportingJpg || exportingZip || preparingBatch || cancellingBatch;
+
+  // Persist partial batch progress so a reload can resume from where it stopped
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        if (!batchPartial || (!batchPartial.pngUrl && !batchPartial.jpgUrl && !batchPartial.pdfBlob)) {
+          window.localStorage.removeItem(BATCH_PARTIAL_KEY);
+          return;
+        }
+        const payload: PersistedBatchPartial = {
+          pngUrl: batchPartial.pngUrl,
+          jpgUrl: batchPartial.jpgUrl,
+        };
+        if (batchPartial.pdfBlob) {
+          payload.pdfBase64 = await blobToBase64(batchPartial.pdfBlob);
+        }
+        if (cancelled) return;
+        window.localStorage.setItem(BATCH_PARTIAL_KEY, JSON.stringify(payload));
+      } catch {
+        // localStorage quota or serialization issue — ignore; resume best-effort
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [batchPartial]);
+
 
 
   const [batchProgress, setBatchProgress] = useState<{ step: number; total: number; label: string }>({
