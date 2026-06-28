@@ -29,7 +29,7 @@ function ManualPage() {
     let cancelled = false;
     supabase
       .from("guest_manual")
-      .select("ceremony_date,ceremony_time,ceremony_location,parking_info,location_info,gift_list_url,welcome_note")
+      .select("*")
       .order("created_at", { ascending: true })
       .limit(1)
       .maybeSingle()
