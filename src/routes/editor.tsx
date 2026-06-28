@@ -9,6 +9,8 @@ const DRAFT_KEY = "nossahistoria.invite.draft";
 const VERSIONS_KEY = "nossahistoria.invite.versions";
 const BATCH_PARTIAL_KEY = "nossahistoria.invite.batchPartial";
 const BATCH_CLEAR_SKIP_CONFIRM_KEY = "nossahistoria.invite.skipClearConfirm";
+const BATCH_CLEAR_TITLE_KEY = "nossahistoria.invite.clearConfirmTitle";
+const BATCH_CLEAR_MESSAGE_KEY = "nossahistoria.invite.clearConfirmMessage";
 const MAX_VERSIONS = 12;
 
 type PersistedBatchPartial = {
@@ -188,8 +190,6 @@ function Editor() {
     } catch {}
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [brideName, groomName, date, time, venue, city, message, tagline, palette.id, imageSrc]);
-
-
 
   function saveVersion() {
     const v: SavedVersion = {
@@ -379,6 +379,26 @@ function Editor() {
   const [skipClearConfirm, setSkipClearConfirm] = useState(() =>
     loadJSON<boolean>(BATCH_CLEAR_SKIP_CONFIRM_KEY, false),
   );
+  const [clearConfirmTitle, setClearConfirmTitle] = useState(() =>
+    loadJSON<string>(BATCH_CLEAR_TITLE_KEY, "Apagar progresso salvo?"),
+  );
+  const [clearConfirmMessage, setClearConfirmMessage] = useState(() =>
+    loadJSON<string>(
+      BATCH_CLEAR_MESSAGE_KEY,
+      "Você tem um progresso de geração salvo. Se apagar, perderá o que já foi renderizado de PNG, JPG e PDF e terá que começar do zero.",
+    ),
+  );
+
+  // Persist custom clear-confirmation title and message
+  useEffect(() => {
+    try {
+      window.localStorage.setItem(BATCH_CLEAR_TITLE_KEY, JSON.stringify(clearConfirmTitle));
+    } catch {}
+    try {
+      window.localStorage.setItem(BATCH_CLEAR_MESSAGE_KEY, JSON.stringify(clearConfirmMessage));
+    } catch {}
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [clearConfirmTitle, clearConfirmMessage]);
 
   function promptCancelBatch() {
     setShowCancelConfirm(true);
@@ -738,6 +758,30 @@ function Editor() {
             )}
           </Section>
 
+          <Section icon={AlertTriangle} title="Aviso de apagar progresso">
+            <Field
+              label="Título do modal"
+              value={clearConfirmTitle}
+              onChange={setClearConfirmTitle}
+            />
+            <Field
+              label="Mensagem do modal"
+              value={clearConfirmMessage}
+              onChange={setClearConfirmMessage}
+              multiline
+            />
+            <button
+              onClick={() => {
+                setClearConfirmTitle("Apagar progresso salvo?");
+                setClearConfirmMessage(
+                  "Você tem um progresso de geração salvo. Se apagar, perderá o que já foi renderizado de PNG, JPG e PDF e terá que começar do zero.",
+                );
+              }}
+              className="flex w-full items-center justify-center gap-2 rounded-lg border border-[var(--gold)]/30 bg-[var(--gold)]/10 px-3 py-2 font-serif-caps text-[10px] text-[var(--gold-deep)] hover:bg-[var(--gold)]/20"
+            >
+              <Trash2 className="h-3 w-3" /> Restaurar texto padrão
+            </button>
+          </Section>
 
           <div className="grid grid-cols-3 gap-2">
           <button
@@ -972,11 +1016,10 @@ function Editor() {
           >
             <div className="mb-3 flex items-center gap-2">
               <AlertTriangle className="h-5 w-5 text-red-600" />
-              <h3 className="font-display text-base text-[var(--cocoa)]">Apagar progresso salvo?</h3>
+              <h3 className="font-display text-base text-[var(--cocoa)]">{clearConfirmTitle}</h3>
             </div>
-            <p className="font-display text-xs leading-relaxed text-[var(--cocoa)]/80">
-              Você tem um progresso de geração salvo. Se apagar, perderá o que já foi renderizado de
-              <strong> PNG, JPG e PDF</strong> e terá que começar do zero.
+            <p className="whitespace-pre-line font-display text-xs leading-relaxed text-[var(--cocoa)]/80">
+              {clearConfirmMessage}
             </p>
             <div className="mt-4 rounded-2xl bg-red-50 p-3">
               <p className="font-serif-caps text-[10px] text-red-700">
