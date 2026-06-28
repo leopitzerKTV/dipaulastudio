@@ -377,7 +377,7 @@ function Album() {
       ) : (
         <div className="mt-5 grid grid-cols-2 gap-2.5 px-5 pb-32">
           {visiblePhotos.map((p, i) => {
-            const isPendingDelete = undoDeletes.some((d) => d.photo.id === p.id);
+            const isPendingDelete = pendingDeleteIds.has(p.id);
             return (
               <motion.div
                 key={p.id}
