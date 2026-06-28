@@ -588,21 +588,44 @@ function Editor() {
               </button>
             </div>
 
-            <div className="grid grid-cols-3 gap-3">
-              <PreviewTile label="PNG 9:16" sub="alta resolução">
-                <img src={batchPreview.pngUrl} alt="Prévia PNG" className="h-full w-full object-cover" />
-              </PreviewTile>
-              <PreviewTile label="JPG 9:16" sub="qualidade 95%">
-                <img src={batchPreview.jpgUrl} alt="Prévia JPG" className="h-full w-full object-cover" />
-              </PreviewTile>
-              <PreviewTile label="PDF A4" sub="vertical">
-                <iframe
-                  src={`${batchPreview.pdfBlobUrl}#toolbar=0&navpanes=0&view=FitH`}
-                  title="Prévia PDF"
-                  className="h-full w-full"
-                />
-              </PreviewTile>
-            </div>
+            {(() => {
+              const slug = `convite-${brideName}-${groomName}`.toLowerCase().replace(/\s+/g, "-");
+              const downloadHref = (href: string, filename: string) => {
+                const a = document.createElement("a");
+                a.href = href;
+                a.download = filename;
+                a.click();
+              };
+              return (
+                <div className="grid grid-cols-3 gap-3">
+                  <PreviewTile
+                    label="PNG 9:16"
+                    sub="alta resolução"
+                    onDownload={() => downloadHref(batchPreview.pngUrl, `${slug}.png`)}
+                  >
+                    <img src={batchPreview.pngUrl} alt="Prévia PNG" className="h-full w-full object-cover" />
+                  </PreviewTile>
+                  <PreviewTile
+                    label="JPG 9:16"
+                    sub="qualidade 95%"
+                    onDownload={() => downloadHref(batchPreview.jpgUrl, `${slug}.jpg`)}
+                  >
+                    <img src={batchPreview.jpgUrl} alt="Prévia JPG" className="h-full w-full object-cover" />
+                  </PreviewTile>
+                  <PreviewTile
+                    label="PDF A4"
+                    sub="vertical"
+                    onDownload={() => downloadHref(batchPreview.pdfBlobUrl, `${slug}.pdf`)}
+                  >
+                    <iframe
+                      src={`${batchPreview.pdfBlobUrl}#toolbar=0&navpanes=0&view=FitH`}
+                      title="Prévia PDF"
+                      className="h-full w-full"
+                    />
+                  </PreviewTile>
+                </div>
+              );
+            })()}
 
             <div className="mt-5 flex flex-col gap-2 sm:flex-row sm:justify-end">
               <button
