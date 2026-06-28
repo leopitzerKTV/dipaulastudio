@@ -16,6 +16,7 @@ type Photo = {
   storage_path: string;
   author_name: string | null;
   caption: string | null;
+  tag: string;
   created_at: string;
   url?: string;
 };
@@ -31,16 +32,38 @@ type UploadItem = {
 };
 
 const BUCKET = "album-photos";
+const TAGS = ["Geral", "Cerimônia", "Festa", "Making of", "Pré-wedding", "Convidados", "Buquê"] as const;
+type Tag = (typeof TAGS)[number];
+type SortOrder = "recent" | "old";
 
 function Album() {
   const [photos, setPhotos] = useState<Photo[]>([]);
   const [loading, setLoading] = useState(true);
   const [uploads, setUploads] = useState<UploadItem[]>([]);
+  const [filterTag, setFilterTag] = useState<"Todas" | Tag>("Todas");
+  const [sortOrder, setSortOrder] = useState<SortOrder>("recent");
   const [authorName, setAuthorName] = useState<string>(() =>
     typeof window !== "undefined" ? localStorage.getItem("album.authorName") ?? "" : ""
   );
   const fileRef = useRef<HTMLInputElement>(null);
   const uploading = uploads.some((u) => u.status === "uploading" || u.status === "saving" || u.status === "pending");
+  const uploadTag: Tag = filterTag === "Todas" ? "Geral" : filterTag;
+
+  const visiblePhotos = (filterTag === "Todas"
+    ? photos
+    : photos.filter((p) => p.tag === filterTag)
+  )
+    .slice()
+    .sort((a, b) =>
+      sortOrder === "recent"
+        ? b.created_at.localeCompare(a.created_at)
+        : a.created_at.localeCompare(b.created_at)
+    );
+
+  const tagCounts = photos.reduce<Record<string, number>>((acc, p) => {
+    acc[p.tag] = (acc[p.tag] ?? 0) + 1;
+    return acc;
+  }, {});
 
   async function hydrateUrls(rows: Photo[]): Promise<Photo[]> {
     if (rows.length === 0) return rows;
