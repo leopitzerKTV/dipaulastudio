@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as PainelRouteImport } from './routes/painel'
+import { Route as ManualRouteImport } from './routes/manual'
 import { Route as LinhaDoTempoRouteImport } from './routes/linha-do-tempo'
 import { Route as HistoriaRouteImport } from './routes/historia'
 import { Route as EditorRouteImport } from './routes/editor'
@@ -22,6 +23,11 @@ import { Route as HistoriaEditarRouteImport } from './routes/historia.editar'
 const PainelRoute = PainelRouteImport.update({
   id: '/painel',
   path: '/painel',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ManualRoute = ManualRouteImport.update({
+  id: '/manual',
+  path: '/manual',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LinhaDoTempoRoute = LinhaDoTempoRouteImport.update({
@@ -72,6 +78,7 @@ export interface FileRoutesByFullPath {
   '/editor': typeof EditorRoute
   '/historia': typeof HistoriaRouteWithChildren
   '/linha-do-tempo': typeof LinhaDoTempoRouteWithChildren
+  '/manual': typeof ManualRoute
   '/painel': typeof PainelRoute
   '/historia/editar': typeof HistoriaEditarRoute
   '/linha-do-tempo/editar': typeof LinhaDoTempoEditarRoute
@@ -83,6 +90,7 @@ export interface FileRoutesByTo {
   '/editor': typeof EditorRoute
   '/historia': typeof HistoriaRouteWithChildren
   '/linha-do-tempo': typeof LinhaDoTempoRouteWithChildren
+  '/manual': typeof ManualRoute
   '/painel': typeof PainelRoute
   '/historia/editar': typeof HistoriaEditarRoute
   '/linha-do-tempo/editar': typeof LinhaDoTempoEditarRoute
@@ -95,6 +103,7 @@ export interface FileRoutesById {
   '/editor': typeof EditorRoute
   '/historia': typeof HistoriaRouteWithChildren
   '/linha-do-tempo': typeof LinhaDoTempoRouteWithChildren
+  '/manual': typeof ManualRoute
   '/painel': typeof PainelRoute
   '/historia/editar': typeof HistoriaEditarRoute
   '/linha-do-tempo/editar': typeof LinhaDoTempoEditarRoute
@@ -108,6 +117,7 @@ export interface FileRouteTypes {
     | '/editor'
     | '/historia'
     | '/linha-do-tempo'
+    | '/manual'
     | '/painel'
     | '/historia/editar'
     | '/linha-do-tempo/editar'
@@ -119,6 +129,7 @@ export interface FileRouteTypes {
     | '/editor'
     | '/historia'
     | '/linha-do-tempo'
+    | '/manual'
     | '/painel'
     | '/historia/editar'
     | '/linha-do-tempo/editar'
@@ -130,6 +141,7 @@ export interface FileRouteTypes {
     | '/editor'
     | '/historia'
     | '/linha-do-tempo'
+    | '/manual'
     | '/painel'
     | '/historia/editar'
     | '/linha-do-tempo/editar'
@@ -142,6 +154,7 @@ export interface RootRouteChildren {
   EditorRoute: typeof EditorRoute
   HistoriaRoute: typeof HistoriaRouteWithChildren
   LinhaDoTempoRoute: typeof LinhaDoTempoRouteWithChildren
+  ManualRoute: typeof ManualRoute
   PainelRoute: typeof PainelRoute
 }
 
@@ -152,6 +165,13 @@ declare module '@tanstack/react-router' {
       path: '/painel'
       fullPath: '/painel'
       preLoaderRoute: typeof PainelRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/manual': {
+      id: '/manual'
+      path: '/manual'
+      fullPath: '/manual'
+      preLoaderRoute: typeof ManualRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/linha-do-tempo': {
@@ -244,6 +264,7 @@ const rootRouteChildren: RootRouteChildren = {
   EditorRoute: EditorRoute,
   HistoriaRoute: HistoriaRouteWithChildren,
   LinhaDoTempoRoute: LinhaDoTempoRouteWithChildren,
+  ManualRoute: ManualRoute,
   PainelRoute: PainelRoute,
 }
 export const routeTree = rootRouteImport
