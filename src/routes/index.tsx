@@ -31,10 +31,10 @@ function Index() {
   const guestMode = viewMode === "guest";
   const [saveState, setSaveState] = useState<"idle" | "saving" | "saved">("idle");
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const [deviceWidth, setDeviceWidth] = useState<320 | 375 | 414>(() => {
+  const [deviceWidth, setDeviceWidth] = useState<360 | 375 | 390 | 414>(() => {
     if (typeof window === "undefined") return 375;
     const v = Number(window.localStorage.getItem("manualPreview.width"));
-    return v === 320 || v === 375 || v === 414 ? (v as 320 | 375 | 414) : 375;
+    return [360, 375, 390, 414].includes(v) ? (v as 360 | 375 | 390 | 414) : 375;
   });
   const [orientation, setOrientation] = useState<"portrait" | "landscape">(() => {
     if (typeof window === "undefined") return "portrait";
@@ -258,8 +258,8 @@ function Index() {
           <div className="mt-4 flex flex-col items-center gap-3 px-4 pb-4">
             <div className="flex flex-wrap items-center justify-center gap-2">
               <div className="inline-flex rounded-full border border-[var(--gold)]/40 bg-white/60 p-0.5">
-                {[320, 375, 414].map((w) => (
-                  <ModeBtn key={w} active={deviceWidth === w} onClick={() => setDeviceWidth(w as 320 | 375 | 414)}>
+                {[360, 375, 390, 414].map((w) => (
+                  <ModeBtn key={w} active={deviceWidth === w} onClick={() => setDeviceWidth(w as 360 | 375 | 390 | 414)}>
                     {w}px
                   </ModeBtn>
                 ))}
