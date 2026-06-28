@@ -20,16 +20,27 @@ type Photo = {
   url?: string;
 };
 
+type UploadStatus = "pending" | "uploading" | "saving" | "done" | "error";
+type UploadItem = {
+  id: string;
+  name: string;
+  previewUrl: string;
+  progress: number;
+  status: UploadStatus;
+  error?: string;
+};
+
 const BUCKET = "album-photos";
 
 function Album() {
   const [photos, setPhotos] = useState<Photo[]>([]);
   const [loading, setLoading] = useState(true);
-  const [uploading, setUploading] = useState(false);
+  const [uploads, setUploads] = useState<UploadItem[]>([]);
   const [authorName, setAuthorName] = useState<string>(() =>
     typeof window !== "undefined" ? localStorage.getItem("album.authorName") ?? "" : ""
   );
   const fileRef = useRef<HTMLInputElement>(null);
+  const uploading = uploads.some((u) => u.status === "uploading" || u.status === "saving" || u.status === "pending");
 
   async function hydrateUrls(rows: Photo[]): Promise<Photo[]> {
     if (rows.length === 0) return rows;
