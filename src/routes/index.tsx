@@ -330,3 +330,4 @@ function ModeBtn({ active, onClick, children }: { active: boolean; onClick: () =
       {children}
     </button>
   );
+}
