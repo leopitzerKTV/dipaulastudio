@@ -305,7 +305,25 @@ function Editor() {
     jpgUrl?: string;
     pdfBlobUrl?: string;
     pdfBlob?: Blob;
-  } | null>(null);
+  } | null>(() => {
+    if (typeof window === "undefined") return null;
+    try {
+      const raw = window.localStorage.getItem(BATCH_PARTIAL_KEY);
+      if (!raw) return null;
+      const parsed = JSON.parse(raw) as PersistedBatchPartial;
+      if (!parsed.pngUrl && !parsed.jpgUrl && !parsed.pdfBase64) return null;
+      let pdfBlob: Blob | undefined;
+      let pdfBlobUrl: string | undefined;
+      if (parsed.pdfBase64) {
+        pdfBlob = base64ToBlob(parsed.pdfBase64);
+        pdfBlobUrl = URL.createObjectURL(pdfBlob);
+      }
+      return { pngUrl: parsed.pngUrl, jpgUrl: parsed.jpgUrl, pdfBlobUrl, pdfBlob };
+    } catch {
+      return null;
+    }
+  });
+
   const [batchPreview, setBatchPreview] = useState<{
     pngUrl: string;
     jpgUrl: string;
