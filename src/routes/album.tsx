@@ -287,7 +287,7 @@ function Album() {
     const timeoutId = window.setTimeout(() => commitDelete(photo, trashPath), 5000);
     setUndoDeletes((prev) => [...prev, { photo, trashPath, timeoutId }]);
     toast.custom(
-      (t) => <UndoToast t={t} photo={photo} onUndo={() => cancelDelete(photo)} />,
+      (id) => <UndoToast id={id} photo={photo} onUndo={() => cancelDelete(photo)} />,
       { duration: 5000, id: `undo-${photo.id}` }
     );
   }
