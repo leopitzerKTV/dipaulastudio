@@ -260,6 +260,12 @@ function Editor() {
   const [exportingZip, setExportingZip] = useState(false);
   const [preparingBatch, setPreparingBatch] = useState(false);
   const [cancellingBatch, setCancellingBatch] = useState(false);
+  const [batchPartial, setBatchPartial] = useState<{
+    pngUrl?: string;
+    jpgUrl?: string;
+    pdfBlobUrl?: string;
+    pdfBlob?: Blob;
+  } | null>(null);
   const [batchPreview, setBatchPreview] = useState<{
     pngUrl: string;
     jpgUrl: string;
@@ -267,6 +273,7 @@ function Editor() {
     pdfBlob: Blob;
   } | null>(null);
   const anyExporting = exporting || exportingPdf || exportingJpg || exportingZip || preparingBatch || cancellingBatch;
+
 
   const [batchProgress, setBatchProgress] = useState<{ step: number; total: number; label: string }>({
     step: 0,
