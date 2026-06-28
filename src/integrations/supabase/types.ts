@@ -41,6 +41,39 @@ export type Database = {
         }
         Relationships: []
       }
+      story_chapters: {
+        Row: {
+          body: string
+          created_at: string
+          date_label: string
+          id: string
+          position: number
+          storage_path: string | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          body?: string
+          created_at?: string
+          date_label?: string
+          id?: string
+          position?: number
+          storage_path?: string | null
+          title?: string
+          updated_at?: string
+        }
+        Update: {
+          body?: string
+          created_at?: string
+          date_label?: string
+          id?: string
+          position?: number
+          storage_path?: string | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
