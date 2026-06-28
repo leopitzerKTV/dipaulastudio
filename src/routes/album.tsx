@@ -148,67 +148,6 @@ function Album() {
     }
   }
 
-  async function commitDelete(photo: Photo, trashPath: string) {
-    setUndoDeletes((prev) => prev.filter((d) => d.photo.id !== photo.id));
-    const { error } = await supabase.storage.from(BUCKET).remove([trashPath]);
-    if (error) {
-      console.error(error);
-      toast.error("Não foi possível remover o arquivo do armazenamento", {
-        description: "O registro foi excluído, mas o arquivo ficou órfão.",
-      });
-      return;
-    }
-    toast.success("Foto excluída permanentemente", { description: "A foto foi removida do álbum e do armazenamento." });
-  }
-
-  async function cancelDelete(photo: Photo) {
-    const entry = undoDeletes.find((d) => d.photo.id === photo.id);
-    if (!entry) return;
-    window.clearTimeout(entry.timeoutId);
-    setUndoDeletes((prev) => prev.filter((d) => d.photo.id !== photo.id));
-
-    const restoringToast = toast.loading("Restaurando foto...", {
-      description: "Recriando o registro e devolvendo o arquivo ao álbum.",
-    });
-
-    // Move the file back from trash to its original path
-    const { error: moveErr } = await supabase.storage
-      .from(BUCKET)
-      .move(entry.trashPath, photo.storage_path);
-    if (moveErr) {
-      console.error(moveErr);
-      toast.dismiss(restoringToast);
-      toast.error("Falha na restauração do arquivo", {
-        description: "O arquivo original não pôde ser recuperado do armazenamento. A foto permanece excluída.",
-      });
-      return;
-    }
-
-    // Re-insert the DB row with the same id so realtime restores it everywhere
-    const { error: insertErr } = await supabase.from("album_photos").insert({
-      id: photo.id,
-      storage_path: photo.storage_path,
-      author_name: photo.author_name,
-      caption: photo.caption,
-      tag: photo.tag,
-      created_at: photo.created_at,
-    });
-    if (insertErr) {
-      console.error(insertErr);
-      toast.dismiss(restoringToast);
-      toast.error("Falha na restauração do registro", {
-        description: "O arquivo foi recuperado, mas o registro não pôde ser recriado. Tente recarregar a página.",
-      });
-      return;
-    }
-
-    // Refresh signed URL and put the photo back into the local grid
-    const [hydrated] = await hydrateUrls([photo]);
-    setPhotos((prev) => (prev.some((p) => p.id === hydrated.id) ? prev : [hydrated, ...prev]));
-    toast.dismiss(restoringToast);
-    toast.success("Exclusão desfeita", { description: "A foto foi restaurada e voltou ao álbum." });
-  }
-
   async function deletePhoto(photo: Photo) {
     setConfirmDelete(null);
     setEditing((cur) => (cur?.id === photo.id ? null : cur));
@@ -239,13 +178,8 @@ function Album() {
       return;
     }
 
-    // 4) Schedule permanent deletion; cancelling will restore both file and row
-    const timeoutId = window.setTimeout(() => commitDelete(photo, trashPath), 5000);
-    setUndoDeletes((prev) => [...prev, { photo, trashPath, timeoutId }]);
-    toast.custom(
-      (id) => <UndoToast id={id} photo={photo} onUndo={() => cancelDelete(photo)} />,
-      { duration: 5000, id: `undo-${photo.id}` }
-    );
+    // 4) Hand off to the persistent undo store (survives navigation)
+    schedulePendingDelete(photo, trashPath);
   }
 
   function openDeleteConfirm(photo: Photo) {
