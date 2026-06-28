@@ -780,40 +780,14 @@ function Editor() {
           </button>
 
           {batchPartial && (
-            <div className="rounded-2xl border border-red-200 bg-red-50 p-3">
-              <p className="text-center font-display text-xs text-red-700">
-                {showClearConfirm
-                  ? "Limpar o progresso salvo e recomeçar do zero?"
-                  : "Há progresso salvo. Você pode limpar e recomeçar."}
-              </p>
-              {showClearConfirm ? (
-                <div className="mt-2 flex gap-2">
-                  <button
-                    onClick={dismissClearBatchProgress}
-                    disabled={preparingBatch}
-                    className="flex-1 rounded-full border border-[var(--gold-deep)]/40 bg-white px-3 py-2 font-serif-caps text-[10px] text-[var(--cocoa)] hover:bg-[var(--gold)]/10 disabled:opacity-60"
-                  >
-                    Voltar
-                  </button>
-                  <button
-                    onClick={confirmClearBatchProgress}
-                    disabled={preparingBatch}
-                    className="flex-1 rounded-full bg-red-600 px-3 py-2 font-serif-caps text-[10px] text-white hover:bg-red-700 disabled:opacity-60"
-                  >
-                    Sim, limpar
-                  </button>
-                </div>
-              ) : (
-                <button
-                  onClick={promptClearBatchProgress}
-                  disabled={preparingBatch}
-                  className="mt-2 flex w-full items-center justify-center gap-2 rounded-full border border-red-300 bg-white px-3 py-2 font-serif-caps text-[10px] text-red-600 hover:bg-red-50 disabled:opacity-60"
-                >
-                  <Trash2 className="h-3 w-3" />
-                  Limpar progresso salvo
-                </button>
-              )}
-            </div>
+            <button
+              onClick={promptClearBatchProgress}
+              disabled={preparingBatch}
+              className="flex w-full items-center justify-center gap-2 rounded-2xl border border-red-300 bg-red-50 px-3 py-2 font-serif-caps text-[10px] text-red-600 hover:bg-red-100 disabled:opacity-60"
+            >
+              <Trash2 className="h-3 w-3" />
+              Limpar progresso salvo e recomeçar
+            </button>
           )}
         </aside>
       </div>
