@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as RsvpRouteImport } from './routes/rsvp'
 import { Route as PainelRouteImport } from './routes/painel'
 import { Route as ManualRouteImport } from './routes/manual'
 import { Route as LinhaDoTempoRouteImport } from './routes/linha-do-tempo'
@@ -24,6 +25,11 @@ import { Route as LinhaDoTempoEditarRouteImport } from './routes/linha-do-tempo.
 import { Route as HistoriaEditarRouteImport } from './routes/historia.editar'
 import { Route as PresentesConfirmarTokenRouteImport } from './routes/presentes.confirmar.$token'
 
+const RsvpRoute = RsvpRouteImport.update({
+  id: '/rsvp',
+  path: '/rsvp',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const PainelRoute = PainelRouteImport.update({
   id: '/painel',
   path: '/painel',
@@ -104,6 +110,7 @@ export interface FileRoutesByFullPath {
   '/linha-do-tempo': typeof LinhaDoTempoRouteWithChildren
   '/manual': typeof ManualRouteWithChildren
   '/painel': typeof PainelRoute
+  '/rsvp': typeof RsvpRoute
   '/historia/editar': typeof HistoriaEditarRoute
   '/linha-do-tempo/editar': typeof LinhaDoTempoEditarRoute
   '/manual/editar': typeof ManualEditarRoute
@@ -120,6 +127,7 @@ export interface FileRoutesByTo {
   '/linha-do-tempo': typeof LinhaDoTempoRouteWithChildren
   '/manual': typeof ManualRouteWithChildren
   '/painel': typeof PainelRoute
+  '/rsvp': typeof RsvpRoute
   '/historia/editar': typeof HistoriaEditarRoute
   '/linha-do-tempo/editar': typeof LinhaDoTempoEditarRoute
   '/manual/editar': typeof ManualEditarRoute
@@ -137,6 +145,7 @@ export interface FileRoutesById {
   '/linha-do-tempo': typeof LinhaDoTempoRouteWithChildren
   '/manual': typeof ManualRouteWithChildren
   '/painel': typeof PainelRoute
+  '/rsvp': typeof RsvpRoute
   '/historia/editar': typeof HistoriaEditarRoute
   '/linha-do-tempo/editar': typeof LinhaDoTempoEditarRoute
   '/manual/editar': typeof ManualEditarRoute
@@ -155,6 +164,7 @@ export interface FileRouteTypes {
     | '/linha-do-tempo'
     | '/manual'
     | '/painel'
+    | '/rsvp'
     | '/historia/editar'
     | '/linha-do-tempo/editar'
     | '/manual/editar'
@@ -171,6 +181,7 @@ export interface FileRouteTypes {
     | '/linha-do-tempo'
     | '/manual'
     | '/painel'
+    | '/rsvp'
     | '/historia/editar'
     | '/linha-do-tempo/editar'
     | '/manual/editar'
@@ -187,6 +198,7 @@ export interface FileRouteTypes {
     | '/linha-do-tempo'
     | '/manual'
     | '/painel'
+    | '/rsvp'
     | '/historia/editar'
     | '/linha-do-tempo/editar'
     | '/manual/editar'
@@ -204,6 +216,7 @@ export interface RootRouteChildren {
   LinhaDoTempoRoute: typeof LinhaDoTempoRouteWithChildren
   ManualRoute: typeof ManualRouteWithChildren
   PainelRoute: typeof PainelRoute
+  RsvpRoute: typeof RsvpRoute
   PresentesGerirRoute: typeof PresentesGerirRoute
   PresentesIndexRoute: typeof PresentesIndexRoute
   PresentesConfirmarTokenRoute: typeof PresentesConfirmarTokenRoute
@@ -211,6 +224,13 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/rsvp': {
+      id: '/rsvp'
+      path: '/rsvp'
+      fullPath: '/rsvp'
+      preLoaderRoute: typeof RsvpRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/painel': {
       id: '/painel'
       path: '/painel'
@@ -356,6 +376,7 @@ const rootRouteChildren: RootRouteChildren = {
   LinhaDoTempoRoute: LinhaDoTempoRouteWithChildren,
   ManualRoute: ManualRouteWithChildren,
   PainelRoute: PainelRoute,
+  RsvpRoute: RsvpRoute,
   PresentesGerirRoute: PresentesGerirRoute,
   PresentesIndexRoute: PresentesIndexRoute,
   PresentesConfirmarTokenRoute: PresentesConfirmarTokenRoute,
