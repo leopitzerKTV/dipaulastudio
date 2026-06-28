@@ -347,6 +347,46 @@ function Editor() {
             </label>
           </Section>
 
+          <Section icon={History} title="Versões salvas">
+            <button
+              onClick={saveVersion}
+              className="flex w-full items-center justify-center gap-2 rounded-lg border border-[var(--gold)]/30 bg-[var(--gold)]/10 px-3 py-2 font-serif-caps text-[10px] text-[var(--gold-deep)] hover:bg-[var(--gold)]/20"
+            >
+              <Save className="h-3 w-3" /> Salvar versão atual
+            </button>
+            {versions.length === 0 ? (
+              <p className="text-center font-display text-[12px] italic text-[var(--cocoa)]/50">
+                Nenhuma versão salva ainda. Seu rascunho é guardado automaticamente.
+              </p>
+            ) : (
+              <ul className="space-y-1.5">
+                {versions.map((v) => (
+                  <li
+                    key={v.id}
+                    className="flex items-center justify-between gap-2 rounded-lg border border-[var(--gold)]/20 bg-[var(--ivory)] px-2.5 py-2"
+                  >
+                    <button onClick={() => loadVersion(v)} className="flex-1 text-left">
+                      <p className="font-display text-sm text-[var(--cocoa)] leading-tight">{v.label}</p>
+                      <p className="font-serif-caps text-[9px] text-[var(--gold-deep)]/70">
+                        {new Date(v.savedAt).toLocaleString("pt-BR", {
+                          day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit",
+                        })}
+                      </p>
+                    </button>
+                    <button
+                      onClick={() => deleteVersion(v.id)}
+                      className="rounded-md p-1.5 text-[var(--cocoa)]/40 hover:bg-red-50 hover:text-red-500"
+                      aria-label="Excluir versão"
+                    >
+                      <Trash2 className="h-3.5 w-3.5" />
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </Section>
+
+
           <button
             onClick={onExport}
             disabled={exporting}
