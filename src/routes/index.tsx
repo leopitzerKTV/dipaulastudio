@@ -1,7 +1,8 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { motion } from "motion/react";
-import { Mail, Calendar, MapPin, Gift, Heart, Wand2, BookOpen, Download, QrCode as QrCodeIcon, Edit3 } from "lucide-react";
-import { useEffect, useState } from "react";
+import { Mail, Calendar, MapPin, Gift, Heart, Wand2, BookOpen, Download, QrCode as QrCodeIcon, Edit3, Check, Loader2 } from "lucide-react";
+import { useEffect, useRef, useState, useCallback } from "react";
+import { toast } from "sonner";
 import { AppShell } from "@/components/AppShell";
 import { Ornament } from "@/components/Ornament";
 import { QrCode } from "@/components/QrCode";
@@ -24,23 +25,101 @@ export const Route = createFileRoute("/")({
 function Index() {
   const [manualUrl, setManualUrl] = useState("");
   const [manual, setManual] = useState<ManualData | null>(null);
+  const [rowId, setRowId] = useState<string | null>(null);
+  const [isCouple, setIsCouple] = useState(false);
+  const [editMode, setEditMode] = useState(false);
+  const [saveState, setSaveState] = useState<"idle" | "saving" | "saved">("idle");
+  const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     setManualUrl(`${window.location.origin}/manual`);
     let cancelled = false;
-    supabase
-      .from("guest_manual")
-      .select("*")
-      .order("created_at", { ascending: true })
-      .limit(1)
-      .maybeSingle()
-      .then(({ data }) => {
-        if (!cancelled) setManual((data as ManualData) ?? null);
+
+    async function load() {
+      const { data } = await supabase
+        .from("guest_manual")
+        .select("*")
+        .order("created_at", { ascending: true })
+        .limit(1)
+        .maybeSingle();
+      if (cancelled) return;
+      if (data) {
+        setManual(data as ManualData);
+        setRowId(data.id as string);
+      }
+    }
+
+    async function checkCouple() {
+      const { data: sess } = await supabase.auth.getSession();
+      if (cancelled || !sess.session) return setIsCouple(false);
+      const { data } = await supabase.rpc("has_role", {
+        _user_id: sess.session.user.id,
+        _role: "couple",
       });
+      if (!cancelled) setIsCouple(!!data);
+    }
+
+    load();
+    checkCouple();
+
+    const { data: sub } = supabase.auth.onAuthStateChange((e) => {
+      if (e === "SIGNED_IN" || e === "SIGNED_OUT" || e === "USER_UPDATED") checkCouple();
+    });
+
     return () => {
       cancelled = true;
+      sub.subscription.unsubscribe();
+      if (saveTimer.current) clearTimeout(saveTimer.current);
     };
   }, []);
+
+  const persist = useCallback(
+    async (next: ManualData) => {
+      setSaveState("saving");
+      const trim = (v: string | null | undefined) => (v && v.trim() ? v.trim() : null);
+      const payload = {
+        ceremony_date: trim(next.ceremony_date),
+        ceremony_time: trim(next.ceremony_time),
+        ceremony_location: trim(next.ceremony_location),
+        parking_info: trim(next.parking_info),
+        location_info: trim(next.location_info),
+        gift_list_url: trim(next.gift_list_url),
+        welcome_note: trim(next.welcome_note),
+        dress_code_note: trim(next.dress_code_note),
+        ceremony_note: trim(next.ceremony_note),
+        during_ceremony_note: trim(next.during_ceremony_note),
+        reception_note: trim(next.reception_note),
+        cake_note: trim(next.cake_note),
+        dancefloor_note: trim(next.dancefloor_note),
+        album_note: trim(next.album_note),
+        gift_note: trim(next.gift_note),
+        transport_note: trim(next.transport_note),
+        closing_note: trim(next.closing_note),
+      };
+      const res = rowId
+        ? await supabase.from("guest_manual").update(payload).eq("id", rowId)
+        : await supabase.from("guest_manual").insert(payload).select("id").maybeSingle();
+      if (res.error) {
+        setSaveState("idle");
+        toast.error("Não foi possível salvar");
+        return;
+      }
+      if (!rowId && "data" in res && res.data?.id) setRowId(res.data.id as string);
+      setSaveState("saved");
+      setTimeout(() => setSaveState("idle"), 1500);
+    },
+    [rowId],
+  );
+
+  const handleFieldChange = (field: keyof ManualData, value: string) => {
+    setManual((prev) => {
+      const base = prev ?? ({} as ManualData);
+      const next = { ...base, [field]: value } as ManualData;
+      if (saveTimer.current) clearTimeout(saveTimer.current);
+      saveTimer.current = setTimeout(() => persist(next), 700);
+      return next;
+    });
+  };
 
   return (
     <AppShell>
@@ -117,16 +196,53 @@ function Index() {
           <Ornament />
           <p className="mt-5 font-serif-caps text-[10px] text-[var(--gold-deep)]">No convite</p>
           <h2 className="mt-2 font-display text-3xl text-[var(--cocoa)]">Manual completo</h2>
-          <p className="mt-1 text-sm text-[var(--cocoa)]/65">Cada item personalizado pela noiva — role para conhecer.</p>
-          <Link
-            to="/manual/editar"
-            className="mt-4 inline-flex items-center gap-1.5 rounded-full border border-[var(--gold)]/40 bg-white/60 px-3 py-1.5 text-[10px] font-serif-caps text-[var(--gold-deep)] hover:bg-white"
-          >
-            <Edit3 className="h-3 w-3" /> Editar manual
-          </Link>
+          <p className="mt-1 text-sm text-[var(--cocoa)]/65">
+            {editMode
+              ? "Toque em qualquer item para editar. Salva automaticamente."
+              : "Cada item personalizado pela noiva — role para conhecer."}
+          </p>
+          {isCouple ? (
+            <div className="mt-4 flex items-center justify-center gap-2">
+              <button
+                onClick={() => setEditMode((v) => !v)}
+                className={
+                  editMode
+                    ? "inline-flex items-center gap-1.5 rounded-full bg-[var(--gold-deep)] px-3 py-1.5 text-[10px] font-serif-caps text-white"
+                    : "inline-flex items-center gap-1.5 rounded-full border border-[var(--gold)]/40 bg-white/60 px-3 py-1.5 text-[10px] font-serif-caps text-[var(--gold-deep)] hover:bg-white"
+                }
+              >
+                {editMode ? <Check className="h-3 w-3" /> : <Edit3 className="h-3 w-3" />}
+                {editMode ? "Concluir edição" : "Editar aqui"}
+              </button>
+              {editMode && saveState !== "idle" && (
+                <span className="inline-flex items-center gap-1 text-[10px] font-serif-caps text-[var(--cocoa)]/55">
+                  {saveState === "saving" ? (
+                    <>
+                      <Loader2 className="h-3 w-3 animate-spin" /> Salvando…
+                    </>
+                  ) : (
+                    <>
+                      <Check className="h-3 w-3 text-[var(--gold-deep)]" /> Salvo
+                    </>
+                  )}
+                </span>
+              )}
+            </div>
+          ) : (
+            <Link
+              to="/manual/editar"
+              className="mt-4 inline-flex items-center gap-1.5 rounded-full border border-[var(--gold)]/40 bg-white/60 px-3 py-1.5 text-[10px] font-serif-caps text-[var(--gold-deep)] hover:bg-white"
+            >
+              <Edit3 className="h-3 w-3" /> Editar manual
+            </Link>
+          )}
         </div>
         <div className="-mx-0 mt-2 border-y border-[var(--gold)]/20 bg-[var(--ivory)]">
-          <ManualView data={manual} />
+          <ManualView
+            data={manual}
+            editable={editMode && isCouple}
+            onFieldChange={handleFieldChange}
+          />
         </div>
       </section>
 
