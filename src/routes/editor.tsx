@@ -8,6 +8,7 @@ import ceremonyImg from "@/assets/ceremony.jpg";
 const DRAFT_KEY = "nossahistoria.invite.draft";
 const VERSIONS_KEY = "nossahistoria.invite.versions";
 const BATCH_PARTIAL_KEY = "nossahistoria.invite.batchPartial";
+const BATCH_CLEAR_SKIP_CONFIRM_KEY = "nossahistoria.invite.skipClearConfirm";
 const MAX_VERSIONS = 12;
 
 type PersistedBatchPartial = {
