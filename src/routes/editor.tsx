@@ -739,23 +739,30 @@ function Editor() {
 
         {/* Form */}
         <aside className="space-y-5">
+          <div data-tour="names">
           <Section icon={Type} title="Nomes do casal">
             <Field label="Noiva" value={brideName} onChange={setBrideName} />
             <Field label="Noivo" value={groomName} onChange={setGroomName} />
           </Section>
+          </div>
 
+          <div data-tour="date">
           <Section icon={Calendar} title="Data & cerimônia">
             <Field label="Data" value={date} onChange={setDate} />
             <Field label="Hora" value={time} onChange={setTime} />
             <Field label="Local" value={venue} onChange={setVenue} />
             <Field label="Cidade" value={city} onChange={setCity} />
           </Section>
+          </div>
 
+          <div data-tour="message">
           <Section icon={Type} title="Mensagem">
             <Field label="Chamada" value={tagline} onChange={setTagline} />
             <Field label="Convite" value={message} onChange={setMessage} multiline />
           </Section>
+          </div>
 
+          <div data-tour="palette">
           <Section icon={Palette} title="Paleta">
             <div className="grid grid-cols-2 gap-2">
               {PALETTES.map((p) => (
@@ -781,7 +788,9 @@ function Editor() {
               ))}
             </div>
           </Section>
+          </div>
 
+          <div data-tour="image">
           <Section icon={ImageIcon} title="Imagem principal">
             <label className="flex cursor-pointer items-center justify-center gap-2 rounded-xl border border-dashed border-[var(--gold)]/45 bg-[var(--card)] px-3 py-4 font-serif-caps text-[10px] text-[var(--gold-deep)] hover:bg-[var(--gold)]/5">
               <ImageIcon className="h-3.5 w-3.5" />
@@ -789,6 +798,8 @@ function Editor() {
               <input type="file" accept="image/*" className="hidden" onChange={onPickImage} />
             </label>
           </Section>
+          </div>
+
 
           <Section icon={History} title="Versões salvas">
             <button
