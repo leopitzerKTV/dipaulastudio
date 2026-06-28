@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
-import { toPng } from "html-to-image";
-import { ArrowLeft, Download, FileDown, Image as ImageIcon, Palette, Type, Calendar, MapPin, History, Save, Trash2, Check } from "lucide-react";
+import { toJpeg, toPng } from "html-to-image";
+import { ArrowLeft, Download, FileDown, FileImage, Image as ImageIcon, Palette, Type, Calendar, MapPin, History, Save, Trash2, Check } from "lucide-react";
 import { Ornament } from "@/components/Ornament";
 import ceremonyImg from "@/assets/ceremony.jpg";
 
@@ -192,6 +192,26 @@ function Editor() {
   }
 
   const [exportingPdf, setExportingPdf] = useState(false);
+  const [exportingJpg, setExportingJpg] = useState(false);
+
+  async function onExportJpg() {
+    if (!previewRef.current) return;
+    setExportingJpg(true);
+    try {
+      const dataUrl = await toJpeg(previewRef.current, {
+        pixelRatio: 4,
+        cacheBust: true,
+        quality: 0.95,
+        backgroundColor: palette.bg,
+      });
+      const a = document.createElement("a");
+      a.href = dataUrl;
+      a.download = `convite-${brideName}-${groomName}.jpg`.toLowerCase().replace(/\s+/g, "-");
+      a.click();
+    } finally {
+      setExportingJpg(false);
+    }
+  }
 
   async function renderHighResPng() {
     if (!previewRef.current) return null;
@@ -264,15 +284,23 @@ function Editor() {
         <div className="flex items-center gap-2">
           <button
             onClick={onExport}
-            disabled={exporting || exportingPdf}
+            disabled={exporting || exportingPdf || exportingJpg}
             className="inline-flex items-center gap-1.5 rounded-full border border-[var(--gold-deep)]/40 bg-[var(--ivory)] px-3 py-1.5 font-serif-caps text-[10px] text-[var(--gold-deep)] hover:bg-[var(--gold)]/10 disabled:opacity-60"
           >
             <Download className="h-3.5 w-3.5" />
             {exporting ? "PNG…" : "PNG"}
           </button>
           <button
+            onClick={onExportJpg}
+            disabled={exporting || exportingPdf || exportingJpg}
+            className="inline-flex items-center gap-1.5 rounded-full border border-[var(--gold-deep)]/40 bg-[var(--ivory)] px-3 py-1.5 font-serif-caps text-[10px] text-[var(--gold-deep)] hover:bg-[var(--gold)]/10 disabled:opacity-60"
+          >
+            <FileImage className="h-3.5 w-3.5" />
+            {exportingJpg ? "JPG…" : "JPG"}
+          </button>
+          <button
             onClick={onExportPdf}
-            disabled={exporting || exportingPdf}
+            disabled={exporting || exportingPdf || exportingJpg}
             className="inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 font-serif-caps text-[10px] text-[var(--ivory)] shadow-[var(--shadow-card)] disabled:opacity-60"
             style={{ background: palette.gradient }}
           >
@@ -425,23 +453,31 @@ function Editor() {
           </Section>
 
 
-          <div className="grid grid-cols-2 gap-2">
+          <div className="grid grid-cols-3 gap-2">
             <button
               onClick={onExport}
-              disabled={exporting || exportingPdf}
-              className="inline-flex items-center justify-center gap-2 rounded-full border border-[var(--gold-deep)]/40 bg-[var(--ivory)] py-3 font-serif-caps text-[10px] text-[var(--gold-deep)] hover:bg-[var(--gold)]/10 disabled:opacity-60"
+              disabled={exporting || exportingPdf || exportingJpg}
+              className="inline-flex flex-col items-center justify-center gap-1 rounded-2xl border border-[var(--gold-deep)]/40 bg-[var(--ivory)] py-3 font-serif-caps text-[10px] text-[var(--gold-deep)] hover:bg-[var(--gold)]/10 disabled:opacity-60"
             >
-              <Download className="h-3.5 w-3.5" />
-              {exporting ? "Exportando…" : "PNG 9:16"}
+              <Download className="h-4 w-4" />
+              {exporting ? "…" : "PNG 9:16"}
+            </button>
+            <button
+              onClick={onExportJpg}
+              disabled={exporting || exportingPdf || exportingJpg}
+              className="inline-flex flex-col items-center justify-center gap-1 rounded-2xl border border-[var(--gold-deep)]/40 bg-[var(--ivory)] py-3 font-serif-caps text-[10px] text-[var(--gold-deep)] hover:bg-[var(--gold)]/10 disabled:opacity-60"
+            >
+              <FileImage className="h-4 w-4" />
+              {exportingJpg ? "…" : "JPG 9:16"}
             </button>
             <button
               onClick={onExportPdf}
-              disabled={exporting || exportingPdf}
-              className="inline-flex items-center justify-center gap-2 rounded-full py-3 font-serif-caps text-[10px] text-[var(--ivory)] shadow-[var(--shadow-card)] disabled:opacity-60"
+              disabled={exporting || exportingPdf || exportingJpg}
+              className="inline-flex flex-col items-center justify-center gap-1 rounded-2xl py-3 font-serif-caps text-[10px] text-[var(--ivory)] shadow-[var(--shadow-card)] disabled:opacity-60"
               style={{ background: palette.gradient }}
             >
-              <FileDown className="h-3.5 w-3.5" />
-              {exportingPdf ? "Gerando…" : "PDF A4"}
+              <FileDown className="h-4 w-4" />
+              {exportingPdf ? "…" : "PDF A4"}
             </button>
           </div>
         </aside>
