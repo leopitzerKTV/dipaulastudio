@@ -479,7 +479,7 @@ function Editor() {
             className="inline-flex items-center gap-1.5 rounded-full border border-[var(--gold-deep)]/60 bg-[var(--cocoa)] px-3 py-1.5 font-serif-caps text-[10px] text-[var(--ivory)] hover:opacity-90 disabled:opacity-60"
           >
             <Package className="h-3.5 w-3.5" />
-            {preparingBatch ? "ZIP…" : "ZIP"}
+            {preparingBatch ? "ZIP…" : batchPartial ? "Retomar ZIP" : "ZIP"}
           </button>
         </div>
       </header>
