@@ -62,6 +62,40 @@ function EditarHistoria() {
     load();
   }, []);
 
+  // Auto-scroll the window when dragging near top/bottom edges
+  useEffect(() => {
+    if (!dragId) return;
+    const EDGE = 110; // px from viewport edge that triggers scroll
+    const MAX_SPEED = 22; // px per frame
+    let pointerY: number | null = null;
+    let raf = 0;
+
+    const onDragOver = (e: DragEvent) => {
+      pointerY = e.clientY;
+    };
+
+    const tick = () => {
+      if (pointerY != null) {
+        const vh = window.innerHeight;
+        let delta = 0;
+        if (pointerY < EDGE) {
+          delta = -Math.ceil(((EDGE - pointerY) / EDGE) * MAX_SPEED);
+        } else if (pointerY > vh - EDGE) {
+          delta = Math.ceil(((pointerY - (vh - EDGE)) / EDGE) * MAX_SPEED);
+        }
+        if (delta !== 0) window.scrollBy(0, delta);
+      }
+      raf = window.requestAnimationFrame(tick);
+    };
+
+    window.addEventListener("dragover", onDragOver, { passive: true });
+    raf = window.requestAnimationFrame(tick);
+    return () => {
+      window.removeEventListener("dragover", onDragOver);
+      window.cancelAnimationFrame(raf);
+    };
+  }, [dragId]);
+
   function patchLocal(id: string, patch: Partial<Chapter>) {
     setChapters((prev) => prev.map((c) => (c.id === id ? { ...c, ...patch } : c)));
   }
