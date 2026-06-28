@@ -233,11 +233,10 @@ function Album() {
     // 4) Schedule permanent deletion; cancelling will restore both file and row
     const timeoutId = window.setTimeout(() => commitDelete(photo, trashPath), 5000);
     setUndoDeletes((prev) => [...prev, { photo, trashPath, timeoutId }]);
-    toast.success("Foto excluída", {
-      description: "Você pode desfazer em até 5 segundos.",
-      action: { label: "Desfazer", onClick: () => cancelDelete(photo) },
-      duration: 5000,
-    });
+    toast.custom(
+      (t) => <UndoToast t={t} photo={photo} onUndo={() => cancelDelete(photo)} />,
+      { duration: 5000, id: `undo-${photo.id}` }
+    );
   }
 
   function openDeleteConfirm(photo: Photo) {
