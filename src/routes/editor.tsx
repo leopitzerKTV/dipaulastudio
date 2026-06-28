@@ -529,6 +529,14 @@ function Editor() {
               {exportingPdf ? "…" : "PDF A4"}
             </button>
           </div>
+          <button
+            onClick={onExportZip}
+            disabled={anyExporting}
+            className="flex w-full items-center justify-center gap-2 rounded-2xl bg-[var(--cocoa)] py-3 font-serif-caps text-[10px] text-[var(--ivory)] shadow-[var(--shadow-card)] hover:opacity-90 disabled:opacity-60"
+          >
+            <Package className="h-4 w-4" />
+            {exportingZip ? "Gerando ZIP…" : "Baixar tudo (ZIP: PNG + JPG + PDF)"}
+          </button>
         </aside>
       </div>
     </div>
