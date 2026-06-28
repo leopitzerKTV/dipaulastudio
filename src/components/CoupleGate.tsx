@@ -1,79 +1,86 @@
 import { useEffect, useState, type ReactNode } from "react";
-import { Lock } from "lucide-react";
+import { Loader2, LogOut } from "lucide-react";
 import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
 
-const STORAGE_KEY = "couple_unlocked_v1";
-// Senha do casal — altere aqui quando quiser trocar
-const COUPLE_PASSCODE = "amanda&ricardo";
-
-export function isCoupleUnlocked() {
-  if (typeof window === "undefined") return false;
-  return window.localStorage.getItem(STORAGE_KEY) === "1";
-}
-
-export function lockCouple() {
-  if (typeof window !== "undefined") window.localStorage.removeItem(STORAGE_KEY);
-}
+type State = "loading" | "anon" | "not-couple" | "ok";
 
 export function CoupleGate({ children }: { children: ReactNode }) {
-  const [unlocked, setUnlocked] = useState(false);
-  const [checked, setChecked] = useState(false);
-  const [pass, setPass] = useState("");
+  const [state, setState] = useState<State>("loading");
 
   useEffect(() => {
-    setUnlocked(isCoupleUnlocked());
-    setChecked(true);
+    let cancelled = false;
+
+    async function check() {
+      const { data: sess } = await supabase.auth.getSession();
+      if (cancelled) return;
+      if (!sess.session) {
+        setState("anon");
+        return;
+      }
+      const { data, error } = await supabase.rpc("has_role", {
+        _user_id: sess.session.user.id,
+        _role: "couple",
+      });
+      if (cancelled) return;
+      if (error || !data) setState("not-couple");
+      else setState("ok");
+    }
+
+    check();
+    const { data: sub } = supabase.auth.onAuthStateChange((event) => {
+      if (event === "SIGNED_IN" || event === "SIGNED_OUT" || event === "USER_UPDATED") {
+        check();
+      }
+    });
+    return () => {
+      cancelled = true;
+      sub.subscription.unsubscribe();
+    };
   }, []);
 
-  if (!checked) return null;
+  if (state === "loading") {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-[var(--ivory)]">
+        <Loader2 className="h-5 w-5 animate-spin text-[var(--gold-deep)]" />
+      </div>
+    );
+  }
 
-  if (!unlocked) {
+  if (state === "anon") {
+    if (typeof window !== "undefined") window.location.replace("/auth");
+    return null;
+  }
+
+  if (state === "not-couple") {
     return (
       <div className="flex min-h-screen items-center justify-center bg-[var(--ivory)] px-6">
-        <form
-          onSubmit={(e) => {
-            e.preventDefault();
-            if (pass.trim().toLowerCase() === COUPLE_PASSCODE) {
-              window.localStorage.setItem(STORAGE_KEY, "1");
-              setUnlocked(true);
-              toast.success("Bem-vindos, casal ❤");
-            } else {
-              toast.error("Senha incorreta");
-            }
-          }}
-          className="w-full max-w-sm rounded-3xl border border-[var(--gold)]/25 bg-white/70 p-8 text-center shadow-[var(--shadow-luxe)] backdrop-blur"
-        >
-          <div className="mx-auto grid h-12 w-12 place-items-center rounded-full bg-[var(--gold)]/15 text-[var(--gold-deep)]">
-            <Lock className="h-5 w-5" />
-          </div>
-          <h1 className="mt-4 font-display text-2xl text-[var(--cocoa)]">Área do casal</h1>
+        <div className="w-full max-w-sm rounded-3xl border border-[var(--gold)]/25 bg-white/70 p-8 text-center shadow-[var(--shadow-luxe)]">
+          <h1 className="font-display text-2xl text-[var(--cocoa)]">Acesso restrito</h1>
           <p className="mt-2 text-sm text-[var(--cocoa)]/65">
-            Digite a senha para editar o conteúdo.
+            Sua conta não tem permissão para editar este convite. Apenas o casal pode alterar o conteúdo.
           </p>
-          <input
-            type="password"
-            autoFocus
-            value={pass}
-            onChange={(e) => setPass(e.target.value)}
-            placeholder="Senha"
-            className="mt-5 w-full rounded-full border border-[var(--gold)]/30 bg-white px-4 py-2.5 text-center text-sm text-[var(--cocoa)] outline-none focus:border-[var(--gold-deep)]"
-          />
           <button
-            type="submit"
-            className="mt-4 w-full rounded-full bg-[var(--gold-deep)] px-4 py-2.5 text-sm font-medium text-white transition hover:opacity-90"
+            onClick={async () => {
+              await supabase.auth.signOut();
+              toast.success("Sessão encerrada");
+              window.location.replace("/auth");
+            }}
+            className="mt-5 inline-flex items-center justify-center gap-2 rounded-full bg-[var(--gold-deep)] px-4 py-2.5 text-sm font-medium text-white"
           >
-            Entrar
+            <LogOut className="h-4 w-4" /> Sair
           </button>
-          <a
-            href="/"
-            className="mt-3 inline-block text-xs text-[var(--cocoa)]/55 underline-offset-2 hover:underline"
-          >
+          <a href="/" className="mt-3 block text-xs text-[var(--cocoa)]/55 underline-offset-2 hover:underline">
             Voltar para o início
           </a>
-        </form>
+        </div>
       </div>
     );
   }
 
   return <>{children}</>;
+}
+
+export async function signOutCouple() {
+  await supabase.auth.signOut();
 }
