@@ -992,11 +992,10 @@ function Editor() {
           >
             <div className="mb-3 flex items-center gap-2">
               <AlertTriangle className="h-5 w-5 text-red-600" />
-              <h3 className="font-display text-base text-[var(--cocoa)]">Apagar progresso salvo?</h3>
+              <h3 className="font-display text-base text-[var(--cocoa)]">{clearConfirmTitle}</h3>
             </div>
-            <p className="font-display text-xs leading-relaxed text-[var(--cocoa)]/80">
-              Você tem um progresso de geração salvo. Se apagar, perderá o que já foi renderizado de
-              <strong> PNG, JPG e PDF</strong> e terá que começar do zero.
+            <p className="whitespace-pre-line font-display text-xs leading-relaxed text-[var(--cocoa)]/80">
+              {clearConfirmMessage}
             </p>
             <div className="mt-4 rounded-2xl bg-red-50 p-3">
               <p className="font-serif-caps text-[10px] text-red-700">
