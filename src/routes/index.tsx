@@ -25,23 +25,101 @@ export const Route = createFileRoute("/")({
 function Index() {
   const [manualUrl, setManualUrl] = useState("");
   const [manual, setManual] = useState<ManualData | null>(null);
+  const [rowId, setRowId] = useState<string | null>(null);
+  const [isCouple, setIsCouple] = useState(false);
+  const [editMode, setEditMode] = useState(false);
+  const [saveState, setSaveState] = useState<"idle" | "saving" | "saved">("idle");
+  const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     setManualUrl(`${window.location.origin}/manual`);
     let cancelled = false;
-    supabase
-      .from("guest_manual")
-      .select("*")
-      .order("created_at", { ascending: true })
-      .limit(1)
-      .maybeSingle()
-      .then(({ data }) => {
-        if (!cancelled) setManual((data as ManualData) ?? null);
+
+    async function load() {
+      const { data } = await supabase
+        .from("guest_manual")
+        .select("*")
+        .order("created_at", { ascending: true })
+        .limit(1)
+        .maybeSingle();
+      if (cancelled) return;
+      if (data) {
+        setManual(data as ManualData);
+        setRowId(data.id as string);
+      }
+    }
+
+    async function checkCouple() {
+      const { data: sess } = await supabase.auth.getSession();
+      if (cancelled || !sess.session) return setIsCouple(false);
+      const { data } = await supabase.rpc("has_role", {
+        _user_id: sess.session.user.id,
+        _role: "couple",
       });
+      if (!cancelled) setIsCouple(!!data);
+    }
+
+    load();
+    checkCouple();
+
+    const { data: sub } = supabase.auth.onAuthStateChange((e) => {
+      if (e === "SIGNED_IN" || e === "SIGNED_OUT" || e === "USER_UPDATED") checkCouple();
+    });
+
     return () => {
       cancelled = true;
+      sub.subscription.unsubscribe();
+      if (saveTimer.current) clearTimeout(saveTimer.current);
     };
   }, []);
+
+  const persist = useCallback(
+    async (next: ManualData) => {
+      setSaveState("saving");
+      const trim = (v: string | null | undefined) => (v && v.trim() ? v.trim() : null);
+      const payload = {
+        ceremony_date: trim(next.ceremony_date),
+        ceremony_time: trim(next.ceremony_time),
+        ceremony_location: trim(next.ceremony_location),
+        parking_info: trim(next.parking_info),
+        location_info: trim(next.location_info),
+        gift_list_url: trim(next.gift_list_url),
+        welcome_note: trim(next.welcome_note),
+        dress_code_note: trim(next.dress_code_note),
+        ceremony_note: trim(next.ceremony_note),
+        during_ceremony_note: trim(next.during_ceremony_note),
+        reception_note: trim(next.reception_note),
+        cake_note: trim(next.cake_note),
+        dancefloor_note: trim(next.dancefloor_note),
+        album_note: trim(next.album_note),
+        gift_note: trim(next.gift_note),
+        transport_note: trim(next.transport_note),
+        closing_note: trim(next.closing_note),
+      };
+      const res = rowId
+        ? await supabase.from("guest_manual").update(payload).eq("id", rowId)
+        : await supabase.from("guest_manual").insert(payload).select("id").maybeSingle();
+      if (res.error) {
+        setSaveState("idle");
+        toast.error("Não foi possível salvar");
+        return;
+      }
+      if (!rowId && "data" in res && res.data?.id) setRowId(res.data.id as string);
+      setSaveState("saved");
+      setTimeout(() => setSaveState("idle"), 1500);
+    },
+    [rowId],
+  );
+
+  const handleFieldChange = (field: keyof ManualData, value: string) => {
+    setManual((prev) => {
+      const base = prev ?? ({} as ManualData);
+      const next = { ...base, [field]: value } as ManualData;
+      if (saveTimer.current) clearTimeout(saveTimer.current);
+      saveTimer.current = setTimeout(() => persist(next), 700);
+      return next;
+    });
+  };
 
   return (
     <AppShell>
