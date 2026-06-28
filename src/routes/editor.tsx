@@ -273,25 +273,41 @@ function Editor() {
     label: "",
   });
 
+  const cancelBatchRef = useRef(false);
+  const [cancelled, setCancelled] = useState(false);
+
+  function cancelBatch() {
+    cancelBatchRef.current = true;
+    setCancelled(true);
+  }
+
   async function onPrepareBatch() {
     if (!previewRef.current) return;
+    cancelBatchRef.current = false;
+    setCancelled(false);
     setPreparingBatch(true);
     const tick = (step: number, label: string) =>
       setBatchProgress({ step, total: 4, label });
+    const checkCancel = () => {
+      if (cancelBatchRef.current) throw new Error("CANCELLED");
+    };
     try {
       tick(0, "Carregando bibliotecas…");
       const jsPDFMod = await import("jspdf");
       await new Promise((r) => setTimeout(r, 30));
+      checkCancel();
 
       tick(1, "Renderizando PNG em alta resolução…");
       const pngUrl = await toPng(previewRef.current, {
         pixelRatio: 4, cacheBust: true, backgroundColor: palette.bg,
       });
+      checkCancel();
 
       tick(2, "Renderizando JPG (qualidade 95%)…");
       const jpgUrl = await toJpeg(previewRef.current, {
         pixelRatio: 4, cacheBust: true, quality: 0.95, backgroundColor: palette.bg,
       });
+      checkCancel();
 
       tick(3, "Montando PDF A4…");
       const pdf = new jsPDFMod.jsPDF({ orientation: "portrait", unit: "mm", format: "a4", compress: true });
@@ -302,14 +318,19 @@ function Editor() {
       pdf.addImage(pngUrl, "PNG", offsetX, marginY, imgW, imgH, undefined, "FAST");
       const pdfBlob = pdf.output("blob");
       const pdfBlobUrl = URL.createObjectURL(pdfBlob);
+      checkCancel();
 
       tick(4, "Pronto!");
       if (batchPreview) URL.revokeObjectURL(batchPreview.pdfBlobUrl);
       setBatchPreview({ pngUrl, jpgUrl, pdfBlobUrl, pdfBlob });
+    } catch (err) {
+      if ((err as Error).message !== "CANCELLED") throw err;
     } finally {
       setPreparingBatch(false);
+      cancelBatchRef.current = false;
     }
   }
+
 
 
   function closeBatchPreview() {
