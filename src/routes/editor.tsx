@@ -258,17 +258,23 @@ function Editor() {
   }
 
   const [exportingZip, setExportingZip] = useState(false);
-  const anyExporting = exporting || exportingPdf || exportingJpg || exportingZip;
+  const [preparingBatch, setPreparingBatch] = useState(false);
+  const [batchPreview, setBatchPreview] = useState<{
+    pngUrl: string;
+    jpgUrl: string;
+    pdfBlobUrl: string;
+    pdfBlob: Blob;
+  } | null>(null);
+  const anyExporting = exporting || exportingPdf || exportingJpg || exportingZip || preparingBatch;
 
-  async function onExportZip() {
+  async function onPrepareBatch() {
     if (!previewRef.current) return;
-    setExportingZip(true);
+    setPreparingBatch(true);
     try {
-      const [pngUrl, jpgUrl, { jsPDF }, { default: JSZip }] = await Promise.all([
+      const [pngUrl, jpgUrl, { jsPDF }] = await Promise.all([
         toPng(previewRef.current, { pixelRatio: 4, cacheBust: true, backgroundColor: palette.bg }),
         toJpeg(previewRef.current, { pixelRatio: 4, cacheBust: true, quality: 0.95, backgroundColor: palette.bg }),
         import("jspdf"),
-        import("jszip"),
       ]);
       const pdf = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4", compress: true });
       const pageW = 210, pageH = 297, marginY = 12;
@@ -277,13 +283,29 @@ function Editor() {
       const offsetX = (pageW - imgW) / 2;
       pdf.addImage(pngUrl, "PNG", offsetX, marginY, imgW, imgH, undefined, "FAST");
       const pdfBlob = pdf.output("blob");
+      const pdfBlobUrl = URL.createObjectURL(pdfBlob);
+      if (batchPreview) URL.revokeObjectURL(batchPreview.pdfBlobUrl);
+      setBatchPreview({ pngUrl, jpgUrl, pdfBlobUrl, pdfBlob });
+    } finally {
+      setPreparingBatch(false);
+    }
+  }
 
+  function closeBatchPreview() {
+    if (batchPreview) URL.revokeObjectURL(batchPreview.pdfBlobUrl);
+    setBatchPreview(null);
+  }
+
+  async function confirmDownloadZip() {
+    if (!batchPreview) return;
+    setExportingZip(true);
+    try {
+      const { default: JSZip } = await import("jszip");
       const slug = `convite-${brideName}-${groomName}`.toLowerCase().replace(/\s+/g, "-");
       const zip = new JSZip();
-      zip.file(`${slug}.png`, pngUrl.split(",")[1], { base64: true });
-      zip.file(`${slug}.jpg`, jpgUrl.split(",")[1], { base64: true });
-      zip.file(`${slug}.pdf`, pdfBlob);
-
+      zip.file(`${slug}.png`, batchPreview.pngUrl.split(",")[1], { base64: true });
+      zip.file(`${slug}.jpg`, batchPreview.jpgUrl.split(",")[1], { base64: true });
+      zip.file(`${slug}.pdf`, batchPreview.pdfBlob);
       const blob = await zip.generateAsync({ type: "blob" });
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
@@ -291,10 +313,12 @@ function Editor() {
       a.download = `${slug}.zip`;
       a.click();
       setTimeout(() => URL.revokeObjectURL(url), 1000);
+      closeBatchPreview();
     } finally {
       setExportingZip(false);
     }
   }
+
 
 
 
