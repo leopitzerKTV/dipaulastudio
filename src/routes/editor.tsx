@@ -677,12 +677,19 @@ function Editor() {
             <Package className="h-3.5 w-3.5" />
             {preparingBatch ? "ZIP…" : batchPartial ? "Retomar ZIP" : "ZIP"}
           </button>
+          <button
+            onClick={() => setTourOpen(true)}
+            className="inline-flex items-center gap-1.5 rounded-full border border-[var(--gold-deep)]/40 bg-[var(--ivory)] px-3 py-1.5 font-serif-caps text-[10px] text-[var(--gold-deep)] hover:bg-[var(--gold)]/10"
+          >
+            <Sparkles className="h-3.5 w-3.5" />
+            Tour
+          </button>
         </div>
       </header>
 
       <div className="mx-auto grid max-w-6xl gap-8 px-4 py-8 lg:grid-cols-[1fr_380px]">
         {/* Preview */}
-        <div className="flex justify-center">
+        <div className="flex justify-center" data-tour="preview">
           <div
             ref={previewRef}
             className="relative aspect-[9/16] w-full max-w-[420px] overflow-hidden rounded-[2rem] shadow-[var(--shadow-luxe)]"
