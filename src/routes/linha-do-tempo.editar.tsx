@@ -135,12 +135,16 @@ function EditarTimeline() {
 
 
   async function quickAdd() {
-    if (!newTitle.trim() && !newDate.trim() && !newFile) {
+    if (!newTitle.trim() && !newDate.trim() && !newFile && !editingId) {
       toast.error("Preencha um título, data ou escolha uma foto");
       return;
     }
     setAdding(true);
-    let storagePath: string | null = null;
+
+    const existing = editingId ? items.find((c) => c.id === editingId) : null;
+    let storagePath: string | null = existing?.storage_path ?? null;
+    let oldPath: string | null = null;
+
     if (newFile) {
       if (!newFile.type.startsWith("image/")) {
         setAdding(false);
@@ -158,8 +162,41 @@ function EditarTimeline() {
         toast.error("Falha no upload da foto");
         return;
       }
+      oldPath = storagePath;
       storagePath = path;
     }
+
+    if (editingId) {
+      const { error } = await supabase
+        .from("timeline_milestones")
+        .update({ date_label: newDate.trim(), title: newTitle.trim(), storage_path: storagePath })
+        .eq("id", editingId);
+      if (error) {
+        if (newFile && storagePath) await supabase.storage.from(BUCKET).remove([storagePath]);
+        setAdding(false);
+        toast.error("Não foi possível salvar o marco");
+        return;
+      }
+      if (oldPath && oldPath !== storagePath) await supabase.storage.from(BUCKET).remove([oldPath]);
+      let imageUrl: string | undefined;
+      if (storagePath) {
+        const { data: signed } = await supabase.storage.from(BUCKET).createSignedUrl(storagePath, 60 * 60);
+        imageUrl = signed?.signedUrl;
+      }
+      setItems((prev) =>
+        prev.map((c) =>
+          c.id === editingId
+            ? { ...c, date_label: newDate.trim(), title: newTitle.trim(), storage_path: storagePath, imageUrl }
+            : c
+        )
+      );
+      resetNewMilestone();
+      setShowAddCard(false);
+      setAdding(false);
+      toast.success("Marco salvo");
+      return;
+    }
+
     const nextPosition = items.length > 0 ? Math.max(...items.map((c) => c.position)) + 1 : 0;
     const { data, error } = await supabase
       .from("timeline_milestones")
