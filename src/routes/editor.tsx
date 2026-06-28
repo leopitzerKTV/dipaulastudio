@@ -192,6 +192,26 @@ function Editor() {
   }
 
   const [exportingPdf, setExportingPdf] = useState(false);
+  const [exportingJpg, setExportingJpg] = useState(false);
+
+  async function onExportJpg() {
+    if (!previewRef.current) return;
+    setExportingJpg(true);
+    try {
+      const dataUrl = await toJpeg(previewRef.current, {
+        pixelRatio: 4,
+        cacheBust: true,
+        quality: 0.95,
+        backgroundColor: palette.bg,
+      });
+      const a = document.createElement("a");
+      a.href = dataUrl;
+      a.download = `convite-${brideName}-${groomName}.jpg`.toLowerCase().replace(/\s+/g, "-");
+      a.click();
+    } finally {
+      setExportingJpg(false);
+    }
+  }
 
   async function renderHighResPng() {
     if (!previewRef.current) return null;
