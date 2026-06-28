@@ -31,8 +31,23 @@ function Index() {
   const guestMode = viewMode === "guest";
   const [saveState, setSaveState] = useState<"idle" | "saving" | "saved">("idle");
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const [deviceWidth, setDeviceWidth] = useState<320 | 375 | 414>(375);
-  const [orientation, setOrientation] = useState<"portrait" | "landscape">("portrait");
+  const [deviceWidth, setDeviceWidth] = useState<320 | 375 | 414>(() => {
+    if (typeof window === "undefined") return 375;
+    const v = Number(window.localStorage.getItem("manualPreview.width"));
+    return v === 320 || v === 375 || v === 414 ? (v as 320 | 375 | 414) : 375;
+  });
+  const [orientation, setOrientation] = useState<"portrait" | "landscape">(() => {
+    if (typeof window === "undefined") return "portrait";
+    const v = window.localStorage.getItem("manualPreview.orientation");
+    return v === "landscape" ? "landscape" : "portrait";
+  });
+
+  useEffect(() => {
+    if (typeof window !== "undefined") window.localStorage.setItem("manualPreview.width", String(deviceWidth));
+  }, [deviceWidth]);
+  useEffect(() => {
+    if (typeof window !== "undefined") window.localStorage.setItem("manualPreview.orientation", orientation);
+  }, [orientation]);
 
   useEffect(() => {
     setManualUrl(`${window.location.origin}/manual`);
