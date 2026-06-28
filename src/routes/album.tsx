@@ -140,16 +140,25 @@ function Album() {
   }
 
   async function deletePhoto(photo: Photo) {
-    if (!window.confirm("Excluir esta foto do álbum?")) return;
+    setDeleting(true);
     setPhotos((prev) => prev.filter((p) => p.id !== photo.id));
     setEditing((cur) => (cur?.id === photo.id ? null : cur));
+    setConfirmDelete(null);
     const { error } = await supabase.from("album_photos").delete().eq("id", photo.id);
     if (error) {
       console.error(error);
       setPhotos((prev) => (prev.some((p) => p.id === photo.id) ? prev : [photo, ...prev]));
+      toast.error("Não foi possível excluir a foto", { description: "Tente novamente em instantes." });
+      setDeleting(false);
       return;
     }
     await supabase.storage.from(BUCKET).remove([photo.storage_path]);
+    toast.success("Foto excluída", { description: "A foto foi removida do álbum." });
+    setDeleting(false);
+  }
+
+  function openDeleteConfirm(photo: Photo) {
+    setConfirmDelete(photo);
   }
 
 
