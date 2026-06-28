@@ -140,11 +140,25 @@ function EditarHistoria() {
   }
 
   async function saveChapter(c: Chapter) {
+    if (!c.title.trim()) {
+      toast.error("Informe um título para o capítulo");
+      return;
+    }
+    if (!c.event_date) {
+      toast.error("Escolha uma data no calendário");
+      return;
+    }
+    const d = new Date(c.event_date);
+    if (Number.isNaN(d.getTime())) {
+      toast.error("Data inválida");
+      return;
+    }
     setSavingId(c.id);
     const { error } = await supabase
       .from("story_chapters")
       .update({
-        date_label: c.date_label,
+        event_date: c.event_date,
+        date_label: c.date_label?.trim() ? c.date_label : formatDateLabel(c.event_date),
         title: c.title,
         body: c.body,
       })
@@ -156,6 +170,7 @@ function EditarHistoria() {
     }
     toast.success("Capítulo salvo");
   }
+
 
   async function deleteChapter(c: Chapter) {
     if (!window.confirm(`Excluir o capítulo "${c.title || "sem título"}"?`)) return;
