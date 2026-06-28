@@ -21,6 +21,7 @@ import { Route as PresentesIndexRouteImport } from './routes/presentes.index'
 import { Route as ManualEditarRouteImport } from './routes/manual.editar'
 import { Route as LinhaDoTempoEditarRouteImport } from './routes/linha-do-tempo.editar'
 import { Route as HistoriaEditarRouteImport } from './routes/historia.editar'
+import { Route as PresentesConfirmarTokenRouteImport } from './routes/presentes.confirmar.$token'
 
 const PainelRoute = PainelRouteImport.update({
   id: '/painel',
@@ -82,6 +83,11 @@ const HistoriaEditarRoute = HistoriaEditarRouteImport.update({
   path: '/editar',
   getParentRoute: () => HistoriaRoute,
 } as any)
+const PresentesConfirmarTokenRoute = PresentesConfirmarTokenRouteImport.update({
+  id: '/presentes/confirmar/$token',
+  path: '/presentes/confirmar/$token',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -96,6 +102,7 @@ export interface FileRoutesByFullPath {
   '/linha-do-tempo/editar': typeof LinhaDoTempoEditarRoute
   '/manual/editar': typeof ManualEditarRoute
   '/presentes/': typeof PresentesIndexRoute
+  '/presentes/confirmar/$token': typeof PresentesConfirmarTokenRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -110,6 +117,7 @@ export interface FileRoutesByTo {
   '/linha-do-tempo/editar': typeof LinhaDoTempoEditarRoute
   '/manual/editar': typeof ManualEditarRoute
   '/presentes': typeof PresentesIndexRoute
+  '/presentes/confirmar/$token': typeof PresentesConfirmarTokenRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -125,6 +133,7 @@ export interface FileRoutesById {
   '/linha-do-tempo/editar': typeof LinhaDoTempoEditarRoute
   '/manual/editar': typeof ManualEditarRoute
   '/presentes/': typeof PresentesIndexRoute
+  '/presentes/confirmar/$token': typeof PresentesConfirmarTokenRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -141,6 +150,7 @@ export interface FileRouteTypes {
     | '/linha-do-tempo/editar'
     | '/manual/editar'
     | '/presentes/'
+    | '/presentes/confirmar/$token'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -155,6 +165,7 @@ export interface FileRouteTypes {
     | '/linha-do-tempo/editar'
     | '/manual/editar'
     | '/presentes'
+    | '/presentes/confirmar/$token'
   id:
     | '__root__'
     | '/'
@@ -169,6 +180,7 @@ export interface FileRouteTypes {
     | '/linha-do-tempo/editar'
     | '/manual/editar'
     | '/presentes/'
+    | '/presentes/confirmar/$token'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -181,6 +193,7 @@ export interface RootRouteChildren {
   ManualRoute: typeof ManualRouteWithChildren
   PainelRoute: typeof PainelRoute
   PresentesIndexRoute: typeof PresentesIndexRoute
+  PresentesConfirmarTokenRoute: typeof PresentesConfirmarTokenRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -269,6 +282,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof HistoriaEditarRouteImport
       parentRoute: typeof HistoriaRoute
     }
+    '/presentes/confirmar/$token': {
+      id: '/presentes/confirmar/$token'
+      path: '/presentes/confirmar/$token'
+      fullPath: '/presentes/confirmar/$token'
+      preLoaderRoute: typeof PresentesConfirmarTokenRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -317,6 +337,7 @@ const rootRouteChildren: RootRouteChildren = {
   ManualRoute: ManualRouteWithChildren,
   PainelRoute: PainelRoute,
   PresentesIndexRoute: PresentesIndexRoute,
+  PresentesConfirmarTokenRoute: PresentesConfirmarTokenRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
