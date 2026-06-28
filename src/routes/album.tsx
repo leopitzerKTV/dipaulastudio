@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { motion } from "motion/react";
-import { ArrowLeft, Camera, Upload, Heart, Loader2, Check, X, AlertCircle } from "lucide-react";
+import { ArrowLeft, Camera, Upload, Heart, Loader2, Check, X, AlertCircle, ArrowDownUp } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { AppShell } from "@/components/AppShell";
 import { Ornament } from "@/components/Ornament";
@@ -16,6 +16,7 @@ type Photo = {
   storage_path: string;
   author_name: string | null;
   caption: string | null;
+  tag: string;
   created_at: string;
   url?: string;
 };
@@ -31,16 +32,38 @@ type UploadItem = {
 };
 
 const BUCKET = "album-photos";
+const TAGS = ["Geral", "Cerimônia", "Festa", "Making of", "Pré-wedding", "Convidados", "Buquê"] as const;
+type Tag = (typeof TAGS)[number];
+type SortOrder = "recent" | "old";
 
 function Album() {
   const [photos, setPhotos] = useState<Photo[]>([]);
   const [loading, setLoading] = useState(true);
   const [uploads, setUploads] = useState<UploadItem[]>([]);
+  const [filterTag, setFilterTag] = useState<"Todas" | Tag>("Todas");
+  const [sortOrder, setSortOrder] = useState<SortOrder>("recent");
   const [authorName, setAuthorName] = useState<string>(() =>
     typeof window !== "undefined" ? localStorage.getItem("album.authorName") ?? "" : ""
   );
   const fileRef = useRef<HTMLInputElement>(null);
   const uploading = uploads.some((u) => u.status === "uploading" || u.status === "saving" || u.status === "pending");
+  const uploadTag: Tag = filterTag === "Todas" ? "Geral" : filterTag;
+
+  const visiblePhotos = (filterTag === "Todas"
+    ? photos
+    : photos.filter((p) => p.tag === filterTag)
+  )
+    .slice()
+    .sort((a, b) =>
+      sortOrder === "recent"
+        ? b.created_at.localeCompare(a.created_at)
+        : a.created_at.localeCompare(b.created_at)
+    );
+
+  const tagCounts = photos.reduce<Record<string, number>>((acc, p) => {
+    acc[p.tag] = (acc[p.tag] ?? 0) + 1;
+    return acc;
+  }, {});
 
   async function hydrateUrls(rows: Photo[]): Promise<Photo[]> {
     if (rows.length === 0) return rows;
@@ -143,7 +166,7 @@ function Album() {
         updateItem(item.id, { progress: 100, status: "saving" });
         const { error: insErr } = await supabase
           .from("album_photos")
-          .insert({ storage_path: path, author_name: name, caption: null });
+          .insert({ storage_path: path, author_name: name, caption: null, tag: uploadTag });
         if (insErr) throw insErr;
 
         updateItem(item.id, { status: "done" });
@@ -191,22 +214,58 @@ function Album() {
             <span className="relative h-2 w-2 rounded-full bg-[var(--gold-deep)]" />
           </span>
           <span className="font-serif-caps text-[10px] text-[var(--gold-deep)]">
-            {photos.length} {photos.length === 1 ? "foto" : "fotos"} · ao vivo
+            {visiblePhotos.length} {visiblePhotos.length === 1 ? "foto" : "fotos"} · ao vivo
           </span>
         </div>
       </section>
+
+      {/* Filters */}
+      <div className="mt-5 px-5">
+        <div className="flex items-center justify-between gap-2">
+          <p className="font-serif-caps text-[10px] text-[var(--cocoa)]/60">Filtrar por evento</p>
+          <button
+            onClick={() => setSortOrder((s) => (s === "recent" ? "old" : "recent"))}
+            className="inline-flex items-center gap-1.5 rounded-full border border-[var(--gold)]/30 bg-[var(--card)] px-3 py-1 font-serif-caps text-[9px] text-[var(--cocoa)]"
+          >
+            <ArrowDownUp className="h-3 w-3" />
+            {sortOrder === "recent" ? "Mais recentes" : "Mais antigas"}
+          </button>
+        </div>
+        <div className="mt-2 -mx-5 flex gap-1.5 overflow-x-auto px-5 pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+          {(["Todas", ...TAGS] as const).map((t) => {
+            const active = filterTag === t;
+            const count = t === "Todas" ? photos.length : tagCounts[t] ?? 0;
+            return (
+              <button
+                key={t}
+                onClick={() => setFilterTag(t)}
+                className={`flex-none rounded-full border px-3 py-1 font-serif-caps text-[10px] transition ${
+                  active
+                    ? "border-transparent text-[var(--ivory)] shadow-[var(--shadow-card)]"
+                    : "border-[var(--gold)]/25 bg-[var(--card)] text-[var(--cocoa)]/75"
+                }`}
+                style={active ? { background: "var(--gradient-gold)" } : undefined}
+              >
+                {t} <span className="opacity-60">· {count}</span>
+              </button>
+            );
+          })}
+        </div>
+      </div>
 
       {loading ? (
         <div className="mt-10 flex justify-center">
           <Loader2 className="h-6 w-6 animate-spin text-[var(--gold-deep)]" />
         </div>
-      ) : photos.length === 0 ? (
+      ) : visiblePhotos.length === 0 ? (
         <div className="mt-8 px-6 text-center text-sm text-[var(--cocoa)]/60">
-          Ainda não há fotos. Seja o primeiro a enviar!
+          {photos.length === 0
+            ? "Ainda não há fotos. Seja o primeiro a enviar!"
+            : `Nenhuma foto em "${filterTag}" ainda.`}
         </div>
       ) : (
-        <div className="mt-7 grid grid-cols-2 gap-2.5 px-5 pb-32">
-          {photos.map((p, i) => (
+        <div className="mt-5 grid grid-cols-2 gap-2.5 px-5 pb-32">
+          {visiblePhotos.map((p, i) => (
             <motion.div
               key={p.id}
               initial={{ opacity: 0, y: 16 }}
@@ -225,7 +284,7 @@ function Album() {
               <div className="absolute inset-0 bg-gradient-to-t from-[var(--cocoa)]/70 via-transparent to-transparent" />
               <div className="absolute inset-x-0 bottom-0 flex items-end justify-between p-2.5 text-[var(--ivory)]">
                 <div>
-                  <p className="font-serif-caps text-[8.5px] opacity-80">Álbum</p>
+                  <p className="font-serif-caps text-[8.5px] opacity-80">{p.tag}</p>
                   <p className="font-display text-xs leading-tight">por {p.author_name ?? "convidado"}</p>
                 </div>
                 <Heart className="h-3.5 w-3.5" fill="currentColor" />
@@ -318,16 +377,24 @@ function Album() {
       )}
 
 
-      <motion.button
-        whileTap={{ scale: 0.94 }}
-        onClick={() => !uploading && fileRef.current?.click()}
-        disabled={uploading}
-        className="fixed bottom-24 left-1/2 z-40 -translate-x-1/2 flex items-center gap-2 rounded-full px-6 py-3.5 font-serif-caps text-[10px] text-[var(--ivory)] shadow-[var(--shadow-luxe)] disabled:opacity-70"
-        style={{ background: "var(--gradient-gold)" }}
-      >
-        {uploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
-        {uploading ? "Enviando..." : "Enviar Fotos"}
-      </motion.button>
+      <div className="fixed bottom-24 left-1/2 z-40 -translate-x-1/2 flex flex-col items-center gap-1.5">
+        <motion.button
+          whileTap={{ scale: 0.94 }}
+          onClick={() => !uploading && fileRef.current?.click()}
+          disabled={uploading}
+          className="flex items-center gap-2 rounded-full px-6 py-3.5 font-serif-caps text-[10px] text-[var(--ivory)] shadow-[var(--shadow-luxe)] disabled:opacity-70"
+          style={{ background: "var(--gradient-gold)" }}
+        >
+          {uploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
+          {uploading ? "Enviando..." : `Enviar para ${uploadTag}`}
+        </motion.button>
+        <p className="font-serif-caps text-[9px] text-[var(--cocoa)]/55">
+          {filterTag === "Todas"
+            ? "Toque em um evento acima para mudar a categoria"
+            : `Categoria selecionada: ${filterTag}`}
+        </p>
+      </div>
+
     </AppShell>
   );
 }
