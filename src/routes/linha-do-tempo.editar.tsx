@@ -407,11 +407,15 @@ function EditarTimeline() {
             <div className="flex items-center justify-between gap-2">
               <div className="flex items-center gap-2">
                 <span className="grid h-7 w-7 place-items-center rounded-full text-[var(--ivory)]" style={{ background: "var(--gradient-gold)" }}>
-                  <Plus className="h-4 w-4" />
+                  {editingId ? <Pencil className="h-4 w-4" /> : <Plus className="h-4 w-4" />}
                 </span>
                 <div>
-                  <p className="font-display text-base text-[var(--cocoa)]">Adicionar novo marco</p>
-                  <p className="font-serif-caps text-[9px] text-[var(--cocoa)]/60">Envie uma foto e escreva data + título</p>
+                  <p className="font-display text-base text-[var(--cocoa)]">
+                    {editingId ? "Editar marco" : "Adicionar novo marco"}
+                  </p>
+                  <p className="font-serif-caps text-[9px] text-[var(--cocoa)]/60">
+                    {editingId ? "Ajuste a foto, data e título" : "Envie uma foto e escreva data + título"}
+                  </p>
                 </div>
               </div>
               <button
@@ -432,7 +436,7 @@ function EditarTimeline() {
                 type="button"
                 onClick={() => newFileRef.current?.click()}
                 className="relative aspect-square w-24 flex-none overflow-hidden rounded-lg border border-dashed border-[var(--gold)]/40 bg-[var(--ivory)] transition hover:border-[var(--gold)]"
-                aria-label={newPreview ? "Trocar foto do novo marco" : "Escolher foto do novo marco"}
+                aria-label={newPreview ? "Trocar foto" : "Escolher foto"}
               >
                 {newPreview ? (
                   <img src={newPreview} alt="Pré-visualização" className="h-full w-full object-cover" />
@@ -478,8 +482,14 @@ function EditarTimeline() {
                 className="inline-flex flex-1 items-center justify-center gap-2 rounded-full px-4 py-3 font-serif-caps text-[11px] text-[var(--ivory)] shadow-[var(--shadow-card)] disabled:opacity-60"
                 style={{ background: "var(--gradient-gold)" }}
               >
-                {adding ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />}
-                Adicionar marco
+                {adding ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : editingId ? (
+                  <Save className="h-4 w-4" />
+                ) : (
+                  <Plus className="h-4 w-4" />
+                )}
+                {editingId ? "Salvar marco" : "Adicionar marco"}
               </button>
               <button
                 type="button"
