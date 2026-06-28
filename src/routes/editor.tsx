@@ -267,16 +267,34 @@ function Editor() {
   } | null>(null);
   const anyExporting = exporting || exportingPdf || exportingJpg || exportingZip || preparingBatch;
 
+  const [batchProgress, setBatchProgress] = useState<{ step: number; total: number; label: string }>({
+    step: 0,
+    total: 4,
+    label: "",
+  });
+
   async function onPrepareBatch() {
     if (!previewRef.current) return;
     setPreparingBatch(true);
+    const tick = (step: number, label: string) =>
+      setBatchProgress({ step, total: 4, label });
     try {
-      const [pngUrl, jpgUrl, { jsPDF }] = await Promise.all([
-        toPng(previewRef.current, { pixelRatio: 4, cacheBust: true, backgroundColor: palette.bg }),
-        toJpeg(previewRef.current, { pixelRatio: 4, cacheBust: true, quality: 0.95, backgroundColor: palette.bg }),
-        import("jspdf"),
-      ]);
-      const pdf = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4", compress: true });
+      tick(0, "Carregando bibliotecas…");
+      const jsPDFMod = await import("jspdf");
+      await new Promise((r) => setTimeout(r, 30));
+
+      tick(1, "Renderizando PNG em alta resolução…");
+      const pngUrl = await toPng(previewRef.current, {
+        pixelRatio: 4, cacheBust: true, backgroundColor: palette.bg,
+      });
+
+      tick(2, "Renderizando JPG (qualidade 95%)…");
+      const jpgUrl = await toJpeg(previewRef.current, {
+        pixelRatio: 4, cacheBust: true, quality: 0.95, backgroundColor: palette.bg,
+      });
+
+      tick(3, "Montando PDF A4…");
+      const pdf = new jsPDFMod.jsPDF({ orientation: "portrait", unit: "mm", format: "a4", compress: true });
       const pageW = 210, pageH = 297, marginY = 12;
       const imgH = pageH - marginY * 2;
       const imgW = (imgH * 9) / 16;
@@ -284,12 +302,15 @@ function Editor() {
       pdf.addImage(pngUrl, "PNG", offsetX, marginY, imgW, imgH, undefined, "FAST");
       const pdfBlob = pdf.output("blob");
       const pdfBlobUrl = URL.createObjectURL(pdfBlob);
+
+      tick(4, "Pronto!");
       if (batchPreview) URL.revokeObjectURL(batchPreview.pdfBlobUrl);
       setBatchPreview({ pngUrl, jpgUrl, pdfBlobUrl, pdfBlob });
     } finally {
       setPreparingBatch(false);
     }
   }
+
 
   function closeBatchPreview() {
     if (batchPreview) URL.revokeObjectURL(batchPreview.pdfBlobUrl);
@@ -563,6 +584,59 @@ function Editor() {
           </button>
         </aside>
       </div>
+
+      {preparingBatch && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-[var(--cocoa)]/70 p-4 backdrop-blur-sm">
+          <div className="w-full max-w-sm rounded-3xl border border-[var(--gold)]/30 bg-[var(--ivory)] p-6 shadow-[var(--shadow-luxe)]">
+            <div className="mb-3 flex items-center gap-2">
+              <Package className="h-4 w-4 animate-pulse text-[var(--gold-deep)]" />
+              <h3 className="font-display text-base text-[var(--cocoa)]">Gerando arquivos…</h3>
+            </div>
+            <div className="h-2 w-full overflow-hidden rounded-full bg-[var(--gold)]/15">
+              <div
+                className="h-full rounded-full transition-all duration-300"
+                style={{
+                  width: `${Math.round((batchProgress.step / batchProgress.total) * 100)}%`,
+                  background: palette.gradient,
+                }}
+              />
+            </div>
+            <div className="mt-3 flex items-center justify-between font-serif-caps text-[10px] text-[var(--gold-deep)]/80">
+              <span>{batchProgress.label || "Preparando…"}</span>
+              <span>
+                {batchProgress.step}/{batchProgress.total}
+              </span>
+            </div>
+            <ul className="mt-3 space-y-1 font-serif-caps text-[10px]">
+              {["Bibliotecas", "PNG 9:16", "JPG 9:16", "PDF A4"].map((name, i) => {
+                const done = batchProgress.step > i;
+                const active = batchProgress.step === i;
+                return (
+                  <li
+                    key={name}
+                    className={`flex items-center gap-2 ${
+                      done
+                        ? "text-[var(--gold-deep)]"
+                        : active
+                        ? "text-[var(--cocoa)]"
+                        : "text-[var(--cocoa)]/40"
+                    }`}
+                  >
+                    {done ? (
+                      <Check className="h-3 w-3" />
+                    ) : active ? (
+                      <span className="h-2 w-2 animate-pulse rounded-full bg-[var(--gold-deep)]" />
+                    ) : (
+                      <span className="h-2 w-2 rounded-full border border-current opacity-50" />
+                    )}
+                    {name}
+                  </li>
+                );
+              })}
+            </ul>
+          </div>
+        </div>
+      )}
 
       {batchPreview && (
         <div
