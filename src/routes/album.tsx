@@ -139,27 +139,51 @@ function Album() {
     }
   }
 
-  async function deletePhoto(photo: Photo) {
-    setDeleting(true);
+  async function commitDelete(photo: Photo) {
+    setUndoDeletes((prev) => prev.filter((d) => d.photo.id !== photo.id));
     setPhotos((prev) => prev.filter((p) => p.id !== photo.id));
-    setEditing((cur) => (cur?.id === photo.id ? null : cur));
-    setConfirmDelete(null);
     const { error } = await supabase.from("album_photos").delete().eq("id", photo.id);
     if (error) {
       console.error(error);
       setPhotos((prev) => (prev.some((p) => p.id === photo.id) ? prev : [photo, ...prev]));
       toast.error("Não foi possível excluir a foto", { description: "Tente novamente em instantes." });
-      setDeleting(false);
       return;
     }
     await supabase.storage.from(BUCKET).remove([photo.storage_path]);
     toast.success("Foto excluída", { description: "A foto foi removida do álbum." });
-    setDeleting(false);
+  }
+
+  function cancelDelete(photo: Photo) {
+    const entry = undoDeletes.find((d) => d.photo.id === photo.id);
+    if (!entry) return;
+    window.clearTimeout(entry.timeoutId);
+    setUndoDeletes((prev) => prev.filter((d) => d.photo.id !== photo.id));
+    toast.success("Exclusão desfeita", { description: "A foto voltou ao álbum." });
+  }
+
+  function deletePhoto(photo: Photo) {
+    setConfirmDelete(null);
+    setEditing((cur) => (cur?.id === photo.id ? null : cur));
+    const timeoutId = window.setTimeout(() => commitDelete(photo), 5000);
+    setUndoDeletes((prev) => [...prev, { photo, timeoutId }]);
+    toast("Foto excluída", {
+      description: "Você pode desfazer em até 5 segundos.",
+      action: { label: "Desfazer", onClick: () => cancelDelete(photo) },
+      duration: 5000,
+    });
   }
 
   function openDeleteConfirm(photo: Photo) {
     setConfirmDelete(photo);
   }
+
+  const undoDeletesRef = useRef(undoDeletes);
+  undoDeletesRef.current = undoDeletes;
+  useEffect(() => {
+    return () => {
+      undoDeletesRef.current.forEach((d) => window.clearTimeout(d.timeoutId));
+    };
+  }, []);
 
 
   async function handleFiles(files: FileList | null) {
