@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { motion } from "motion/react";
-import { ArrowLeft, Camera, Upload, Heart, Loader2, Check, X, AlertCircle, ArrowDownUp } from "lucide-react";
+import { ArrowLeft, Camera, Upload, Heart, Loader2, Check, X, AlertCircle, ArrowDownUp, MoreVertical, Trash2, Tag as TagIcon } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { AppShell } from "@/components/AppShell";
 import { Ornament } from "@/components/Ornament";
@@ -42,6 +42,7 @@ function Album() {
   const [uploads, setUploads] = useState<UploadItem[]>([]);
   const [filterTag, setFilterTag] = useState<"Todas" | Tag>("Todas");
   const [sortOrder, setSortOrder] = useState<SortOrder>("recent");
+  const [editing, setEditing] = useState<Photo | null>(null);
   const [authorName, setAuthorName] = useState<string>(() =>
     typeof window !== "undefined" ? localStorage.getItem("album.authorName") ?? "" : ""
   );
@@ -99,11 +100,55 @@ function Album() {
           );
         }
       )
+      .on(
+        "postgres_changes",
+        { event: "UPDATE", schema: "public", table: "album_photos" },
+        (payload) => {
+          const row = payload.new as Photo;
+          setPhotos((prev) =>
+            prev.map((p) => (p.id === row.id ? { ...p, ...row, url: p.url } : p))
+          );
+        }
+      )
+      .on(
+        "postgres_changes",
+        { event: "DELETE", schema: "public", table: "album_photos" },
+        (payload) => {
+          const row = payload.old as { id: string };
+          setPhotos((prev) => prev.filter((p) => p.id !== row.id));
+        }
+      )
       .subscribe();
     return () => {
       supabase.removeChannel(channel);
     };
   }, []);
+
+  async function updatePhotoTag(photo: Photo, tag: Tag) {
+    setPhotos((prev) => prev.map((p) => (p.id === photo.id ? { ...p, tag } : p)));
+    const { error } = await supabase
+      .from("album_photos")
+      .update({ tag })
+      .eq("id", photo.id);
+    if (error) {
+      console.error(error);
+      setPhotos((prev) => prev.map((p) => (p.id === photo.id ? { ...p, tag: photo.tag } : p)));
+    }
+  }
+
+  async function deletePhoto(photo: Photo) {
+    if (!window.confirm("Excluir esta foto do álbum?")) return;
+    setPhotos((prev) => prev.filter((p) => p.id !== photo.id));
+    setEditing((cur) => (cur?.id === photo.id ? null : cur));
+    const { error } = await supabase.from("album_photos").delete().eq("id", photo.id);
+    if (error) {
+      console.error(error);
+      setPhotos((prev) => (prev.some((p) => p.id === photo.id) ? prev : [photo, ...prev]));
+      return;
+    }
+    await supabase.storage.from(BUCKET).remove([photo.storage_path]);
+  }
+
 
   async function handleFiles(files: FileList | null) {
     if (!files || files.length === 0) return;
@@ -282,6 +327,13 @@ function Album() {
                 />
               )}
               <div className="absolute inset-0 bg-gradient-to-t from-[var(--cocoa)]/70 via-transparent to-transparent" />
+              <button
+                onClick={() => setEditing(p)}
+                aria-label="Editar foto"
+                className="absolute right-1.5 top-1.5 grid h-7 w-7 place-items-center rounded-full bg-[var(--cocoa)]/45 text-[var(--ivory)] backdrop-blur-md transition hover:bg-[var(--cocoa)]/70"
+              >
+                <MoreVertical className="h-3.5 w-3.5" />
+              </button>
               <div className="absolute inset-x-0 bottom-0 flex items-end justify-between p-2.5 text-[var(--ivory)]">
                 <div>
                   <p className="font-serif-caps text-[8.5px] opacity-80">{p.tag}</p>
@@ -394,6 +446,72 @@ function Album() {
             : `Categoria selecionada: ${filterTag}`}
         </p>
       </div>
+
+      {editing && (
+        <div
+          className="fixed inset-0 z-50 flex items-end justify-center bg-[var(--cocoa)]/55 backdrop-blur-sm sm:items-center"
+          onClick={() => setEditing(null)}
+        >
+          <div
+            className="w-full max-w-sm rounded-t-3xl bg-[var(--card)] p-5 shadow-[var(--shadow-luxe)] sm:rounded-3xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between">
+              <p className="font-display text-lg text-[var(--cocoa)]">Editar foto</p>
+              <button
+                onClick={() => setEditing(null)}
+                aria-label="Fechar"
+                className="grid h-8 w-8 place-items-center rounded-full bg-[var(--gold)]/12 text-[var(--cocoa)]"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+
+            {editing.url && (
+              <img
+                src={editing.url}
+                alt=""
+                className="mt-3 h-40 w-full rounded-2xl object-cover"
+              />
+            )}
+
+            <p className="mt-4 inline-flex items-center gap-1.5 font-serif-caps text-[10px] text-[var(--cocoa)]/65">
+              <TagIcon className="h-3 w-3" /> Categoria
+            </p>
+            <div className="mt-2 flex flex-wrap gap-1.5">
+              {TAGS.map((t) => {
+                const active = editing.tag === t;
+                return (
+                  <button
+                    key={t}
+                    onClick={() => {
+                      const cur = editing;
+                      setEditing({ ...cur, tag: t });
+                      updatePhotoTag(cur, t);
+                    }}
+                    className={`rounded-full border px-3 py-1 font-serif-caps text-[10px] transition ${
+                      active
+                        ? "border-transparent text-[var(--ivory)]"
+                        : "border-[var(--gold)]/25 bg-[var(--ivory)] text-[var(--cocoa)]/75"
+                    }`}
+                    style={active ? { background: "var(--gradient-gold)" } : undefined}
+                  >
+                    {t}
+                  </button>
+                );
+              })}
+            </div>
+
+            <button
+              onClick={() => deletePhoto(editing)}
+              className="mt-5 flex w-full items-center justify-center gap-2 rounded-full border border-red-200 bg-red-50 px-4 py-3 font-serif-caps text-[10px] text-red-600 transition hover:bg-red-100"
+            >
+              <Trash2 className="h-3.5 w-3.5" />
+              Excluir foto
+            </button>
+          </div>
+        </div>
+      )}
 
     </AppShell>
   );
