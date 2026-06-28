@@ -188,7 +188,7 @@ function Index() {
           <ActionCard to="/historia" Icon={Heart} title="Nossa História" sub="O começo, o pedido, o agora" />
           <ActionCard to="/linha-do-tempo" Icon={Calendar} title="Linha do Tempo" sub="Pedido, casamento, festa, lua de mel" />
           <ActionCard to="/album" Icon={Mail} title="Álbum Colaborativo" sub="Fotos dos convidados em tempo real" />
-          <ActionCard to="/manual" Icon={BookOpen} title="Manual do Convidado" sub="Dress code, cerimônia, recepção e mais" />
+          
           <ActionCard to="/editor" Icon={Wand2} title="Editor do Convite" sub="Personalize nomes, data, cores e imagem" />
           <ActionCard to="/painel" Icon={Gift} title="Painel Privado do Casal" sub="RSVP, presentes, mensagens" />
         </div>
