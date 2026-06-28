@@ -5,9 +5,15 @@ import { toast } from "sonner";
 import { AppShell } from "@/components/AppShell";
 import { supabase } from "@/integrations/supabase/client";
 
+import { CoupleGate } from "@/components/CoupleGate";
+
 export const Route = createFileRoute("/historia/editar")({
-  head: () => ({ meta: [{ title: "Editar Nossa História" }] }),
-  component: EditarHistoria,
+  head: () => ({ meta: [{ title: "Editar Nossa História" }, { name: "robots", content: "noindex,nofollow" }] }),
+  component: () => (
+    <CoupleGate>
+      <EditarHistoria />
+    </CoupleGate>
+  ),
 });
 
 const BUCKET = "story-photos";
