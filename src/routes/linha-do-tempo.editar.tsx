@@ -34,6 +34,23 @@ function EditarTimeline() {
   const gripRefs = useRef<Record<string, HTMLButtonElement | null>>({});
   const refocusId = useRef<string | null>(null);
 
+  // Quick-add (foto + texto em um passo só)
+  const [newDate, setNewDate] = useState("");
+  const [newTitle, setNewTitle] = useState("");
+  const [newFile, setNewFile] = useState<File | null>(null);
+  const [newPreview, setNewPreview] = useState<string | null>(null);
+  const newFileRef = useRef<HTMLInputElement | null>(null);
+
+  useEffect(() => {
+    if (!newFile) {
+      setNewPreview(null);
+      return;
+    }
+    const url = URL.createObjectURL(newFile);
+    setNewPreview(url);
+    return () => URL.revokeObjectURL(url);
+  }, [newFile]);
+
   async function load() {
     setLoading(true);
     const { data, error } = await supabase
@@ -94,21 +111,64 @@ function EditarTimeline() {
     setItems((prev) => prev.map((c) => (c.id === id ? { ...c, ...patch } : c)));
   }
 
-  async function addItem() {
+  // (criação de marcos usa quickAdd abaixo — formulário com foto + texto)
+
+
+  async function quickAdd() {
+    if (!newTitle.trim() && !newDate.trim() && !newFile) {
+      toast.error("Preencha um título, data ou escolha uma foto");
+      return;
+    }
     setAdding(true);
+    let storagePath: string | null = null;
+    if (newFile) {
+      if (!newFile.type.startsWith("image/")) {
+        setAdding(false);
+        toast.error("Selecione uma imagem válida");
+        return;
+      }
+      const ext = newFile.name.split(".").pop() || "jpg";
+      const path = `${crypto.randomUUID()}.${ext}`;
+      const { error: upErr } = await supabase.storage.from(BUCKET).upload(path, newFile, {
+        contentType: newFile.type,
+        upsert: false,
+      });
+      if (upErr) {
+        setAdding(false);
+        toast.error("Falha no upload da foto");
+        return;
+      }
+      storagePath = path;
+    }
     const nextPosition = items.length > 0 ? Math.max(...items.map((c) => c.position)) + 1 : 0;
     const { data, error } = await supabase
       .from("timeline_milestones")
-      .insert({ position: nextPosition, date_label: "", title: "Novo marco" })
+      .insert({
+        position: nextPosition,
+        date_label: newDate.trim(),
+        title: newTitle.trim() || "Novo marco",
+        storage_path: storagePath,
+      })
       .select()
       .single();
-    setAdding(false);
     if (error || !data) {
+      if (storagePath) await supabase.storage.from(BUCKET).remove([storagePath]);
+      setAdding(false);
       toast.error("Não foi possível criar o marco");
       return;
     }
-    setItems((prev) => [...prev, data as Milestone]);
-    toast.success("Marco criado");
+    let imageUrl: string | undefined;
+    if (storagePath) {
+      const { data: signed } = await supabase.storage.from(BUCKET).createSignedUrl(storagePath, 60 * 60);
+      imageUrl = signed?.signedUrl;
+    }
+    setItems((prev) => [...prev, { ...(data as Milestone), imageUrl }]);
+    setNewDate("");
+    setNewTitle("");
+    setNewFile(null);
+    if (newFileRef.current) newFileRef.current.value = "";
+    setAdding(false);
+    toast.success("Marco adicionado");
   }
 
   async function saveItem(c: Milestone) {
@@ -287,16 +347,73 @@ function EditarTimeline() {
       )}
 
       <section className="px-5 pt-5">
-        <button
-          onClick={addItem}
-          disabled={adding}
-          className="inline-flex w-full items-center justify-center gap-2 rounded-full px-4 py-2.5 font-serif-caps text-[11px] text-[var(--ivory)] shadow-[var(--shadow-card)] disabled:opacity-60"
-          style={{ background: "var(--gradient-gold)" }}
-        >
-          {adding ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />}
-          Novo marco
-        </button>
+        <div className="rounded-2xl border-2 border-dashed border-[var(--gold)]/40 bg-[var(--card)] p-4 shadow-[var(--shadow-card)]">
+          <div className="flex items-center gap-2">
+            <span className="grid h-7 w-7 place-items-center rounded-full text-[var(--ivory)]" style={{ background: "var(--gradient-gold)" }}>
+              <Plus className="h-4 w-4" />
+            </span>
+            <div>
+              <p className="font-display text-base text-[var(--cocoa)]">Adicionar novo marco</p>
+              <p className="font-serif-caps text-[9px] text-[var(--cocoa)]/60">Envie uma foto e escreva data + título</p>
+            </div>
+          </div>
+
+          <div className="mt-3 flex gap-3">
+            <button
+              type="button"
+              onClick={() => newFileRef.current?.click()}
+              className="relative aspect-square w-24 flex-none overflow-hidden rounded-lg border border-dashed border-[var(--gold)]/40 bg-[var(--ivory)] transition hover:border-[var(--gold)]"
+              aria-label={newPreview ? "Trocar foto do novo marco" : "Escolher foto do novo marco"}
+            >
+              {newPreview ? (
+                <img src={newPreview} alt="Pré-visualização" className="h-full w-full object-cover" />
+              ) : (
+                <div className="grid h-full w-full place-items-center gap-1 px-1 text-center text-[var(--cocoa)]/50">
+                  <Upload className="h-4 w-4" />
+                  <span className="font-serif-caps text-[9px] leading-tight">Escolher foto</span>
+                </div>
+              )}
+            </button>
+            <input
+              ref={newFileRef}
+              type="file"
+              accept="image/*"
+              className="hidden"
+              onChange={(e) => {
+                const f = e.target.files?.[0] ?? null;
+                setNewFile(f);
+              }}
+            />
+            <div className="flex flex-1 flex-col gap-2">
+              <input
+                type="text"
+                value={newDate}
+                onChange={(e) => setNewDate(e.target.value)}
+                placeholder="Data (ex: 24 · Mai · 2025)"
+                className="rounded-md border border-[var(--gold)]/25 bg-[var(--ivory)] px-2 py-1.5 font-serif-caps text-[10px] text-[var(--cocoa)] focus:border-[var(--gold)] focus:outline-none"
+              />
+              <input
+                type="text"
+                value={newTitle}
+                onChange={(e) => setNewTitle(e.target.value)}
+                placeholder="Título do marco"
+                className="rounded-md border border-[var(--gold)]/25 bg-[var(--ivory)] px-2 py-1.5 font-display text-sm text-[var(--cocoa)] focus:border-[var(--gold)] focus:outline-none"
+              />
+            </div>
+          </div>
+
+          <button
+            onClick={quickAdd}
+            disabled={adding}
+            className="mt-3 inline-flex w-full items-center justify-center gap-2 rounded-full px-4 py-3 font-serif-caps text-[11px] text-[var(--ivory)] shadow-[var(--shadow-card)] disabled:opacity-60"
+            style={{ background: "var(--gradient-gold)" }}
+          >
+            {adding ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />}
+            Adicionar marco
+          </button>
+        </div>
       </section>
+
 
       {loading ? (
         <div className="mt-10 grid place-items-center text-[var(--cocoa)]/50">
@@ -304,7 +421,7 @@ function EditarTimeline() {
         </div>
       ) : sorted.length === 0 ? (
         <p className="mt-10 px-6 text-center font-display italic text-[var(--cocoa)]/60">
-          Nenhum marco ainda. Toque em "Novo marco" para começar.
+          Nenhum marco ainda. Use o formulário acima para adicionar o primeiro.
         </p>
       ) : (
         <div className="mt-5 space-y-4 px-5 pb-32">
