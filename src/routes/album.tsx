@@ -304,6 +304,20 @@ function Album() {
     };
   }, []);
 
+  useEffect(() => {
+    const onKeyDown = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "z") {
+        const latest = undoDeletesRef.current[undoDeletesRef.current.length - 1];
+        if (latest) {
+          e.preventDefault();
+          cancelDelete(latest.photo);
+        }
+      }
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  });
+
 
   async function handleFiles(files: FileList | null) {
     if (!files || files.length === 0) return;
