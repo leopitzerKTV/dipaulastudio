@@ -47,6 +47,37 @@ function EditManual() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [mobilePreviewOpen, setMobilePreviewOpen] = useState(false);
+  const [pdfBusy, setPdfBusy] = useState<null | "download" | "share">(null);
+  const previewRef = useRef<HTMLDivElement>(null);
+
+  async function exportPdf(mode: "download" | "share") {
+    if (!previewRef.current) return;
+    setPdfBusy(mode);
+    try {
+      const blob = await generateManualPdf(previewRef.current);
+      if (mode === "share") {
+        const shared = await sharePdf(
+          blob,
+          "manual-do-convidado.pdf",
+          "Manual do Convidado — Amanda & Ricardo",
+          "Tudo o que você precisa saber para celebrar conosco ✨",
+        );
+        if (!shared) {
+          downloadBlob(blob, "manual-do-convidado.pdf");
+          toast.success("Compartilhamento não suportado — baixamos o PDF");
+        }
+      } else {
+        downloadBlob(blob, "manual-do-convidado.pdf");
+        toast.success("PDF baixado");
+      }
+    } catch (e) {
+      console.error(e);
+      toast.error("Não foi possível gerar o PDF");
+    } finally {
+      setPdfBusy(null);
+    }
+  }
+
 
   useEffect(() => {
     let cancelled = false;
