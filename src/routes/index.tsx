@@ -258,8 +258,8 @@ function Index() {
           <div className="mt-4 flex flex-col items-center gap-3 px-4 pb-4">
             <div className="flex flex-wrap items-center justify-center gap-2">
               <div className="inline-flex rounded-full border border-[var(--gold)]/40 bg-white/60 p-0.5">
-                {[320, 375, 414].map((w) => (
-                  <ModeBtn key={w} active={deviceWidth === w} onClick={() => setDeviceWidth(w as 320 | 375 | 414)}>
+                {[360, 375, 390, 414].map((w) => (
+                  <ModeBtn key={w} active={deviceWidth === w} onClick={() => setDeviceWidth(w as 360 | 375 | 390 | 414)}>
                     {w}px
                   </ModeBtn>
                 ))}
