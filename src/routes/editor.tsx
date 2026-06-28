@@ -182,8 +182,12 @@ function Editor() {
       URL.revokeObjectURL(batchPreview.pdfBlobUrl);
       setBatchPreview(null);
     }
+    try {
+      window.localStorage.removeItem(BATCH_PARTIAL_KEY);
+    } catch {}
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [brideName, groomName, date, time, venue, city, message, tagline, palette.id, imageSrc]);
+
 
 
   function saveVersion() {
