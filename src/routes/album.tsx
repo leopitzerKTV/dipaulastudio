@@ -38,11 +38,11 @@ type Tag = (typeof TAGS)[number];
 type SortOrder = "recent" | "old";
 
 function UndoToast({
-  t,
+  id,
   photo,
   onUndo,
 }: {
-  t: { id: string | number; dismiss: () => void };
+  id: string | number;
   photo: Photo;
   onUndo: () => void;
 }) {
@@ -57,21 +57,21 @@ function UndoToast({
       role="alertdialog"
       aria-live="assertive"
       aria-atomic="true"
-      aria-labelledby={`undo-title-${t.id}`}
-      aria-describedby={`undo-desc-${t.id}`}
+      aria-labelledby={`undo-title-${id}`}
+      aria-describedby={`undo-desc-${id}`}
       className="flex w-full items-center justify-between gap-4 rounded-lg bg-[var(--card)] p-4 shadow-[var(--shadow-luxe)]"
       onKeyDown={(e) => {
         if (e.key === "Escape") {
           e.stopPropagation();
-          t.dismiss();
+          toast.dismiss(id);
         }
       }}
     >
       <div>
-        <p id={`undo-title-${t.id}`} className="font-display text-sm text-[var(--cocoa)]">
+        <p id={`undo-title-${id}`} className="font-display text-sm text-[var(--cocoa)]">
           Foto excluída
         </p>
-        <p id={`undo-desc-${t.id}`} className="font-serif-caps text-[10px] text-[var(--cocoa)]/70">
+        <p id={`undo-desc-${id}`} className="font-serif-caps text-[10px] text-[var(--cocoa)]/70">
           Você pode desfazer em até 5 segundos.
         </p>
       </div>
@@ -79,7 +79,7 @@ function UndoToast({
         ref={buttonRef}
         onClick={() => {
           onUndo();
-          t.dismiss();
+          toast.dismiss(id);
         }}
         aria-label={`Desfazer exclusão da foto de ${photo.author_name ?? "convidado"}`}
         className="rounded-full bg-[var(--gold)] px-3 py-1.5 font-serif-caps text-[10px] text-[var(--ivory)] transition hover:brightness-110 focus:outline-none focus:ring-2 focus:ring-[var(--gold)] focus:ring-offset-1"
