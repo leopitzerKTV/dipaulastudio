@@ -186,27 +186,34 @@ function Album() {
     setConfirmDelete(photo);
   }
 
-  const undoDeletesRef = useRef(undoDeletes);
-  undoDeletesRef.current = undoDeletes;
+  // Subscribe to the cross-route undo store so this view reflects pending deletes
+  // and so the restore handler can re-insert into the local grid on undo.
   useEffect(() => {
+    const sync = () => setPendingDeleteIds(getPendingDeleteIds());
+    const unsub = subscribePendingDeletes(sync);
+    sync();
+    setAlbumRestoreHandler((restored) => {
+      setPhotos((prev) => (prev.some((p) => p.id === restored.id) ? prev : [restored, ...prev]));
+    });
     return () => {
-      undoDeletesRef.current.forEach((d) => window.clearTimeout(d.timeoutId));
+      unsub();
+      setAlbumRestoreHandler(null);
     };
   }, []);
 
   useEffect(() => {
     const onKeyDown = (e: KeyboardEvent) => {
       if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "z") {
-        const latest = undoDeletesRef.current[undoDeletesRef.current.length - 1];
-        if (latest) {
+        const latestId = getLatestPendingId();
+        if (latestId) {
           e.preventDefault();
-          cancelDelete(latest.photo);
+          void cancelPendingDelete(latestId);
         }
       }
     };
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
-  });
+  }, []);
 
 
   async function handleFiles(files: FileList | null) {
