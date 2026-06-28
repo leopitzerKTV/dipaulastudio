@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { ArrowLeft, Plus, Trash2, ArrowUp, ArrowDown, Loader2, Upload, Save, Eye, EyeOff } from "lucide-react";
+import { ArrowLeft, Plus, Trash2, ArrowUp, ArrowDown, Loader2, Upload, Save, Eye, EyeOff, GripVertical } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { AppShell } from "@/components/AppShell";
@@ -29,6 +29,8 @@ function EditarHistoria() {
   const [uploadingId, setUploadingId] = useState<string | null>(null);
   const [adding, setAdding] = useState(false);
   const [showPreview, setShowPreview] = useState(true);
+  const [dragId, setDragId] = useState<string | null>(null);
+  const [dragOverId, setDragOverId] = useState<string | null>(null);
   const fileInputs = useRef<Record<string, HTMLInputElement | null>>({});
 
   async function load() {
@@ -133,6 +135,28 @@ function EditarHistoria() {
     }
   }
 
+  async function reorderTo(fromId: string, toId: string) {
+    if (fromId === toId) return;
+    const sorted = [...chapters].sort((a, b) => a.position - b.position);
+    const fromIdx = sorted.findIndex((x) => x.id === fromId);
+    const toIdx = sorted.findIndex((x) => x.id === toId);
+    if (fromIdx === -1 || toIdx === -1) return;
+    const next = [...sorted];
+    const [moved] = next.splice(fromIdx, 1);
+    next.splice(toIdx, 0, moved);
+    const renumbered = next.map((x, i) => ({ ...x, position: i }));
+    setChapters(renumbered);
+    const results = await Promise.all(
+      renumbered.map((x) =>
+        supabase.from("story_chapters").update({ position: x.position }).eq("id", x.id)
+      )
+    );
+    if (results.some((r) => r.error)) {
+      toast.error("Não foi possível reordenar");
+      load();
+    }
+  }
+
   async function uploadPhoto(c: Chapter, file: File) {
     if (!file.type.startsWith("image/")) {
       toast.error("Selecione uma imagem");
@@ -232,8 +256,51 @@ function EditarHistoria() {
       ) : (
         <div className="mt-5 space-y-4 px-5 pb-32">
           {sorted.map((c, i) => (
-            <article key={c.id} className="rounded-2xl border border-[var(--gold)]/20 bg-[var(--card)] p-4 shadow-[var(--shadow-card)]">
+            <article
+              key={c.id}
+              onDragOver={(e) => {
+                if (!dragId || dragId === c.id) return;
+                e.preventDefault();
+                e.dataTransfer.dropEffect = "move";
+                if (dragOverId !== c.id) setDragOverId(c.id);
+              }}
+              onDragLeave={() => {
+                if (dragOverId === c.id) setDragOverId(null);
+              }}
+              onDrop={(e) => {
+                e.preventDefault();
+                const fromId = dragId ?? e.dataTransfer.getData("text/plain");
+                setDragId(null);
+                setDragOverId(null);
+                if (fromId) void reorderTo(fromId, c.id);
+              }}
+              className={`rounded-2xl border bg-[var(--card)] p-4 shadow-[var(--shadow-card)] transition ${
+                dragId === c.id
+                  ? "opacity-50 border-[var(--gold)]/40"
+                  : dragOverId === c.id
+                    ? "border-[var(--gold)] ring-2 ring-[var(--gold)]/40"
+                    : "border-[var(--gold)]/20"
+              }`}
+            >
               <div className="flex gap-3">
+                <span
+                  draggable
+                  onDragStart={(e) => {
+                    setDragId(c.id);
+                    e.dataTransfer.effectAllowed = "move";
+                    e.dataTransfer.setData("text/plain", c.id);
+                  }}
+                  onDragEnd={() => {
+                    setDragId(null);
+                    setDragOverId(null);
+                  }}
+                  role="button"
+                  aria-label="Arraste para reordenar"
+                  className="grid w-5 flex-none place-items-center text-[var(--cocoa)]/40 cursor-grab active:cursor-grabbing select-none"
+                  title="Arraste para reordenar"
+                >
+                  <GripVertical className="h-4 w-4" />
+                </span>
                 <div className="relative aspect-[3/4] w-24 flex-none overflow-hidden rounded-lg bg-[var(--ivory)]">
                   {c.imageUrl ? (
                     <img src={c.imageUrl} alt={c.title} className="h-full w-full object-cover" />
