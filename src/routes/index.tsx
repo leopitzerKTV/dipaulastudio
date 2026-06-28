@@ -111,6 +111,25 @@ function Index() {
         </div>
       </section>
 
+      {/* Manual do Convidado — embedded item by item */}
+      <section className="mt-12">
+        <div className="px-6 text-center">
+          <Ornament />
+          <p className="mt-5 font-serif-caps text-[10px] text-[var(--gold-deep)]">No convite</p>
+          <h2 className="mt-2 font-display text-3xl text-[var(--cocoa)]">Manual completo</h2>
+          <p className="mt-1 text-sm text-[var(--cocoa)]/65">Cada item personalizado pela noiva — role para conhecer.</p>
+          <Link
+            to="/manual/editar"
+            className="mt-4 inline-flex items-center gap-1.5 rounded-full border border-[var(--gold)]/40 bg-white/60 px-3 py-1.5 text-[10px] font-serif-caps text-[var(--gold-deep)] hover:bg-white"
+          >
+            <Edit3 className="h-3 w-3" /> Editar manual
+          </Link>
+        </div>
+        <div className="-mx-0 mt-2 border-y border-[var(--gold)]/20 bg-[var(--ivory)]">
+          <ManualView data={manual} />
+        </div>
+      </section>
+
       {/* QR Code para o Manual */}
       <section className="mt-10 px-6">
         <Ornament />
