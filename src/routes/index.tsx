@@ -1,10 +1,12 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { motion } from "motion/react";
-import { Mail, Calendar, MapPin, Gift, Heart, Wand2, BookOpen, Download, QrCode as QrCodeIcon } from "lucide-react";
+import { Mail, Calendar, MapPin, Gift, Heart, Wand2, BookOpen, Download, QrCode as QrCodeIcon, Edit3 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { AppShell } from "@/components/AppShell";
 import { Ornament } from "@/components/Ornament";
 import { QrCode } from "@/components/QrCode";
+import { ManualView, type ManualData } from "@/components/ManualView";
+import { supabase } from "@/integrations/supabase/client";
 import ceremonyImg from "@/assets/ceremony.jpg";
 
 export const Route = createFileRoute("/")({
