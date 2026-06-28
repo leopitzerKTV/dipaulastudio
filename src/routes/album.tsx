@@ -45,7 +45,7 @@ function Album() {
   const [sortOrder, setSortOrder] = useState<SortOrder>("recent");
   const [editing, setEditing] = useState<Photo | null>(null);
   const [confirmDelete, setConfirmDelete] = useState<Photo | null>(null);
-  const [undoDeletes, setUndoDeletes] = useState<{ photo: Photo; timeoutId: number }[]>([]);
+  const [undoDeletes, setUndoDeletes] = useState<{ photo: Photo; trashPath: string; timeoutId: number }[]>([]);
   const [authorName, setAuthorName] = useState<string>(() =>
     typeof window !== "undefined" ? localStorage.getItem("album.authorName") ?? "" : ""
   );
