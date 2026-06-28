@@ -801,6 +801,7 @@ function Editor() {
           </div>
 
 
+          <div data-tour="versions">
           <Section icon={History} title="Versões salvas">
             <button
               onClick={saveVersion}
