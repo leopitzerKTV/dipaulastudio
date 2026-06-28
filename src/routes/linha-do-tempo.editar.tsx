@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { ArrowLeft, Plus, Trash2, ArrowUp, ArrowDown, Loader2, Upload, Save, Eye, EyeOff, GripVertical, X } from "lucide-react";
+import { ArrowLeft, Plus, Trash2, ArrowUp, ArrowDown, Loader2, Upload, Save, Eye, EyeOff, GripVertical, X, Pencil } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { AppShell } from "@/components/AppShell";
@@ -28,6 +28,7 @@ function EditarTimeline() {
   const [uploadingId, setUploadingId] = useState<string | null>(null);
   const [adding, setAdding] = useState(false);
   const [showAddCard, setShowAddCard] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
   const [showPreview, setShowPreview] = useState(true);
   const [dragId, setDragId] = useState<string | null>(null);
   const [dragOverId, setDragOverId] = useState<string | null>(null);
@@ -35,7 +36,7 @@ function EditarTimeline() {
   const gripRefs = useRef<Record<string, HTMLButtonElement | null>>({});
   const refocusId = useRef<string | null>(null);
 
-  // Quick-add (foto + texto em um passo só)
+  // Quick-add / edit (foto + texto em um passo só)
   const [newDate, setNewDate] = useState("");
   const [newTitle, setNewTitle] = useState("");
   const [newFile, setNewFile] = useState<File | null>(null);
@@ -46,18 +47,29 @@ function EditarTimeline() {
     setNewDate("");
     setNewTitle("");
     setNewFile(null);
+    setEditingId(null);
     if (newFileRef.current) newFileRef.current.value = "";
+  }
+
+  function startEdit(c: Milestone) {
+    setNewDate(c.date_label);
+    setNewTitle(c.title);
+    setNewFile(null);
+    setNewPreview(c.imageUrl || null);
+    setEditingId(c.id);
+    setShowAddCard(true);
+    window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
   useEffect(() => {
     if (!newFile) {
-      setNewPreview(null);
+      if (!editingId) setNewPreview(null);
       return;
     }
     const url = URL.createObjectURL(newFile);
     setNewPreview(url);
     return () => URL.revokeObjectURL(url);
-  }, [newFile]);
+  }, [newFile, editingId]);
 
   async function load() {
     setLoading(true);
@@ -123,12 +135,16 @@ function EditarTimeline() {
 
 
   async function quickAdd() {
-    if (!newTitle.trim() && !newDate.trim() && !newFile) {
+    if (!newTitle.trim() && !newDate.trim() && !newFile && !editingId) {
       toast.error("Preencha um título, data ou escolha uma foto");
       return;
     }
     setAdding(true);
-    let storagePath: string | null = null;
+
+    const existing = editingId ? items.find((c) => c.id === editingId) : null;
+    let storagePath: string | null = existing?.storage_path ?? null;
+    let oldPath: string | null = null;
+
     if (newFile) {
       if (!newFile.type.startsWith("image/")) {
         setAdding(false);
@@ -146,8 +162,41 @@ function EditarTimeline() {
         toast.error("Falha no upload da foto");
         return;
       }
+      oldPath = storagePath;
       storagePath = path;
     }
+
+    if (editingId) {
+      const { error } = await supabase
+        .from("timeline_milestones")
+        .update({ date_label: newDate.trim(), title: newTitle.trim(), storage_path: storagePath })
+        .eq("id", editingId);
+      if (error) {
+        if (newFile && storagePath) await supabase.storage.from(BUCKET).remove([storagePath]);
+        setAdding(false);
+        toast.error("Não foi possível salvar o marco");
+        return;
+      }
+      if (oldPath && oldPath !== storagePath) await supabase.storage.from(BUCKET).remove([oldPath]);
+      let imageUrl: string | undefined;
+      if (storagePath) {
+        const { data: signed } = await supabase.storage.from(BUCKET).createSignedUrl(storagePath, 60 * 60);
+        imageUrl = signed?.signedUrl;
+      }
+      setItems((prev) =>
+        prev.map((c) =>
+          c.id === editingId
+            ? { ...c, date_label: newDate.trim(), title: newTitle.trim(), storage_path: storagePath, imageUrl }
+            : c
+        )
+      );
+      resetNewMilestone();
+      setShowAddCard(false);
+      setAdding(false);
+      toast.success("Marco salvo");
+      return;
+    }
+
     const nextPosition = items.length > 0 ? Math.max(...items.map((c) => c.position)) + 1 : 0;
     const { data, error } = await supabase
       .from("timeline_milestones")
@@ -358,11 +407,15 @@ function EditarTimeline() {
             <div className="flex items-center justify-between gap-2">
               <div className="flex items-center gap-2">
                 <span className="grid h-7 w-7 place-items-center rounded-full text-[var(--ivory)]" style={{ background: "var(--gradient-gold)" }}>
-                  <Plus className="h-4 w-4" />
+                  {editingId ? <Pencil className="h-4 w-4" /> : <Plus className="h-4 w-4" />}
                 </span>
                 <div>
-                  <p className="font-display text-base text-[var(--cocoa)]">Adicionar novo marco</p>
-                  <p className="font-serif-caps text-[9px] text-[var(--cocoa)]/60">Envie uma foto e escreva data + título</p>
+                  <p className="font-display text-base text-[var(--cocoa)]">
+                    {editingId ? "Editar marco" : "Adicionar novo marco"}
+                  </p>
+                  <p className="font-serif-caps text-[9px] text-[var(--cocoa)]/60">
+                    {editingId ? "Ajuste a foto, data e título" : "Envie uma foto e escreva data + título"}
+                  </p>
                 </div>
               </div>
               <button
@@ -383,7 +436,7 @@ function EditarTimeline() {
                 type="button"
                 onClick={() => newFileRef.current?.click()}
                 className="relative aspect-square w-24 flex-none overflow-hidden rounded-lg border border-dashed border-[var(--gold)]/40 bg-[var(--ivory)] transition hover:border-[var(--gold)]"
-                aria-label={newPreview ? "Trocar foto do novo marco" : "Escolher foto do novo marco"}
+                aria-label={newPreview ? "Trocar foto" : "Escolher foto"}
               >
                 {newPreview ? (
                   <img src={newPreview} alt="Pré-visualização" className="h-full w-full object-cover" />
@@ -429,8 +482,14 @@ function EditarTimeline() {
                 className="inline-flex flex-1 items-center justify-center gap-2 rounded-full px-4 py-3 font-serif-caps text-[11px] text-[var(--ivory)] shadow-[var(--shadow-card)] disabled:opacity-60"
                 style={{ background: "var(--gradient-gold)" }}
               >
-                {adding ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />}
-                Adicionar marco
+                {adding ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : editingId ? (
+                  <Save className="h-4 w-4" />
+                ) : (
+                  <Plus className="h-4 w-4" />
+                )}
+                {editingId ? "Salvar marco" : "Adicionar marco"}
               </button>
               <button
                 type="button"
