@@ -373,12 +373,12 @@ function Editor() {
             {exportingPdf ? "PDF…" : "PDF A4"}
           </button>
           <button
-            onClick={onExportZip}
+            onClick={onPrepareBatch}
             disabled={anyExporting}
             className="inline-flex items-center gap-1.5 rounded-full border border-[var(--gold-deep)]/60 bg-[var(--cocoa)] px-3 py-1.5 font-serif-caps text-[10px] text-[var(--ivory)] hover:opacity-90 disabled:opacity-60"
           >
             <Package className="h-3.5 w-3.5" />
-            {exportingZip ? "ZIP…" : "ZIP"}
+            {preparingBatch ? "ZIP…" : "ZIP"}
           </button>
         </div>
       </header>
