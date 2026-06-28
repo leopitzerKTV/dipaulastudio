@@ -267,16 +267,34 @@ function Editor() {
   } | null>(null);
   const anyExporting = exporting || exportingPdf || exportingJpg || exportingZip || preparingBatch;
 
+  const [batchProgress, setBatchProgress] = useState<{ step: number; total: number; label: string }>({
+    step: 0,
+    total: 4,
+    label: "",
+  });
+
   async function onPrepareBatch() {
     if (!previewRef.current) return;
     setPreparingBatch(true);
+    const tick = (step: number, label: string) =>
+      setBatchProgress({ step, total: 4, label });
     try {
-      const [pngUrl, jpgUrl, { jsPDF }] = await Promise.all([
-        toPng(previewRef.current, { pixelRatio: 4, cacheBust: true, backgroundColor: palette.bg }),
-        toJpeg(previewRef.current, { pixelRatio: 4, cacheBust: true, quality: 0.95, backgroundColor: palette.bg }),
-        import("jspdf"),
-      ]);
-      const pdf = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4", compress: true });
+      tick(0, "Carregando bibliotecas…");
+      const jsPDFMod = await import("jspdf");
+      await new Promise((r) => setTimeout(r, 30));
+
+      tick(1, "Renderizando PNG em alta resolução…");
+      const pngUrl = await toPng(previewRef.current, {
+        pixelRatio: 4, cacheBust: true, backgroundColor: palette.bg,
+      });
+
+      tick(2, "Renderizando JPG (qualidade 95%)…");
+      const jpgUrl = await toJpeg(previewRef.current, {
+        pixelRatio: 4, cacheBust: true, quality: 0.95, backgroundColor: palette.bg,
+      });
+
+      tick(3, "Montando PDF A4…");
+      const pdf = new jsPDFMod.jsPDF({ orientation: "portrait", unit: "mm", format: "a4", compress: true });
       const pageW = 210, pageH = 297, marginY = 12;
       const imgH = pageH - marginY * 2;
       const imgW = (imgH * 9) / 16;
@@ -284,12 +302,15 @@ function Editor() {
       pdf.addImage(pngUrl, "PNG", offsetX, marginY, imgW, imgH, undefined, "FAST");
       const pdfBlob = pdf.output("blob");
       const pdfBlobUrl = URL.createObjectURL(pdfBlob);
+
+      tick(4, "Pronto!");
       if (batchPreview) URL.revokeObjectURL(batchPreview.pdfBlobUrl);
       setBatchPreview({ pngUrl, jpgUrl, pdfBlobUrl, pdfBlob });
     } finally {
       setPreparingBatch(false);
     }
   }
+
 
   function closeBatchPreview() {
     if (batchPreview) URL.revokeObjectURL(batchPreview.pdfBlobUrl);
