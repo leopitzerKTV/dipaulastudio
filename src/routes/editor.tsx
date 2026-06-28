@@ -336,6 +336,34 @@ function Editor() {
   } | null>(null);
   const anyExporting = exporting || exportingPdf || exportingJpg || exportingZip || preparingBatch || cancellingBatch;
 
+  // Persist partial batch progress so a reload can resume from where it stopped
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        if (!batchPartial || (!batchPartial.pngUrl && !batchPartial.jpgUrl && !batchPartial.pdfBlob)) {
+          window.localStorage.removeItem(BATCH_PARTIAL_KEY);
+          return;
+        }
+        const payload: PersistedBatchPartial = {
+          pngUrl: batchPartial.pngUrl,
+          jpgUrl: batchPartial.jpgUrl,
+        };
+        if (batchPartial.pdfBlob) {
+          payload.pdfBase64 = await blobToBase64(batchPartial.pdfBlob);
+        }
+        if (cancelled) return;
+        window.localStorage.setItem(BATCH_PARTIAL_KEY, JSON.stringify(payload));
+      } catch {
+        // localStorage quota or serialization issue — ignore; resume best-effort
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [batchPartial]);
+
+
 
   const [batchProgress, setBatchProgress] = useState<{ step: number; total: number; label: string }>({
     step: 0,
