@@ -257,6 +257,47 @@ function Editor() {
     }
   }
 
+  const [exportingZip, setExportingZip] = useState(false);
+  const anyExporting = exporting || exportingPdf || exportingJpg || exportingZip;
+
+  async function onExportZip() {
+    if (!previewRef.current) return;
+    setExportingZip(true);
+    try {
+      const [pngUrl, jpgUrl, { jsPDF }, { default: JSZip }] = await Promise.all([
+        toPng(previewRef.current, { pixelRatio: 4, cacheBust: true, backgroundColor: palette.bg }),
+        toJpeg(previewRef.current, { pixelRatio: 4, cacheBust: true, quality: 0.95, backgroundColor: palette.bg }),
+        import("jspdf"),
+        import("jszip"),
+      ]);
+      const pdf = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4", compress: true });
+      const pageW = 210, pageH = 297, marginY = 12;
+      const imgH = pageH - marginY * 2;
+      const imgW = (imgH * 9) / 16;
+      const offsetX = (pageW - imgW) / 2;
+      pdf.addImage(pngUrl, "PNG", offsetX, marginY, imgW, imgH, undefined, "FAST");
+      const pdfBlob = pdf.output("blob");
+
+      const slug = `convite-${brideName}-${groomName}`.toLowerCase().replace(/\s+/g, "-");
+      const zip = new JSZip();
+      zip.file(`${slug}.png`, pngUrl.split(",")[1], { base64: true });
+      zip.file(`${slug}.jpg`, jpgUrl.split(",")[1], { base64: true });
+      zip.file(`${slug}.pdf`, pdfBlob);
+
+      const blob = await zip.generateAsync({ type: "blob" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `${slug}.zip`;
+      a.click();
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+    } finally {
+      setExportingZip(false);
+    }
+  }
+
+
+
   return (
     <div
       className="min-h-screen w-full"
