@@ -425,14 +425,25 @@ function Editor() {
           </Section>
 
 
-          <button
-            onClick={onExport}
-            disabled={exporting}
-            className="w-full rounded-full py-3.5 font-serif-caps text-[11px] text-[var(--ivory)] shadow-[var(--shadow-card)] disabled:opacity-60"
-            style={{ background: palette.gradient }}
-          >
-            {exporting ? "Exportando…" : "Exportar layout em PNG"}
-          </button>
+          <div className="grid grid-cols-2 gap-2">
+            <button
+              onClick={onExport}
+              disabled={exporting || exportingPdf}
+              className="inline-flex items-center justify-center gap-2 rounded-full border border-[var(--gold-deep)]/40 bg-[var(--ivory)] py-3 font-serif-caps text-[10px] text-[var(--gold-deep)] hover:bg-[var(--gold)]/10 disabled:opacity-60"
+            >
+              <Download className="h-3.5 w-3.5" />
+              {exporting ? "Exportando…" : "PNG 9:16"}
+            </button>
+            <button
+              onClick={onExportPdf}
+              disabled={exporting || exportingPdf}
+              className="inline-flex items-center justify-center gap-2 rounded-full py-3 font-serif-caps text-[10px] text-[var(--ivory)] shadow-[var(--shadow-card)] disabled:opacity-60"
+              style={{ background: palette.gradient }}
+            >
+              <FileDown className="h-3.5 w-3.5" />
+              {exportingPdf ? "Gerando…" : "PDF A4"}
+            </button>
+          </div>
         </aside>
       </div>
     </div>
