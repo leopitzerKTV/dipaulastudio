@@ -32,6 +32,8 @@ function Index() {
   const guestMode = viewMode === "guest";
   const [saveState, setSaveState] = useState<"idle" | "saving" | "saved">("idle");
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [deviceWidth, setDeviceWidth] = useState<320 | 375 | 414>(375);
+  const [orientation, setOrientation] = useState<"portrait" | "landscape">("portrait");
 
   useEffect(() => {
     setManualUrl(`${window.location.origin}/manual`);
