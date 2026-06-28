@@ -259,13 +259,14 @@ function Editor() {
 
   const [exportingZip, setExportingZip] = useState(false);
   const [preparingBatch, setPreparingBatch] = useState(false);
+  const [cancellingBatch, setCancellingBatch] = useState(false);
   const [batchPreview, setBatchPreview] = useState<{
     pngUrl: string;
     jpgUrl: string;
     pdfBlobUrl: string;
     pdfBlob: Blob;
   } | null>(null);
-  const anyExporting = exporting || exportingPdf || exportingJpg || exportingZip || preparingBatch;
+  const anyExporting = exporting || exportingPdf || exportingJpg || exportingZip || preparingBatch || cancellingBatch;
 
   const [batchProgress, setBatchProgress] = useState<{ step: number; total: number; label: string }>({
     step: 0,
@@ -277,6 +278,7 @@ function Editor() {
   const [cancelled, setCancelled] = useState(false);
   const [showCancelConfirm, setShowCancelConfirm] = useState(false);
 
+
   function promptCancelBatch() {
     setShowCancelConfirm(true);
   }
@@ -284,12 +286,14 @@ function Editor() {
   function confirmCancelBatch() {
     cancelBatchRef.current = true;
     setCancelled(true);
+    setCancellingBatch(true);
     setShowCancelConfirm(false);
   }
 
   function dismissCancelConfirm() {
     setShowCancelConfirm(false);
   }
+
 
 
   async function onPrepareBatch() {
@@ -338,6 +342,7 @@ function Editor() {
       if ((err as Error).message !== "CANCELLED") throw err;
     } finally {
       setPreparingBatch(false);
+      setCancellingBatch(false);
       cancelBatchRef.current = false;
     }
   }
@@ -402,7 +407,7 @@ function Editor() {
         <div className="flex items-center gap-2">
           <button
             onClick={onExport}
-            disabled={exporting || exportingPdf || exportingJpg}
+            disabled={anyExporting}
             className="inline-flex items-center gap-1.5 rounded-full border border-[var(--gold-deep)]/40 bg-[var(--ivory)] px-3 py-1.5 font-serif-caps text-[10px] text-[var(--gold-deep)] hover:bg-[var(--gold)]/10 disabled:opacity-60"
           >
             <Download className="h-3.5 w-3.5" />
@@ -410,7 +415,7 @@ function Editor() {
           </button>
           <button
             onClick={onExportJpg}
-            disabled={exporting || exportingPdf || exportingJpg}
+            disabled={anyExporting}
             className="inline-flex items-center gap-1.5 rounded-full border border-[var(--gold-deep)]/40 bg-[var(--ivory)] px-3 py-1.5 font-serif-caps text-[10px] text-[var(--gold-deep)] hover:bg-[var(--gold)]/10 disabled:opacity-60"
           >
             <FileImage className="h-3.5 w-3.5" />
@@ -418,7 +423,7 @@ function Editor() {
           </button>
           <button
             onClick={onExportPdf}
-            disabled={exporting || exportingPdf || exportingJpg}
+            disabled={anyExporting}
             className="inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 font-serif-caps text-[10px] text-[var(--ivory)] shadow-[var(--shadow-card)] disabled:opacity-60"
             style={{ background: palette.gradient }}
           >
@@ -580,25 +585,25 @@ function Editor() {
 
 
           <div className="grid grid-cols-3 gap-2">
-            <button
-              onClick={onExport}
-              disabled={exporting || exportingPdf || exportingJpg}
-              className="inline-flex flex-col items-center justify-center gap-1 rounded-2xl border border-[var(--gold-deep)]/40 bg-[var(--ivory)] py-3 font-serif-caps text-[10px] text-[var(--gold-deep)] hover:bg-[var(--gold)]/10 disabled:opacity-60"
-            >
-              <Download className="h-4 w-4" />
-              {exporting ? "…" : "PNG 9:16"}
-            </button>
-            <button
-              onClick={onExportJpg}
-              disabled={exporting || exportingPdf || exportingJpg}
-              className="inline-flex flex-col items-center justify-center gap-1 rounded-2xl border border-[var(--gold-deep)]/40 bg-[var(--ivory)] py-3 font-serif-caps text-[10px] text-[var(--gold-deep)] hover:bg-[var(--gold)]/10 disabled:opacity-60"
-            >
-              <FileImage className="h-4 w-4" />
-              {exportingJpg ? "…" : "JPG 9:16"}
-            </button>
-            <button
-              onClick={onExportPdf}
-              disabled={exporting || exportingPdf || exportingJpg}
+          <button
+            onClick={onExport}
+            disabled={anyExporting}
+            className="inline-flex flex-col items-center justify-center gap-1 rounded-2xl border border-[var(--gold-deep)]/40 bg-[var(--ivory)] py-3 font-serif-caps text-[10px] text-[var(--gold-deep)] hover:bg-[var(--gold)]/10 disabled:opacity-60"
+          >
+            <Download className="h-4 w-4" />
+            {exporting ? "…" : "PNG 9:16"}
+          </button>
+          <button
+            onClick={onExportJpg}
+            disabled={anyExporting}
+            className="inline-flex flex-col items-center justify-center gap-1 rounded-2xl border border-[var(--gold-deep)]/40 bg-[var(--ivory)] py-3 font-serif-caps text-[10px] text-[var(--gold-deep)] hover:bg-[var(--gold)]/10 disabled:opacity-60"
+          >
+            <FileImage className="h-4 w-4" />
+            {exportingJpg ? "…" : "JPG 9:16"}
+          </button>
+          <button
+            onClick={onExportPdf}
+            disabled={anyExporting}
               className="inline-flex flex-col items-center justify-center gap-1 rounded-2xl py-3 font-serif-caps text-[10px] text-[var(--ivory)] shadow-[var(--shadow-card)] disabled:opacity-60"
               style={{ background: palette.gradient }}
             >
@@ -674,26 +679,28 @@ function Editor() {
                 <div className="mt-2 flex gap-2">
                   <button
                     onClick={dismissCancelConfirm}
-                    className="flex-1 rounded-full border border-[var(--gold-deep)]/40 bg-white px-3 py-2 font-serif-caps text-[10px] text-[var(--cocoa)] hover:bg-[var(--gold)]/10"
+                    disabled={cancellingBatch}
+                    className="flex-1 rounded-full border border-[var(--gold-deep)]/40 bg-white px-3 py-2 font-serif-caps text-[10px] text-[var(--cocoa)] hover:bg-[var(--gold)]/10 disabled:opacity-60"
                   >
                     Voltar
                   </button>
                   <button
                     onClick={confirmCancelBatch}
-                    className="flex-1 rounded-full bg-red-600 px-3 py-2 font-serif-caps text-[10px] text-white hover:bg-red-700"
+                    disabled={cancellingBatch}
+                    className="flex-1 rounded-full bg-red-600 px-3 py-2 font-serif-caps text-[10px] text-white hover:bg-red-700 disabled:opacity-60"
                   >
-                    Sim, cancelar
+                    {cancellingBatch ? "Cancelando…" : "Sim, cancelar"}
                   </button>
                 </div>
               </div>
             ) : (
               <button
                 onClick={promptCancelBatch}
-                disabled={cancelled}
+                disabled={cancelled || cancellingBatch}
                 className="mt-4 flex w-full items-center justify-center gap-2 rounded-full border border-red-300 bg-white px-3 py-2 font-serif-caps text-[10px] text-red-600 hover:bg-red-50 disabled:opacity-60"
               >
                 <Trash2 className="h-3 w-3" />
-                {cancelled ? "Cancelando…" : "Cancelar geração"}
+                {cancellingBatch ? "Cancelando geração…" : cancelled ? "Cancelando…" : "Cancelar geração"}
               </button>
             )}
           </div>
