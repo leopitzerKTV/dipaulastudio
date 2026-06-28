@@ -960,6 +960,7 @@ function Editor() {
             </div>
           </div>
         </div>
+      )}
       {showClearConfirm && (
         <div
           className="fixed inset-0 z-[70] flex items-center justify-center bg-[var(--cocoa)]/70 p-4 backdrop-blur-sm"
