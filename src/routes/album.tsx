@@ -244,6 +244,80 @@ function Album() {
         onChange={(e) => handleFiles(e.target.files)}
       />
 
+      {uploads.length > 0 && (
+        <div className="fixed bottom-40 left-1/2 z-40 w-[min(92vw,360px)] -translate-x-1/2 space-y-2 rounded-2xl border border-[var(--gold)]/25 bg-[var(--card)]/95 p-3 shadow-[var(--shadow-luxe)] backdrop-blur-xl">
+          <div className="flex items-center justify-between">
+            <p className="font-serif-caps text-[10px] text-[var(--cocoa)]/70">
+              Enviando {uploads.length} {uploads.length === 1 ? "foto" : "fotos"}
+            </p>
+            {!uploading && (
+              <button
+                onClick={() => {
+                  uploads.forEach((u) => URL.revokeObjectURL(u.previewUrl));
+                  setUploads([]);
+                }}
+                className="text-[var(--cocoa)]/50 hover:text-[var(--cocoa)]"
+                aria-label="Fechar"
+              >
+                <X className="h-3.5 w-3.5" />
+              </button>
+            )}
+          </div>
+          <ul className="max-h-56 space-y-2 overflow-y-auto">
+            {uploads.map((u) => (
+              <li key={u.id} className="flex items-center gap-2.5">
+                <img
+                  src={u.previewUrl}
+                  alt=""
+                  className="h-9 w-9 flex-none rounded-md object-cover"
+                />
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center justify-between gap-2">
+                    <p className="truncate text-[11px] text-[var(--cocoa)]">{u.name}</p>
+                    <span className="flex-none font-serif-caps text-[9px] text-[var(--cocoa)]/60">
+                      {u.status === "pending" && "Aguardando"}
+                      {u.status === "uploading" && `${u.progress}%`}
+                      {u.status === "saving" && "Salvando..."}
+                      {u.status === "done" && "Concluído"}
+                      {u.status === "error" && "Erro"}
+                    </span>
+                  </div>
+                  <div className="mt-1 h-1 overflow-hidden rounded-full bg-[var(--gold)]/15">
+                    <div
+                      className={`h-full transition-all duration-200 ${
+                        u.status === "error"
+                          ? "bg-red-500"
+                          : u.status === "done"
+                          ? "bg-emerald-500"
+                          : ""
+                      }`}
+                      style={{
+                        width: `${u.status === "done" ? 100 : u.progress}%`,
+                        background:
+                          u.status === "error" || u.status === "done"
+                            ? undefined
+                            : "var(--gradient-gold)",
+                      }}
+                    />
+                  </div>
+                  {u.error && (
+                    <p className="mt-0.5 text-[9px] text-red-600">{u.error}</p>
+                  )}
+                </div>
+                <span className="flex-none">
+                  {u.status === "done" && <Check className="h-3.5 w-3.5 text-emerald-600" />}
+                  {u.status === "error" && <AlertCircle className="h-3.5 w-3.5 text-red-600" />}
+                  {(u.status === "uploading" || u.status === "saving" || u.status === "pending") && (
+                    <Loader2 className="h-3.5 w-3.5 animate-spin text-[var(--gold-deep)]" />
+                  )}
+                </span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+
+
       <motion.button
         whileTap={{ scale: 0.94 }}
         onClick={() => !uploading && fileRef.current?.click()}
