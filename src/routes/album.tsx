@@ -166,7 +166,7 @@ function Album() {
         updateItem(item.id, { progress: 100, status: "saving" });
         const { error: insErr } = await supabase
           .from("album_photos")
-          .insert({ storage_path: path, author_name: name, caption: null });
+          .insert({ storage_path: path, author_name: name, caption: null, tag: uploadTag });
         if (insErr) throw insErr;
 
         updateItem(item.id, { status: "done" });
