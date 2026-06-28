@@ -54,7 +54,7 @@ function Historia() {
         return;
       }
       const rows = data as Chapter[];
-      const paths = rows.filter((r) => r.storage_path).map((r) => r.storage_path!) as string[];
+      const paths: string[] = rows.map((r) => r.storage_path).filter((p): p is string => !!p);
       const urlMap = new Map<string, string>();
       if (paths.length > 0) {
         const { data: signed } = await supabase.storage.from(BUCKET).createSignedUrls(paths, 60 * 60);
