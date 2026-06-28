@@ -128,6 +128,63 @@ function EditarTimeline() {
     toast.success("Marco criado");
   }
 
+  async function quickAdd() {
+    if (!newTitle.trim() && !newDate.trim() && !newFile) {
+      toast.error("Preencha um título, data ou escolha uma foto");
+      return;
+    }
+    setAdding(true);
+    let storagePath: string | null = null;
+    if (newFile) {
+      if (!newFile.type.startsWith("image/")) {
+        setAdding(false);
+        toast.error("Selecione uma imagem válida");
+        return;
+      }
+      const ext = newFile.name.split(".").pop() || "jpg";
+      const path = `${crypto.randomUUID()}.${ext}`;
+      const { error: upErr } = await supabase.storage.from(BUCKET).upload(path, newFile, {
+        contentType: newFile.type,
+        upsert: false,
+      });
+      if (upErr) {
+        setAdding(false);
+        toast.error("Falha no upload da foto");
+        return;
+      }
+      storagePath = path;
+    }
+    const nextPosition = items.length > 0 ? Math.max(...items.map((c) => c.position)) + 1 : 0;
+    const { data, error } = await supabase
+      .from("timeline_milestones")
+      .insert({
+        position: nextPosition,
+        date_label: newDate.trim(),
+        title: newTitle.trim() || "Novo marco",
+        storage_path: storagePath,
+      })
+      .select()
+      .single();
+    if (error || !data) {
+      if (storagePath) await supabase.storage.from(BUCKET).remove([storagePath]);
+      setAdding(false);
+      toast.error("Não foi possível criar o marco");
+      return;
+    }
+    let imageUrl: string | undefined;
+    if (storagePath) {
+      const { data: signed } = await supabase.storage.from(BUCKET).createSignedUrl(storagePath, 60 * 60);
+      imageUrl = signed?.signedUrl;
+    }
+    setItems((prev) => [...prev, { ...(data as Milestone), imageUrl }]);
+    setNewDate("");
+    setNewTitle("");
+    setNewFile(null);
+    if (newFileRef.current) newFileRef.current.value = "";
+    setAdding(false);
+    toast.success("Marco adicionado");
+  }
+
   async function saveItem(c: Milestone) {
     setSavingId(c.id);
     const { error } = await supabase
