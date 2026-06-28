@@ -317,3 +317,16 @@ function ActionCard({ to, Icon, title, sub }: { to: string; Icon: React.Componen
     </Link>
   );
 }
+
+function ModeBtn({ active, onClick, children }: { active: boolean; onClick: () => void; children: React.ReactNode }) {
+  return (
+    <button
+      onClick={onClick}
+      className={
+        "inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[10px] font-serif-caps transition-colors " +
+        (active ? "bg-[var(--gold-deep)] text-white" : "text-[var(--gold-deep)] hover:bg-white")
+      }
+    >
+      {children}
+    </button>
+  );
