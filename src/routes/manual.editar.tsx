@@ -1,11 +1,13 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useEffect, useMemo, useState } from "react";
-import { ArrowLeft, Save, Loader2, Eye } from "lucide-react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { ArrowLeft, Save, Loader2, Eye, Download, Share2 } from "lucide-react";
 import { toast } from "sonner";
 import { CoupleGate } from "@/components/CoupleGate";
 import { Ornament } from "@/components/Ornament";
 import { ManualView, type ManualData } from "@/components/ManualView";
 import { supabase } from "@/integrations/supabase/client";
+import { downloadBlob, generateManualPdf, sharePdf } from "@/lib/manual-pdf";
+
 
 type FormState = {
   ceremony_date: string;
