@@ -191,21 +191,49 @@ function Editor() {
     reader.readAsDataURL(file);
   }
 
+  const [exportingPdf, setExportingPdf] = useState(false);
+
+  async function renderHighResPng() {
+    if (!previewRef.current) return null;
+    return toPng(previewRef.current, {
+      pixelRatio: 4,
+      cacheBust: true,
+      backgroundColor: palette.bg,
+    });
+  }
+
   async function onExport() {
-    if (!previewRef.current) return;
     setExporting(true);
     try {
-      const dataUrl = await toPng(previewRef.current, {
-        pixelRatio: 3,
-        cacheBust: true,
-        backgroundColor: palette.bg,
-      });
+      const dataUrl = await renderHighResPng();
+      if (!dataUrl) return;
       const a = document.createElement("a");
       a.href = dataUrl;
       a.download = `convite-${brideName}-${groomName}.png`.toLowerCase().replace(/\s+/g, "-");
       a.click();
     } finally {
       setExporting(false);
+    }
+  }
+
+  async function onExportPdf() {
+    setExportingPdf(true);
+    try {
+      const dataUrl = await renderHighResPng();
+      if (!dataUrl) return;
+      const { jsPDF } = await import("jspdf");
+      const pdf = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4", compress: true });
+      // A4 portrait 210×297 mm — centraliza o convite 9:16 com margem segura.
+      const pageW = 210;
+      const pageH = 297;
+      const marginY = 12;
+      const imgH = pageH - marginY * 2; // 273 mm
+      const imgW = (imgH * 9) / 16; // ≈ 153.56 mm
+      const offsetX = (pageW - imgW) / 2;
+      pdf.addImage(dataUrl, "PNG", offsetX, marginY, imgW, imgH, undefined, "FAST");
+      pdf.save(`convite-${brideName}-${groomName}.pdf`.toLowerCase().replace(/\s+/g, "-"));
+    } finally {
+      setExportingPdf(false);
     }
   }
 
