@@ -1,13 +1,14 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import { toJpeg, toPng } from "html-to-image";
-import { ArrowLeft, Download, FileDown, FileImage, Image as ImageIcon, Palette, Type, Calendar, MapPin, History, Save, Trash2, Check, Package } from "lucide-react";
+import { ArrowLeft, Download, FileDown, FileImage, Image as ImageIcon, Palette, Type, Calendar, MapPin, History, Save, Trash2, Check, Package, AlertTriangle } from "lucide-react";
 import { Ornament } from "@/components/Ornament";
 import ceremonyImg from "@/assets/ceremony.jpg";
 
 const DRAFT_KEY = "nossahistoria.invite.draft";
 const VERSIONS_KEY = "nossahistoria.invite.versions";
 const BATCH_PARTIAL_KEY = "nossahistoria.invite.batchPartial";
+const BATCH_CLEAR_SKIP_CONFIRM_KEY = "nossahistoria.invite.skipClearConfirm";
 const MAX_VERSIONS = 12;
 
 type PersistedBatchPartial = {
@@ -375,6 +376,9 @@ function Editor() {
   const [cancelled, setCancelled] = useState(false);
   const [showCancelConfirm, setShowCancelConfirm] = useState(false);
   const [showClearConfirm, setShowClearConfirm] = useState(false);
+  const [skipClearConfirm, setSkipClearConfirm] = useState(() =>
+    loadJSON<boolean>(BATCH_CLEAR_SKIP_CONFIRM_KEY, false),
+  );
 
   function promptCancelBatch() {
     setShowCancelConfirm(true);
@@ -392,20 +396,34 @@ function Editor() {
   }
 
   function promptClearBatchProgress() {
-    setShowClearConfirm(true);
+    const skip = loadJSON<boolean>(BATCH_CLEAR_SKIP_CONFIRM_KEY, false);
+    if (skip) {
+      confirmClearBatchProgress(false);
+    } else {
+      setShowClearConfirm(true);
+    }
   }
 
   function dismissClearBatchProgress() {
     setShowClearConfirm(false);
   }
 
-  function confirmClearBatchProgress() {
+  function confirmClearBatchProgress(saveSkipPreference: boolean) {
     try {
       window.localStorage.removeItem(BATCH_PARTIAL_KEY);
+      if (saveSkipPreference) {
+        window.localStorage.setItem(BATCH_CLEAR_SKIP_CONFIRM_KEY, JSON.stringify(true));
+      }
     } catch {}
     if (batchPartial?.pdfBlobUrl) URL.revokeObjectURL(batchPartial.pdfBlobUrl);
     setBatchPartial(null);
     setShowClearConfirm(false);
+  }
+
+  function clearSkipPreference() {
+    try {
+      window.localStorage.removeItem(BATCH_CLEAR_SKIP_CONFIRM_KEY);
+    } catch {}
   }
 
   async function onPrepareBatch() {
@@ -762,40 +780,14 @@ function Editor() {
           </button>
 
           {batchPartial && (
-            <div className="rounded-2xl border border-red-200 bg-red-50 p-3">
-              <p className="text-center font-display text-xs text-red-700">
-                {showClearConfirm
-                  ? "Limpar o progresso salvo e recomeçar do zero?"
-                  : "Há progresso salvo. Você pode limpar e recomeçar."}
-              </p>
-              {showClearConfirm ? (
-                <div className="mt-2 flex gap-2">
-                  <button
-                    onClick={dismissClearBatchProgress}
-                    disabled={preparingBatch}
-                    className="flex-1 rounded-full border border-[var(--gold-deep)]/40 bg-white px-3 py-2 font-serif-caps text-[10px] text-[var(--cocoa)] hover:bg-[var(--gold)]/10 disabled:opacity-60"
-                  >
-                    Voltar
-                  </button>
-                  <button
-                    onClick={confirmClearBatchProgress}
-                    disabled={preparingBatch}
-                    className="flex-1 rounded-full bg-red-600 px-3 py-2 font-serif-caps text-[10px] text-white hover:bg-red-700 disabled:opacity-60"
-                  >
-                    Sim, limpar
-                  </button>
-                </div>
-              ) : (
-                <button
-                  onClick={promptClearBatchProgress}
-                  disabled={preparingBatch}
-                  className="mt-2 flex w-full items-center justify-center gap-2 rounded-full border border-red-300 bg-white px-3 py-2 font-serif-caps text-[10px] text-red-600 hover:bg-red-50 disabled:opacity-60"
-                >
-                  <Trash2 className="h-3 w-3" />
-                  Limpar progresso salvo
-                </button>
-              )}
-            </div>
+            <button
+              onClick={promptClearBatchProgress}
+              disabled={preparingBatch}
+              className="flex w-full items-center justify-center gap-2 rounded-2xl border border-red-300 bg-red-50 px-3 py-2 font-serif-caps text-[10px] text-red-600 hover:bg-red-100 disabled:opacity-60"
+            >
+              <Trash2 className="h-3 w-3" />
+              Limpar progresso salvo e recomeçar
+            </button>
           )}
         </aside>
       </div>
@@ -964,6 +956,78 @@ function Editor() {
               >
                 <Package className="h-3.5 w-3.5" />
                 {exportingZip ? "Gerando ZIP…" : "Confirmar e baixar ZIP"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+      {showClearConfirm && (
+        <div
+          className="fixed inset-0 z-[70] flex items-center justify-center bg-[var(--cocoa)]/70 p-4 backdrop-blur-sm"
+          onClick={dismissClearBatchProgress}
+        >
+          <div
+            className="w-full max-w-sm rounded-3xl border border-red-200 bg-[var(--ivory)] p-6 shadow-[var(--shadow-luxe)]"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="mb-3 flex items-center gap-2">
+              <AlertTriangle className="h-5 w-5 text-red-600" />
+              <h3 className="font-display text-base text-[var(--cocoa)]">Apagar progresso salvo?</h3>
+            </div>
+            <p className="font-display text-xs leading-relaxed text-[var(--cocoa)]/80">
+              Você tem um progresso de geração salvo. Se apagar, perderá o que já foi renderizado de
+              <strong> PNG, JPG e PDF</strong> e terá que começar do zero.
+            </p>
+            <div className="mt-4 rounded-2xl bg-red-50 p-3">
+              <p className="font-serif-caps text-[10px] text-red-700">
+                Etapas concluídas que serão perdidas:
+              </p>
+              <ul className="mt-1.5 space-y-1 font-serif-caps text-[10px] text-red-700/80">
+                {batchPartial?.pngUrl && (
+                  <li className="flex items-center gap-1.5">
+                    <Check className="h-3 w-3" /> PNG 9:16
+                  </li>
+                )}
+                {batchPartial?.jpgUrl && (
+                  <li className="flex items-center gap-1.5">
+                    <Check className="h-3 w-3" /> JPG 9:16
+                  </li>
+                )}
+                {batchPartial?.pdfBlobUrl && (
+                  <li className="flex items-center gap-1.5">
+                    <Check className="h-3 w-3" /> PDF A4
+                  </li>
+                )}
+                {!batchPartial?.pngUrl && !batchPartial?.jpgUrl && !batchPartial?.pdfBlobUrl && (
+                  <li>Nenhuma etapa concluída ainda.</li>
+                )}
+              </ul>
+            </div>
+            <label className="mt-4 flex cursor-pointer items-center gap-2">
+              <input
+                type="checkbox"
+                checked={skipClearConfirm}
+                onChange={(e) => setSkipClearConfirm(e.target.checked)}
+                className="h-4 w-4 rounded border-red-300 text-red-600 focus:ring-red-500"
+              />
+              <span className="font-serif-caps text-[10px] text-[var(--cocoa)]/80">
+                Não perguntar novamente
+              </span>
+            </label>
+            <div className="mt-5 flex flex-col gap-2 sm:flex-row">
+              <button
+                onClick={dismissClearBatchProgress}
+                disabled={preparingBatch}
+                className="flex-1 rounded-full border border-[var(--gold-deep)]/40 bg-white px-4 py-2 font-serif-caps text-[10px] text-[var(--cocoa)] hover:bg-[var(--gold)]/10 disabled:opacity-60"
+              >
+                Manter progresso
+              </button>
+              <button
+                onClick={() => confirmClearBatchProgress(skipClearConfirm)}
+                disabled={preparingBatch}
+                className="flex-1 rounded-full bg-red-600 px-4 py-2 font-serif-caps text-[10px] text-white hover:bg-red-700 disabled:opacity-60"
+              >
+                Apagar e recomeçar
               </button>
             </div>
           </div>
