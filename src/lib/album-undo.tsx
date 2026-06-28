@@ -179,7 +179,8 @@ export async function cancelPendingDelete(photoId: string) {
   window.clearTimeout(entry.timeoutId);
   entries.delete(photoId);
   notify();
-  toast.dismiss(`undo-${photoId}`);
+  refreshConsolidatedToast();
+
 
   const restoringToast = toast.loading("Restaurando foto...", {
     description: "Recriando o registro e devolvendo o arquivo ao álbum.",
