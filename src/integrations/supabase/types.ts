@@ -202,6 +202,36 @@ export type Database = {
         }
         Relationships: []
       }
+      rsvp_responses: {
+        Row: {
+          attending: boolean
+          created_at: string
+          guest_name: string
+          id: string
+          message: string | null
+          party_size: number
+          updated_at: string
+        }
+        Insert: {
+          attending: boolean
+          created_at?: string
+          guest_name: string
+          id?: string
+          message?: string | null
+          party_size?: number
+          updated_at?: string
+        }
+        Update: {
+          attending?: boolean
+          created_at?: string
+          guest_name?: string
+          id?: string
+          message?: string | null
+          party_size?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       story_chapters: {
         Row: {
           body: string
