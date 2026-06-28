@@ -421,7 +421,7 @@ function EditarTimeline() {
         </div>
       ) : sorted.length === 0 ? (
         <p className="mt-10 px-6 text-center font-display italic text-[var(--cocoa)]/60">
-          Nenhum marco ainda. Toque em "Novo marco" para começar.
+          Nenhum marco ainda. Use o formulário acima para adicionar o primeiro.
         </p>
       ) : (
         <div className="mt-5 space-y-4 px-5 pb-32">
