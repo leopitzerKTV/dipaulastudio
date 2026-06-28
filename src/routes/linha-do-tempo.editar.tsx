@@ -111,22 +111,8 @@ function EditarTimeline() {
     setItems((prev) => prev.map((c) => (c.id === id ? { ...c, ...patch } : c)));
   }
 
-  async function addItem() {
-    setAdding(true);
-    const nextPosition = items.length > 0 ? Math.max(...items.map((c) => c.position)) + 1 : 0;
-    const { data, error } = await supabase
-      .from("timeline_milestones")
-      .insert({ position: nextPosition, date_label: "", title: "Novo marco" })
-      .select()
-      .single();
-    setAdding(false);
-    if (error || !data) {
-      toast.error("Não foi possível criar o marco");
-      return;
-    }
-    setItems((prev) => [...prev, data as Milestone]);
-    toast.success("Marco criado");
-  }
+  // (criação de marcos usa quickAdd abaixo — formulário com foto + texto)
+
 
   async function quickAdd() {
     if (!newTitle.trim() && !newDate.trim() && !newFile) {
