@@ -130,6 +130,12 @@ function Painel() {
               </li>
             ))}
           </ul>
+          <Link
+            to="/presentes/gerir"
+            className="mt-4 inline-flex w-full items-center justify-center rounded-full bg-[var(--gold-deep)] px-4 py-2 text-xs font-serif-caps text-white"
+          >
+            Gerir catálogo de presentes
+          </Link>
         </div>
 
         <Ornament className="mt-10" />
