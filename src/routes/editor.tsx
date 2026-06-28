@@ -374,7 +374,7 @@ function Editor() {
   const cancelBatchRef = useRef(false);
   const [cancelled, setCancelled] = useState(false);
   const [showCancelConfirm, setShowCancelConfirm] = useState(false);
-
+  const [showClearConfirm, setShowClearConfirm] = useState(false);
 
   function promptCancelBatch() {
     setShowCancelConfirm(true);
@@ -391,7 +391,22 @@ function Editor() {
     setShowCancelConfirm(false);
   }
 
+  function promptClearBatchProgress() {
+    setShowClearConfirm(true);
+  }
 
+  function dismissClearBatchProgress() {
+    setShowClearConfirm(false);
+  }
+
+  function confirmClearBatchProgress() {
+    try {
+      window.localStorage.removeItem(BATCH_PARTIAL_KEY);
+    } catch {}
+    if (batchPartial?.pdfBlobUrl) URL.revokeObjectURL(batchPartial.pdfBlobUrl);
+    setBatchPartial(null);
+    setShowClearConfirm(false);
+  }
 
   async function onPrepareBatch() {
     if (!previewRef.current) return;
