@@ -32,6 +32,8 @@ function EditarHistoria() {
   const [dragId, setDragId] = useState<string | null>(null);
   const [dragOverId, setDragOverId] = useState<string | null>(null);
   const fileInputs = useRef<Record<string, HTMLInputElement | null>>({});
+  const gripRefs = useRef<Record<string, HTMLButtonElement | null>>({});
+  const refocusId = useRef<string | null>(null);
 
   async function load() {
     setLoading(true);
@@ -175,11 +177,21 @@ function EditarHistoria() {
     const fromIdx = sorted.findIndex((x) => x.id === fromId);
     const toIdx = sorted.findIndex((x) => x.id === toId);
     if (fromIdx === -1 || toIdx === -1) return;
+    await reorderToIndex(fromId, toIdx, sorted);
+  }
+
+  async function reorderToIndex(fromId: string, toIdx: number, presorted?: Chapter[]) {
+    const sorted = presorted ?? [...chapters].sort((a, b) => a.position - b.position);
+    const fromIdx = sorted.findIndex((x) => x.id === fromId);
+    if (fromIdx === -1) return;
+    const clamped = Math.max(0, Math.min(sorted.length - 1, toIdx));
+    if (clamped === fromIdx) return;
     const next = [...sorted];
     const [moved] = next.splice(fromIdx, 1);
-    next.splice(toIdx, 0, moved);
+    next.splice(clamped, 0, moved);
     const renumbered = next.map((x, i) => ({ ...x, position: i }));
     setChapters(renumbered);
+    refocusId.current = fromId;
     const results = await Promise.all(
       renumbered.map((x) =>
         supabase.from("story_chapters").update({ position: x.position }).eq("id", x.id)
@@ -190,6 +202,26 @@ function EditarHistoria() {
       load();
     }
   }
+
+  function onGripKeyDown(e: React.KeyboardEvent<HTMLButtonElement>, c: Chapter, idx: number, total: number) {
+    const meta = e.metaKey || e.ctrlKey;
+    let target: number | null = null;
+    if (e.key === "ArrowUp") target = meta ? 0 : idx - 1;
+    else if (e.key === "ArrowDown") target = meta ? total - 1 : idx + 1;
+    else if (e.key === "Home") target = 0;
+    else if (e.key === "End") target = total - 1;
+    if (target === null) return;
+    e.preventDefault();
+    if (target === idx) return;
+    void reorderToIndex(c.id, target);
+  }
+
+  useEffect(() => {
+    if (!refocusId.current) return;
+    const el = gripRefs.current[refocusId.current];
+    if (el) el.focus();
+    refocusId.current = null;
+  }, [chapters]);
 
   async function uploadPhoto(c: Chapter, file: File) {
     if (!file.type.startsWith("image/")) {
@@ -317,7 +349,11 @@ function EditarHistoria() {
               }`}
             >
               <div className="flex gap-3">
-                <span
+                <button
+                  type="button"
+                  ref={(el) => {
+                    gripRefs.current[c.id] = el;
+                  }}
                   draggable
                   onDragStart={(e) => {
                     setDragId(c.id);
@@ -328,13 +364,14 @@ function EditarHistoria() {
                     setDragId(null);
                     setDragOverId(null);
                   }}
-                  role="button"
-                  aria-label="Arraste para reordenar"
-                  className="grid w-5 flex-none place-items-center text-[var(--cocoa)]/40 cursor-grab active:cursor-grabbing select-none"
-                  title="Arraste para reordenar"
+                  onKeyDown={(e) => onGripKeyDown(e, c, i, sorted.length)}
+                  aria-label={`Reordenar capítulo ${i + 1} de ${sorted.length}: ${c.title || "sem título"}. Use as setas para mover, Ctrl+setas ou Home/End para extremos.`}
+                  aria-keyshortcuts="ArrowUp ArrowDown Home End"
+                  className="grid w-5 flex-none place-items-center self-start py-1 text-[var(--cocoa)]/40 cursor-grab active:cursor-grabbing select-none rounded focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--gold)]"
+                  title="Arraste ou use as setas para reordenar"
                 >
                   <GripVertical className="h-4 w-4" />
-                </span>
+                </button>
                 <div className="relative aspect-[3/4] w-24 flex-none overflow-hidden rounded-lg bg-[var(--ivory)]">
                   {c.imageUrl ? (
                     <img src={c.imageUrl} alt={c.title} className="h-full w-full object-cover" />
