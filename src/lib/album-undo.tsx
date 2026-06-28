@@ -159,7 +159,7 @@ async function commitPendingDelete(photoId: string) {
   if (!entry) return;
   entries.delete(photoId);
   notify();
-  const { error } = await supabase.storage.from(BUCKET).remove([entry.trashPath]);
+  refreshConsolidatedToast();
   if (error) {
     console.error(error);
     toast.error("Não foi possível remover o arquivo do armazenamento", {
