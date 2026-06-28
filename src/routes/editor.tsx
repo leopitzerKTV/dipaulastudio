@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import { toPng } from "html-to-image";
-import { ArrowLeft, Download, Image as ImageIcon, Palette, Type, Calendar, MapPin, History, Save, Trash2, Check } from "lucide-react";
+import { ArrowLeft, Download, FileDown, Image as ImageIcon, Palette, Type, Calendar, MapPin, History, Save, Trash2, Check } from "lucide-react";
 import { Ornament } from "@/components/Ornament";
 import ceremonyImg from "@/assets/ceremony.jpg";
 
