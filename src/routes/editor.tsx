@@ -868,6 +868,7 @@ function Editor() {
             </button>
           </Section>
 
+          <div data-tour="export" className="space-y-2">
           <div className="grid grid-cols-3 gap-2">
           <button
             onClick={onExport}
