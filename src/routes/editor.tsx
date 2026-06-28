@@ -376,6 +376,9 @@ function Editor() {
   const [cancelled, setCancelled] = useState(false);
   const [showCancelConfirm, setShowCancelConfirm] = useState(false);
   const [showClearConfirm, setShowClearConfirm] = useState(false);
+  const [skipClearConfirm, setSkipClearConfirm] = useState(() =>
+    loadJSON<boolean>(BATCH_CLEAR_SKIP_CONFIRM_KEY, false),
+  );
 
   function promptCancelBatch() {
     setShowCancelConfirm(true);
