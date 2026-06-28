@@ -258,12 +258,6 @@ function EditarHistoria() {
           {sorted.map((c, i) => (
             <article
               key={c.id}
-              draggable
-              onDragStart={(e) => {
-                setDragId(c.id);
-                e.dataTransfer.effectAllowed = "move";
-                e.dataTransfer.setData("text/plain", c.id);
-              }}
               onDragOver={(e) => {
                 if (!dragId || dragId === c.id) return;
                 e.preventDefault();
@@ -280,10 +274,6 @@ function EditarHistoria() {
                 setDragOverId(null);
                 if (fromId) void reorderTo(fromId, c.id);
               }}
-              onDragEnd={() => {
-                setDragId(null);
-                setDragOverId(null);
-              }}
               className={`rounded-2xl border bg-[var(--card)] p-4 shadow-[var(--shadow-card)] transition ${
                 dragId === c.id
                   ? "opacity-50 border-[var(--gold)]/40"
@@ -294,8 +284,19 @@ function EditarHistoria() {
             >
               <div className="flex gap-3">
                 <span
-                  aria-hidden
-                  className="grid w-5 flex-none place-items-center text-[var(--cocoa)]/40 cursor-grab active:cursor-grabbing"
+                  draggable
+                  onDragStart={(e) => {
+                    setDragId(c.id);
+                    e.dataTransfer.effectAllowed = "move";
+                    e.dataTransfer.setData("text/plain", c.id);
+                  }}
+                  onDragEnd={() => {
+                    setDragId(null);
+                    setDragOverId(null);
+                  }}
+                  role="button"
+                  aria-label="Arraste para reordenar"
+                  className="grid w-5 flex-none place-items-center text-[var(--cocoa)]/40 cursor-grab active:cursor-grabbing select-none"
                   title="Arraste para reordenar"
                 >
                   <GripVertical className="h-4 w-4" />
