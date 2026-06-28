@@ -43,38 +43,68 @@ export type Database = {
       }
       guest_manual: {
         Row: {
+          album_note: string | null
+          cake_note: string | null
           ceremony_date: string | null
           ceremony_location: string | null
+          ceremony_note: string | null
           ceremony_time: string | null
+          closing_note: string | null
           created_at: string
+          dancefloor_note: string | null
+          dress_code_note: string | null
+          during_ceremony_note: string | null
           gift_list_url: string | null
+          gift_note: string | null
           id: string
           location_info: string | null
           parking_info: string | null
+          reception_note: string | null
+          transport_note: string | null
           updated_at: string
           welcome_note: string | null
         }
         Insert: {
+          album_note?: string | null
+          cake_note?: string | null
           ceremony_date?: string | null
           ceremony_location?: string | null
+          ceremony_note?: string | null
           ceremony_time?: string | null
+          closing_note?: string | null
           created_at?: string
+          dancefloor_note?: string | null
+          dress_code_note?: string | null
+          during_ceremony_note?: string | null
           gift_list_url?: string | null
+          gift_note?: string | null
           id?: string
           location_info?: string | null
           parking_info?: string | null
+          reception_note?: string | null
+          transport_note?: string | null
           updated_at?: string
           welcome_note?: string | null
         }
         Update: {
+          album_note?: string | null
+          cake_note?: string | null
           ceremony_date?: string | null
           ceremony_location?: string | null
+          ceremony_note?: string | null
           ceremony_time?: string | null
+          closing_note?: string | null
           created_at?: string
+          dancefloor_note?: string | null
+          dress_code_note?: string | null
+          during_ceremony_note?: string | null
           gift_list_url?: string | null
+          gift_note?: string | null
           id?: string
           location_info?: string | null
           parking_info?: string | null
+          reception_note?: string | null
+          transport_note?: string | null
           updated_at?: string
           welcome_note?: string | null
         }

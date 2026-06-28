@@ -1,10 +1,12 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { motion } from "motion/react";
-import { Mail, Calendar, MapPin, Gift, Heart, Wand2, BookOpen, Download, QrCode as QrCodeIcon } from "lucide-react";
+import { Mail, Calendar, MapPin, Gift, Heart, Wand2, BookOpen, Download, QrCode as QrCodeIcon, Edit3 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { AppShell } from "@/components/AppShell";
 import { Ornament } from "@/components/Ornament";
 import { QrCode } from "@/components/QrCode";
+import { ManualView, type ManualData } from "@/components/ManualView";
+import { supabase } from "@/integrations/supabase/client";
 import ceremonyImg from "@/assets/ceremony.jpg";
 
 export const Route = createFileRoute("/")({
@@ -21,9 +23,23 @@ export const Route = createFileRoute("/")({
 
 function Index() {
   const [manualUrl, setManualUrl] = useState("");
+  const [manual, setManual] = useState<ManualData | null>(null);
 
   useEffect(() => {
     setManualUrl(`${window.location.origin}/manual`);
+    let cancelled = false;
+    supabase
+      .from("guest_manual")
+      .select("*")
+      .order("created_at", { ascending: true })
+      .limit(1)
+      .maybeSingle()
+      .then(({ data }) => {
+        if (!cancelled) setManual((data as ManualData) ?? null);
+      });
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   return (
@@ -92,6 +108,25 @@ function Index() {
           <ActionCard to="/manual" Icon={BookOpen} title="Manual do Convidado" sub="Dress code, cerimônia, recepção e mais" />
           <ActionCard to="/editor" Icon={Wand2} title="Editor do Convite" sub="Personalize nomes, data, cores e imagem" />
           <ActionCard to="/painel" Icon={Gift} title="Painel Privado do Casal" sub="RSVP, presentes, mensagens" />
+        </div>
+      </section>
+
+      {/* Manual do Convidado — embedded item by item */}
+      <section className="mt-12">
+        <div className="px-6 text-center">
+          <Ornament />
+          <p className="mt-5 font-serif-caps text-[10px] text-[var(--gold-deep)]">No convite</p>
+          <h2 className="mt-2 font-display text-3xl text-[var(--cocoa)]">Manual completo</h2>
+          <p className="mt-1 text-sm text-[var(--cocoa)]/65">Cada item personalizado pela noiva — role para conhecer.</p>
+          <Link
+            to="/manual/editar"
+            className="mt-4 inline-flex items-center gap-1.5 rounded-full border border-[var(--gold)]/40 bg-white/60 px-3 py-1.5 text-[10px] font-serif-caps text-[var(--gold-deep)] hover:bg-white"
+          >
+            <Edit3 className="h-3 w-3" /> Editar manual
+          </Link>
+        </div>
+        <div className="-mx-0 mt-2 border-y border-[var(--gold)]/20 bg-[var(--ivory)]">
+          <ManualView data={manual} />
         </div>
       </section>
 
