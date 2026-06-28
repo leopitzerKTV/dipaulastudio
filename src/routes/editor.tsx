@@ -284,15 +284,23 @@ function Editor() {
         <div className="flex items-center gap-2">
           <button
             onClick={onExport}
-            disabled={exporting || exportingPdf}
+            disabled={exporting || exportingPdf || exportingJpg}
             className="inline-flex items-center gap-1.5 rounded-full border border-[var(--gold-deep)]/40 bg-[var(--ivory)] px-3 py-1.5 font-serif-caps text-[10px] text-[var(--gold-deep)] hover:bg-[var(--gold)]/10 disabled:opacity-60"
           >
             <Download className="h-3.5 w-3.5" />
             {exporting ? "PNG…" : "PNG"}
           </button>
           <button
+            onClick={onExportJpg}
+            disabled={exporting || exportingPdf || exportingJpg}
+            className="inline-flex items-center gap-1.5 rounded-full border border-[var(--gold-deep)]/40 bg-[var(--ivory)] px-3 py-1.5 font-serif-caps text-[10px] text-[var(--gold-deep)] hover:bg-[var(--gold)]/10 disabled:opacity-60"
+          >
+            <FileImage className="h-3.5 w-3.5" />
+            {exportingJpg ? "JPG…" : "JPG"}
+          </button>
+          <button
             onClick={onExportPdf}
-            disabled={exporting || exportingPdf}
+            disabled={exporting || exportingPdf || exportingJpg}
             className="inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 font-serif-caps text-[10px] text-[var(--ivory)] shadow-[var(--shadow-card)] disabled:opacity-60"
             style={{ background: palette.gradient }}
           >
