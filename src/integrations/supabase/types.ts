@@ -237,6 +237,7 @@ export type Database = {
           body: string
           created_at: string
           date_label: string
+          event_date: string | null
           id: string
           position: number
           storage_path: string | null
@@ -247,6 +248,7 @@ export type Database = {
           body?: string
           created_at?: string
           date_label?: string
+          event_date?: string | null
           id?: string
           position?: number
           storage_path?: string | null
@@ -257,6 +259,7 @@ export type Database = {
           body?: string
           created_at?: string
           date_label?: string
+          event_date?: string | null
           id?: string
           position?: number
           storage_path?: string | null
