@@ -423,12 +423,27 @@ function EditarHistoria() {
                 </div>
                 <div className="flex flex-1 flex-col gap-2">
                   <input
+                    type="date"
+                    value={c.event_date ?? ""}
+                    max={new Date().toISOString().slice(0, 10)}
+                    onChange={(e) => {
+                      const iso = e.target.value;
+                      patchLocal(c.id, {
+                        event_date: iso || null,
+                        date_label: iso && !c.date_label?.trim() ? formatDateLabel(iso) : c.date_label,
+                      });
+                    }}
+                    aria-label="Data do capítulo"
+                    className="rounded-md border border-[var(--gold)]/25 bg-[var(--ivory)] px-2 py-1 font-serif-caps text-[10px] text-[var(--cocoa)] focus:border-[var(--gold)] focus:outline-none"
+                  />
+                  <input
                     type="text"
                     value={c.date_label}
                     onChange={(e) => patchLocal(c.id, { date_label: e.target.value })}
-                    placeholder="Data (ex: Maio · 2025)"
+                    placeholder="Legenda da data (ex: Maio · 2025)"
                     className="rounded-md border border-[var(--gold)]/25 bg-[var(--ivory)] px-2 py-1 font-serif-caps text-[10px] text-[var(--cocoa)] focus:border-[var(--gold)] focus:outline-none"
                   />
+
                   <input
                     type="text"
                     value={c.title}
