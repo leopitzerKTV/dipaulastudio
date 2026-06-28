@@ -259,6 +259,7 @@ function Editor() {
 
   const [exportingZip, setExportingZip] = useState(false);
   const [preparingBatch, setPreparingBatch] = useState(false);
+  const [cancellingBatch, setCancellingBatch] = useState(false);
   const [batchPreview, setBatchPreview] = useState<{
     pngUrl: string;
     jpgUrl: string;
@@ -275,8 +276,8 @@ function Editor() {
 
   const cancelBatchRef = useRef(false);
   const [cancelled, setCancelled] = useState(false);
-  const [cancellingBatch, setCancellingBatch] = useState(false);
   const [showCancelConfirm, setShowCancelConfirm] = useState(false);
+
 
   function promptCancelBatch() {
     setShowCancelConfirm(true);
