@@ -9,6 +9,8 @@ const DRAFT_KEY = "nossahistoria.invite.draft";
 const VERSIONS_KEY = "nossahistoria.invite.versions";
 const BATCH_PARTIAL_KEY = "nossahistoria.invite.batchPartial";
 const BATCH_CLEAR_SKIP_CONFIRM_KEY = "nossahistoria.invite.skipClearConfirm";
+const BATCH_CLEAR_TITLE_KEY = "nossahistoria.invite.clearConfirmTitle";
+const BATCH_CLEAR_MESSAGE_KEY = "nossahistoria.invite.clearConfirmMessage";
 const MAX_VERSIONS = 12;
 
 type PersistedBatchPartial = {
