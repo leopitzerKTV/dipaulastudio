@@ -136,6 +136,12 @@ function Painel() {
           >
             Gerir catálogo de presentes
           </Link>
+          <Link
+            to="/rsvp/gerir"
+            className="mt-2 inline-flex w-full items-center justify-center rounded-full border border-[var(--gold-deep)] px-4 py-2 text-xs font-serif-caps text-[var(--gold-deep)]"
+          >
+            Ver confirmações de presença
+          </Link>
         </div>
 
         <Ornament className="mt-10" />

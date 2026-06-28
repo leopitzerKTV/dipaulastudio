@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as RsvpRouteImport } from './routes/rsvp'
 import { Route as PainelRouteImport } from './routes/painel'
 import { Route as ManualRouteImport } from './routes/manual'
 import { Route as LinhaDoTempoRouteImport } from './routes/linha-do-tempo'
@@ -18,12 +19,18 @@ import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AlbumRouteImport } from './routes/album'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as PresentesIndexRouteImport } from './routes/presentes.index'
+import { Route as RsvpGerirRouteImport } from './routes/rsvp.gerir'
 import { Route as PresentesGerirRouteImport } from './routes/presentes.gerir'
 import { Route as ManualEditarRouteImport } from './routes/manual.editar'
 import { Route as LinhaDoTempoEditarRouteImport } from './routes/linha-do-tempo.editar'
 import { Route as HistoriaEditarRouteImport } from './routes/historia.editar'
 import { Route as PresentesConfirmarTokenRouteImport } from './routes/presentes.confirmar.$token'
 
+const RsvpRoute = RsvpRouteImport.update({
+  id: '/rsvp',
+  path: '/rsvp',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const PainelRoute = PainelRouteImport.update({
   id: '/painel',
   path: '/painel',
@@ -69,6 +76,11 @@ const PresentesIndexRoute = PresentesIndexRouteImport.update({
   path: '/presentes/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const RsvpGerirRoute = RsvpGerirRouteImport.update({
+  id: '/gerir',
+  path: '/gerir',
+  getParentRoute: () => RsvpRoute,
+} as any)
 const PresentesGerirRoute = PresentesGerirRouteImport.update({
   id: '/presentes/gerir',
   path: '/presentes/gerir',
@@ -104,10 +116,12 @@ export interface FileRoutesByFullPath {
   '/linha-do-tempo': typeof LinhaDoTempoRouteWithChildren
   '/manual': typeof ManualRouteWithChildren
   '/painel': typeof PainelRoute
+  '/rsvp': typeof RsvpRouteWithChildren
   '/historia/editar': typeof HistoriaEditarRoute
   '/linha-do-tempo/editar': typeof LinhaDoTempoEditarRoute
   '/manual/editar': typeof ManualEditarRoute
   '/presentes/gerir': typeof PresentesGerirRoute
+  '/rsvp/gerir': typeof RsvpGerirRoute
   '/presentes/': typeof PresentesIndexRoute
   '/presentes/confirmar/$token': typeof PresentesConfirmarTokenRoute
 }
@@ -120,10 +134,12 @@ export interface FileRoutesByTo {
   '/linha-do-tempo': typeof LinhaDoTempoRouteWithChildren
   '/manual': typeof ManualRouteWithChildren
   '/painel': typeof PainelRoute
+  '/rsvp': typeof RsvpRouteWithChildren
   '/historia/editar': typeof HistoriaEditarRoute
   '/linha-do-tempo/editar': typeof LinhaDoTempoEditarRoute
   '/manual/editar': typeof ManualEditarRoute
   '/presentes/gerir': typeof PresentesGerirRoute
+  '/rsvp/gerir': typeof RsvpGerirRoute
   '/presentes': typeof PresentesIndexRoute
   '/presentes/confirmar/$token': typeof PresentesConfirmarTokenRoute
 }
@@ -137,10 +153,12 @@ export interface FileRoutesById {
   '/linha-do-tempo': typeof LinhaDoTempoRouteWithChildren
   '/manual': typeof ManualRouteWithChildren
   '/painel': typeof PainelRoute
+  '/rsvp': typeof RsvpRouteWithChildren
   '/historia/editar': typeof HistoriaEditarRoute
   '/linha-do-tempo/editar': typeof LinhaDoTempoEditarRoute
   '/manual/editar': typeof ManualEditarRoute
   '/presentes/gerir': typeof PresentesGerirRoute
+  '/rsvp/gerir': typeof RsvpGerirRoute
   '/presentes/': typeof PresentesIndexRoute
   '/presentes/confirmar/$token': typeof PresentesConfirmarTokenRoute
 }
@@ -155,10 +173,12 @@ export interface FileRouteTypes {
     | '/linha-do-tempo'
     | '/manual'
     | '/painel'
+    | '/rsvp'
     | '/historia/editar'
     | '/linha-do-tempo/editar'
     | '/manual/editar'
     | '/presentes/gerir'
+    | '/rsvp/gerir'
     | '/presentes/'
     | '/presentes/confirmar/$token'
   fileRoutesByTo: FileRoutesByTo
@@ -171,10 +191,12 @@ export interface FileRouteTypes {
     | '/linha-do-tempo'
     | '/manual'
     | '/painel'
+    | '/rsvp'
     | '/historia/editar'
     | '/linha-do-tempo/editar'
     | '/manual/editar'
     | '/presentes/gerir'
+    | '/rsvp/gerir'
     | '/presentes'
     | '/presentes/confirmar/$token'
   id:
@@ -187,10 +209,12 @@ export interface FileRouteTypes {
     | '/linha-do-tempo'
     | '/manual'
     | '/painel'
+    | '/rsvp'
     | '/historia/editar'
     | '/linha-do-tempo/editar'
     | '/manual/editar'
     | '/presentes/gerir'
+    | '/rsvp/gerir'
     | '/presentes/'
     | '/presentes/confirmar/$token'
   fileRoutesById: FileRoutesById
@@ -204,6 +228,7 @@ export interface RootRouteChildren {
   LinhaDoTempoRoute: typeof LinhaDoTempoRouteWithChildren
   ManualRoute: typeof ManualRouteWithChildren
   PainelRoute: typeof PainelRoute
+  RsvpRoute: typeof RsvpRouteWithChildren
   PresentesGerirRoute: typeof PresentesGerirRoute
   PresentesIndexRoute: typeof PresentesIndexRoute
   PresentesConfirmarTokenRoute: typeof PresentesConfirmarTokenRoute
@@ -211,6 +236,13 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/rsvp': {
+      id: '/rsvp'
+      path: '/rsvp'
+      fullPath: '/rsvp'
+      preLoaderRoute: typeof RsvpRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/painel': {
       id: '/painel'
       path: '/painel'
@@ -273,6 +305,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/presentes/'
       preLoaderRoute: typeof PresentesIndexRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/rsvp/gerir': {
+      id: '/rsvp/gerir'
+      path: '/gerir'
+      fullPath: '/rsvp/gerir'
+      preLoaderRoute: typeof RsvpGerirRouteImport
+      parentRoute: typeof RsvpRoute
     }
     '/presentes/gerir': {
       id: '/presentes/gerir'
@@ -347,6 +386,16 @@ const ManualRouteChildren: ManualRouteChildren = {
 const ManualRouteWithChildren =
   ManualRoute._addFileChildren(ManualRouteChildren)
 
+interface RsvpRouteChildren {
+  RsvpGerirRoute: typeof RsvpGerirRoute
+}
+
+const RsvpRouteChildren: RsvpRouteChildren = {
+  RsvpGerirRoute: RsvpGerirRoute,
+}
+
+const RsvpRouteWithChildren = RsvpRoute._addFileChildren(RsvpRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AlbumRoute: AlbumRoute,
@@ -356,6 +405,7 @@ const rootRouteChildren: RootRouteChildren = {
   LinhaDoTempoRoute: LinhaDoTempoRouteWithChildren,
   ManualRoute: ManualRouteWithChildren,
   PainelRoute: PainelRoute,
+  RsvpRoute: RsvpRouteWithChildren,
   PresentesGerirRoute: PresentesGerirRoute,
   PresentesIndexRoute: PresentesIndexRoute,
   PresentesConfirmarTokenRoute: PresentesConfirmarTokenRoute,
@@ -363,13 +413,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
