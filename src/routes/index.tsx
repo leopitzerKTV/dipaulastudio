@@ -1,5 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { motion } from "motion/react";
+import { QRCodeSVG } from "qrcode.react";
 import { Mail, Calendar, MapPin, Gift, Heart, Wand2, BookOpen } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
 import { Ornament } from "@/components/Ornament";
