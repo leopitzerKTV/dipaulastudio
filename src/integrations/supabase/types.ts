@@ -41,42 +41,194 @@ export type Database = {
         }
         Relationships: []
       }
+      gift_items: {
+        Row: {
+          created_at: string
+          currency: string
+          description: string | null
+          id: string
+          image_url: string | null
+          is_active: boolean
+          price_cents: number | null
+          sort_order: number
+          store_url: string | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          currency?: string
+          description?: string | null
+          id?: string
+          image_url?: string | null
+          is_active?: boolean
+          price_cents?: number | null
+          sort_order?: number
+          store_url?: string | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          currency?: string
+          description?: string | null
+          id?: string
+          image_url?: string | null
+          is_active?: boolean
+          price_cents?: number | null
+          sort_order?: number
+          store_url?: string | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      gift_reservations: {
+        Row: {
+          confirm_token: string
+          confirmed_at: string | null
+          created_at: string
+          expires_at: string
+          gift_item_id: string
+          guest_email: string
+          guest_name: string
+          id: string
+          reserved_at: string
+          status: Database["public"]["Enums"]["gift_reservation_status"]
+          updated_at: string
+        }
+        Insert: {
+          confirm_token?: string
+          confirmed_at?: string | null
+          created_at?: string
+          expires_at?: string
+          gift_item_id: string
+          guest_email: string
+          guest_name: string
+          id?: string
+          reserved_at?: string
+          status?: Database["public"]["Enums"]["gift_reservation_status"]
+          updated_at?: string
+        }
+        Update: {
+          confirm_token?: string
+          confirmed_at?: string | null
+          created_at?: string
+          expires_at?: string
+          gift_item_id?: string
+          guest_email?: string
+          guest_name?: string
+          id?: string
+          reserved_at?: string
+          status?: Database["public"]["Enums"]["gift_reservation_status"]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "gift_reservations_gift_item_id_fkey"
+            columns: ["gift_item_id"]
+            isOneToOne: false
+            referencedRelation: "gift_items"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       guest_manual: {
         Row: {
+          album_note: string | null
+          cake_note: string | null
           ceremony_date: string | null
           ceremony_location: string | null
+          ceremony_note: string | null
           ceremony_time: string | null
+          closing_note: string | null
           created_at: string
+          dancefloor_note: string | null
+          dress_code_note: string | null
+          during_ceremony_note: string | null
           gift_list_url: string | null
+          gift_note: string | null
           id: string
           location_info: string | null
           parking_info: string | null
+          reception_note: string | null
+          transport_note: string | null
           updated_at: string
           welcome_note: string | null
         }
         Insert: {
+          album_note?: string | null
+          cake_note?: string | null
           ceremony_date?: string | null
           ceremony_location?: string | null
+          ceremony_note?: string | null
           ceremony_time?: string | null
+          closing_note?: string | null
           created_at?: string
+          dancefloor_note?: string | null
+          dress_code_note?: string | null
+          during_ceremony_note?: string | null
           gift_list_url?: string | null
+          gift_note?: string | null
           id?: string
           location_info?: string | null
           parking_info?: string | null
+          reception_note?: string | null
+          transport_note?: string | null
           updated_at?: string
           welcome_note?: string | null
         }
         Update: {
+          album_note?: string | null
+          cake_note?: string | null
           ceremony_date?: string | null
           ceremony_location?: string | null
+          ceremony_note?: string | null
           ceremony_time?: string | null
+          closing_note?: string | null
           created_at?: string
+          dancefloor_note?: string | null
+          dress_code_note?: string | null
+          during_ceremony_note?: string | null
           gift_list_url?: string | null
+          gift_note?: string | null
           id?: string
           location_info?: string | null
           parking_info?: string | null
+          reception_note?: string | null
+          transport_note?: string | null
           updated_at?: string
           welcome_note?: string | null
+        }
+        Relationships: []
+      }
+      rsvp_responses: {
+        Row: {
+          attending: boolean
+          created_at: string
+          guest_name: string
+          id: string
+          message: string | null
+          party_size: number
+          updated_at: string
+        }
+        Insert: {
+          attending: boolean
+          created_at?: string
+          guest_name: string
+          id?: string
+          message?: string | null
+          party_size?: number
+          updated_at?: string
+        }
+        Update: {
+          attending?: boolean
+          created_at?: string
+          guest_name?: string
+          id?: string
+          message?: string | null
+          party_size?: number
+          updated_at?: string
         }
         Relationships: []
       }
@@ -85,6 +237,7 @@ export type Database = {
           body: string
           created_at: string
           date_label: string
+          event_date: string | null
           id: string
           position: number
           storage_path: string | null
@@ -95,6 +248,7 @@ export type Database = {
           body?: string
           created_at?: string
           date_label?: string
+          event_date?: string | null
           id?: string
           position?: number
           storage_path?: string | null
@@ -105,6 +259,7 @@ export type Database = {
           body?: string
           created_at?: string
           date_label?: string
+          event_date?: string | null
           id?: string
           position?: number
           storage_path?: string | null
@@ -169,6 +324,14 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      cancel_gift_reservation: { Args: { _token: string }; Returns: boolean }
+      confirm_gift_purchase: {
+        Args: { _token: string }
+        Returns: {
+          gift_title: string
+          reservation_id: string
+        }[]
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -176,9 +339,37 @@ export type Database = {
         }
         Returns: boolean
       }
+      list_gift_catalog: {
+        Args: never
+        Returns: {
+          currency: string
+          description: string
+          id: string
+          image_url: string
+          is_available: boolean
+          price_cents: number
+          reserved_by_first_name: string
+          sort_order: number
+          store_url: string
+          title: string
+        }[]
+      }
+      reserve_gift_item: {
+        Args: {
+          _gift_item_id: string
+          _guest_email: string
+          _guest_name: string
+        }
+        Returns: {
+          confirm_token: string
+          expires_at: string
+          reservation_id: string
+        }[]
+      }
     }
     Enums: {
       app_role: "couple"
+      gift_reservation_status: "reserved" | "purchased" | "cancelled"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -307,6 +498,7 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["couple"],
+      gift_reservation_status: ["reserved", "purchased", "cancelled"],
     },
   },
 } as const

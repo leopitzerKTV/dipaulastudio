@@ -1,5 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { motion } from "motion/react";
+import { QRCodeSVG } from "qrcode.react";
 import { Mail, Calendar, MapPin, Gift, Heart, Wand2, BookOpen } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
 import { Ornament } from "@/components/Ornament";
@@ -84,6 +85,23 @@ function Index() {
           <ActionCard to="/manual" Icon={BookOpen} title="Manual do Convidado" sub="Dress code, cerimônia, recepção e mais" />
           <ActionCard to="/editor" Icon={Wand2} title="Editor do Convite" sub="Personalize nomes, data, cores e imagem" />
           <ActionCard to="/painel" Icon={Gift} title="Painel Privado do Casal" sub="RSVP, presentes, mensagens" />
+        </div>
+      </section>
+
+      <section className="mt-8 px-6">
+        <div className="rounded-2xl border border-[var(--gold)]/25 bg-[var(--card)] p-6 text-center shadow-[var(--shadow-card)]">
+          <p className="font-serif-caps text-[10px] text-[var(--gold-deep)]">Acesso Rápido</p>
+          <h3 className="mt-2 font-display text-2xl text-[var(--cocoa)]">Manual do Convidado</h3>
+          <p className="mt-1 text-xs text-[var(--cocoa)]/60">Aponte a câmera do celular para abrir</p>
+          <div className="mt-5 inline-flex rounded-2xl bg-white p-3 shadow-[var(--shadow-card)]">
+            <QRCodeSVG value="https://dipaulastudio.lovable.app/manual" size={160} level="M" includeMargin={false} />
+          </div>
+          <Link
+            to="/manual"
+            className="mt-4 inline-block font-serif-caps text-[10px] text-[var(--gold-deep)] hover:underline"
+          >
+            ou abrir manualmente
+          </Link>
         </div>
       </section>
 
