@@ -24,6 +24,9 @@ export const Route = createFileRoute("/")({
 function Index() {
   const [copied, setCopied] = React.useState(false);
   const manualUrl = "https://dipaulastudio.lovable.app/manual";
+  const defaultMessage = `Oi! Aqui está o Manual do Convidado do casamento da Amanda e Ricardo. Dá uma olhada em tudo que preparamos com carinho: ${manualUrl}`;
+  const [message, setMessage] = React.useState(defaultMessage);
+
 
   const handleCopy = async () => {
     try {
