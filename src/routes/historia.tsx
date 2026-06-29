@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, Outlet, useMatchRoute } from "@tanstack/react-router";
 import { motion } from "motion/react";
 import { ArrowLeft, Heart, Pencil } from "lucide-react";
 import { useEffect, useState } from "react";
@@ -13,7 +13,7 @@ import bride from "@/assets/hero-bride.jpg";
 
 export const Route = createFileRoute("/historia")({
   head: () => ({ meta: [{ title: "Nossa História — Amanda & Ricardo" }] }),
-  component: Historia,
+  component: HistoriaRoute,
 });
 
 const BUCKET = "story-photos";
@@ -35,6 +35,11 @@ const fallbackChapters: Chapter[] = [
   { id: "f4", position: 3, storage_path: null, date_label: "Maio · 2025", title: "A celebração", body: "Sparklers no céu, risadas até o amanhecer e a certeza de que isso ficaria para sempre.", imageUrl: party },
   { id: "f5", position: 4, storage_path: null, date_label: "Junho · 2025", title: "Lua de mel", body: "Mãos dadas em um cais de madeira, com o mar turquesa lembrando: agora é só o começo.", imageUrl: honeymoon },
 ];
+
+function HistoriaRoute() {
+  const matchRoute = useMatchRoute();
+  return matchRoute({ to: "/historia/editar" }) ? <Outlet /> : <Historia />;
+}
 
 function Historia() {
   const [chapters, setChapters] = useState<Chapter[]>(fallbackChapters);

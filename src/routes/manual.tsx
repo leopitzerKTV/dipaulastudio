@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, Outlet, useMatchRoute } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import { Edit3, Download, Share2, Loader2 } from "lucide-react";
 import { toast } from "sonner";
@@ -16,8 +16,13 @@ export const Route = createFileRoute("/manual")({
       { property: "og:description", content: "Dress code, cerimônia, recepção, presentes e mais." },
     ],
   }),
-  component: ManualPage,
+  component: ManualRoute,
 });
+
+function ManualRoute() {
+  const matchRoute = useMatchRoute();
+  return matchRoute({ to: "/manual/editar" }) ? <Outlet /> : <ManualPage />;
+}
 
 function ManualPage() {
   const [m, setM] = useState<ManualData | null>(null);

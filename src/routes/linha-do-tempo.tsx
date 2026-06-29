@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, Outlet, useMatchRoute } from "@tanstack/react-router";
 import { motion } from "motion/react";
 import { ArrowLeft, Gem, Sparkles, PartyPopper, Plane, Pencil } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
@@ -10,7 +10,7 @@ import honeymoon from "@/assets/honeymoon.jpg";
 
 export const Route = createFileRoute("/linha-do-tempo")({
   head: () => ({ meta: [{ title: "Linha do Tempo — Amanda & Ricardo" }] }),
-  component: Timeline,
+  component: TimelineRoute,
 });
 
 const milestones = [
@@ -19,6 +19,11 @@ const milestones = [
   { Icon: PartyPopper, title: "A Festa", date: "24 · Mai · 2025", img: party },
   { Icon: Plane, title: "Lua de Mel", date: "27 · Mai · 2025", img: honeymoon },
 ];
+
+function TimelineRoute() {
+  const matchRoute = useMatchRoute();
+  return matchRoute({ to: "/linha-do-tempo/editar" }) ? <Outlet /> : <Timeline />;
+}
 
 function Timeline() {
   return (
