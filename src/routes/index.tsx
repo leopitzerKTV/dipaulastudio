@@ -22,6 +22,19 @@ export const Route = createFileRoute("/")({
 });
 
 function Index() {
+  const [copied, setCopied] = React.useState(false);
+  const manualUrl = "https://dipaulastudio.lovable.app/manual";
+
+  const handleCopy = async () => {
+    try {
+      await navigator.clipboard.writeText(manualUrl);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      // ignore
+    }
+  };
+
   return (
     <AppShell>
       {/* Cover */}
