@@ -115,7 +115,19 @@ function Index() {
           <div className="mt-5 inline-flex rounded-2xl bg-white p-3 shadow-[var(--shadow-card)]">
             <QRCodeSVG value={manualUrl} size={160} level="M" includeMargin={false} />
           </div>
-          <div className="mt-4 flex flex-col items-center gap-2">
+          <div className="mt-4 flex flex-col items-center gap-3">
+            <div className="w-full">
+              <label htmlFor="whatsapp-message" className="block text-left text-[10px] text-[var(--cocoa)]/60">
+                Personalize a mensagem do WhatsApp
+              </label>
+              <textarea
+                id="whatsapp-message"
+                value={message}
+                onChange={(e) => setMessage(e.target.value)}
+                rows={3}
+                className="mt-1 w-full rounded-xl border border-[var(--gold)]/25 bg-[var(--ivory)]/50 p-3 text-xs text-[var(--cocoa)] placeholder:text-[var(--cocoa)]/40 focus:border-[var(--gold)]/60 focus:outline-none"
+              />
+            </div>
             <div className="flex w-full flex-wrap items-center justify-center gap-2">
               <button
                 onClick={handleCopy}
@@ -125,9 +137,7 @@ function Index() {
                 {copied ? "Link copiado!" : "Copiar link"}
               </button>
               <a
-                href={`https://wa.me/?text=${encodeURIComponent(
-                  `Oi! Aqui está o Manual do Convidado do casamento da Amanda e Ricardo. Dá uma olhada em tudo que preparamos com carinho: ${manualUrl}`
-                )}`}
+                href={`https://wa.me/?text=${encodeURIComponent(message)}`}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="inline-flex items-center gap-2 rounded-full bg-[#25D366] px-4 py-2 font-serif-caps text-[10px] text-white transition-colors hover:bg-[#1ebd59]"
@@ -145,6 +155,7 @@ function Index() {
               ou abrir manualmente
             </Link>
           </div>
+
 
         </div>
       </section>
