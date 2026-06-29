@@ -22,25 +22,11 @@ type Chapter = {
   id: string;
   position: number;
   storage_path: string | null;
-  event_date: string | null;
   date_label: string;
   title: string;
   body: string;
   imageUrl?: string;
 };
-
-const MONTHS_PT = [
-  "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
-  "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro",
-];
-
-function formatDateLabel(iso: string): string {
-  const [y, m] = iso.split("-");
-  const idx = Number(m) - 1;
-  if (!y || Number.isNaN(idx) || idx < 0 || idx > 11) return "";
-  return `${MONTHS_PT[idx]} · ${y}`;
-}
-
 
 function EditarHistoria() {
   const [chapters, setChapters] = useState<Chapter[]>([]);
@@ -140,25 +126,11 @@ function EditarHistoria() {
   }
 
   async function saveChapter(c: Chapter) {
-    if (!c.title.trim()) {
-      toast.error("Informe um título para o capítulo");
-      return;
-    }
-    if (!c.event_date) {
-      toast.error("Escolha uma data no calendário");
-      return;
-    }
-    const d = new Date(c.event_date);
-    if (Number.isNaN(d.getTime())) {
-      toast.error("Data inválida");
-      return;
-    }
     setSavingId(c.id);
     const { error } = await supabase
       .from("story_chapters")
       .update({
-        event_date: c.event_date,
-        date_label: c.date_label?.trim() ? c.date_label : formatDateLabel(c.event_date),
+        date_label: c.date_label,
         title: c.title,
         body: c.body,
       })
@@ -170,7 +142,6 @@ function EditarHistoria() {
     }
     toast.success("Capítulo salvo");
   }
-
 
   async function deleteChapter(c: Chapter) {
     if (!window.confirm(`Excluir o capítulo "${c.title || "sem título"}"?`)) return;
@@ -423,27 +394,12 @@ function EditarHistoria() {
                 </div>
                 <div className="flex flex-1 flex-col gap-2">
                   <input
-                    type="date"
-                    value={c.event_date ?? ""}
-                    max={new Date().toISOString().slice(0, 10)}
-                    onChange={(e) => {
-                      const iso = e.target.value;
-                      patchLocal(c.id, {
-                        event_date: iso || null,
-                        date_label: iso && !c.date_label?.trim() ? formatDateLabel(iso) : c.date_label,
-                      });
-                    }}
-                    aria-label="Data do capítulo"
-                    className="rounded-md border border-[var(--gold)]/25 bg-[var(--ivory)] px-2 py-1 font-serif-caps text-[10px] text-[var(--cocoa)] focus:border-[var(--gold)] focus:outline-none"
-                  />
-                  <input
                     type="text"
                     value={c.date_label}
                     onChange={(e) => patchLocal(c.id, { date_label: e.target.value })}
-                    placeholder="Legenda da data (ex: Maio · 2025)"
+                    placeholder="Data (ex: Maio · 2025)"
                     className="rounded-md border border-[var(--gold)]/25 bg-[var(--ivory)] px-2 py-1 font-serif-caps text-[10px] text-[var(--cocoa)] focus:border-[var(--gold)] focus:outline-none"
                   />
-
                   <input
                     type="text"
                     value={c.title}

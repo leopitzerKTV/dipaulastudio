@@ -1,1 +1,0 @@
-ALTER TABLE public.story_chapters ADD COLUMN IF NOT EXISTS event_date date;

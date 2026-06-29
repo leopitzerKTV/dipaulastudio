@@ -4,7 +4,7 @@ import { ArrowLeft, Save, Loader2, Eye, Download, Share2 } from "lucide-react";
 import { toast } from "sonner";
 import { CoupleGate } from "@/components/CoupleGate";
 import { Ornament } from "@/components/Ornament";
-import { ManualView, type ManualData, MANUAL_DEFAULTS } from "@/components/ManualView";
+import { ManualView, type ManualData } from "@/components/ManualView";
 import { supabase } from "@/integrations/supabase/client";
 import { downloadBlob, generateManualPdf, sharePdf } from "@/lib/manual-pdf";
 
@@ -17,16 +17,6 @@ type FormState = {
   location_info: string;
   gift_list_url: string;
   welcome_note: string;
-  dress_code_note: string;
-  ceremony_note: string;
-  during_ceremony_note: string;
-  reception_note: string;
-  cake_note: string;
-  dancefloor_note: string;
-  album_note: string;
-  gift_note: string;
-  transport_note: string;
-  closing_note: string;
 };
 
 const empty: FormState = {
@@ -37,16 +27,6 @@ const empty: FormState = {
   location_info: "",
   gift_list_url: "",
   welcome_note: "",
-  dress_code_note: "",
-  ceremony_note: "",
-  during_ceremony_note: "",
-  reception_note: "",
-  cake_note: "",
-  dancefloor_note: "",
-  album_note: "",
-  gift_note: "",
-  transport_note: "",
-  closing_note: "",
 };
 
 export const Route = createFileRoute("/manual/editar")({
@@ -111,26 +91,15 @@ function EditManual() {
       if (cancelled) return;
       if (error) toast.error("Erro ao carregar manual");
       if (data) {
-        const d = data as Record<string, string | null>;
-        setRowId(data.id as string);
+        setRowId(data.id);
         setForm({
-          ceremony_date: d.ceremony_date ?? "",
-          ceremony_time: d.ceremony_time ?? "",
-          ceremony_location: d.ceremony_location ?? "",
-          parking_info: d.parking_info ?? "",
-          location_info: d.location_info ?? "",
-          gift_list_url: d.gift_list_url ?? "",
-          welcome_note: d.welcome_note ?? "",
-          dress_code_note: d.dress_code_note ?? "",
-          ceremony_note: d.ceremony_note ?? "",
-          during_ceremony_note: d.during_ceremony_note ?? "",
-          reception_note: d.reception_note ?? "",
-          cake_note: d.cake_note ?? "",
-          dancefloor_note: d.dancefloor_note ?? "",
-          album_note: d.album_note ?? "",
-          gift_note: d.gift_note ?? "",
-          transport_note: d.transport_note ?? "",
-          closing_note: d.closing_note ?? "",
+          ceremony_date: data.ceremony_date ?? "",
+          ceremony_time: data.ceremony_time ?? "",
+          ceremony_location: data.ceremony_location ?? "",
+          parking_info: data.parking_info ?? "",
+          location_info: data.location_info ?? "",
+          gift_list_url: data.gift_list_url ?? "",
+          welcome_note: data.welcome_note ?? "",
         });
       }
       setLoading(false);
@@ -149,16 +118,6 @@ function EditManual() {
       location_info: form.location_info || null,
       gift_list_url: form.gift_list_url || null,
       welcome_note: form.welcome_note || null,
-      dress_code_note: form.dress_code_note || null,
-      ceremony_note: form.ceremony_note || null,
-      during_ceremony_note: form.during_ceremony_note || null,
-      reception_note: form.reception_note || null,
-      cake_note: form.cake_note || null,
-      dancefloor_note: form.dancefloor_note || null,
-      album_note: form.album_note || null,
-      gift_note: form.gift_note || null,
-      transport_note: form.transport_note || null,
-      closing_note: form.closing_note || null,
     }),
     [form],
   );
@@ -169,25 +128,14 @@ function EditManual() {
   async function save(e: React.FormEvent) {
     e.preventDefault();
     setSaving(true);
-    const trimOrNull = (v: string) => (v.trim() ? v.trim() : null);
     const payload = {
-      ceremony_date: trimOrNull(form.ceremony_date),
-      ceremony_time: trimOrNull(form.ceremony_time),
-      ceremony_location: trimOrNull(form.ceremony_location),
-      parking_info: trimOrNull(form.parking_info),
-      location_info: trimOrNull(form.location_info),
-      gift_list_url: trimOrNull(form.gift_list_url),
-      welcome_note: trimOrNull(form.welcome_note),
-      dress_code_note: trimOrNull(form.dress_code_note),
-      ceremony_note: trimOrNull(form.ceremony_note),
-      during_ceremony_note: trimOrNull(form.during_ceremony_note),
-      reception_note: trimOrNull(form.reception_note),
-      cake_note: trimOrNull(form.cake_note),
-      dancefloor_note: trimOrNull(form.dancefloor_note),
-      album_note: trimOrNull(form.album_note),
-      gift_note: trimOrNull(form.gift_note),
-      transport_note: trimOrNull(form.transport_note),
-      closing_note: trimOrNull(form.closing_note),
+      ceremony_date: form.ceremony_date.trim() || null,
+      ceremony_time: form.ceremony_time.trim() || null,
+      ceremony_location: form.ceremony_location.trim() || null,
+      parking_info: form.parking_info.trim() || null,
+      location_info: form.location_info.trim() || null,
+      gift_list_url: form.gift_list_url.trim() || null,
+      welcome_note: form.welcome_note.trim() || null,
     };
     const res = rowId
       ? await supabase.from("guest_manual").update(payload).eq("id", rowId)
@@ -233,92 +181,90 @@ function EditManual() {
             <Ornament className="mt-3" />
             <h1 className="mt-3 font-display text-3xl text-[var(--cocoa)]">Manual do Convidado</h1>
             <p className="mt-1 text-xs text-[var(--cocoa)]/60">
-              Personalize a descrição de cada item. Deixe em branco para usar o texto padrão.
+              Preencha os campos abaixo. O preview ao lado atualiza em tempo real.
             </p>
           </div>
 
           <form onSubmit={save} className="mt-6 space-y-5">
             <Group title="Boas-vindas">
-              <Field label="Mensagem de boas-vindas">
-                <textarea value={form.welcome_note} onChange={update("welcome_note")} rows={4} maxLength={800} placeholder={MANUAL_DEFAULTS.welcome_note} className={textareaCls} />
-              </Field>
-            </Group>
-
-            <Group title="Dress Code">
-              <Field label="Descrição">
-                <textarea value={form.dress_code_note} onChange={update("dress_code_note")} rows={5} maxLength={800} placeholder={MANUAL_DEFAULTS.dress_code_note} className={textareaCls} />
+              <Field label="Mensagem de boas-vindas (opcional)">
+                <textarea
+                  value={form.welcome_note}
+                  onChange={update("welcome_note")}
+                  rows={4}
+                  maxLength={600}
+                  placeholder="Deixe em branco para usar o texto padrão."
+                  className={textareaCls}
+                />
               </Field>
             </Group>
 
             <Group title="Cerimônia">
-              <Field label="Descrição da cerimônia">
-                <textarea value={form.ceremony_note} onChange={update("ceremony_note")} rows={4} maxLength={800} placeholder={MANUAL_DEFAULTS.ceremony_note} className={textareaCls} />
-              </Field>
               <Field label="Data">
-                <input type="text" value={form.ceremony_date} onChange={update("ceremony_date")} maxLength={80} placeholder="Ex: Sábado, 24 de Maio de 2025" className={inputCls} />
+                <input
+                  type="text"
+                  value={form.ceremony_date}
+                  onChange={update("ceremony_date")}
+                  maxLength={80}
+                  placeholder="Ex: Sábado, 24 de Maio de 2025"
+                  className={inputCls}
+                />
               </Field>
               <Field label="Horário">
-                <input type="text" value={form.ceremony_time} onChange={update("ceremony_time")} maxLength={40} placeholder="Ex: 16h30" className={inputCls} />
+                <input
+                  type="text"
+                  value={form.ceremony_time}
+                  onChange={update("ceremony_time")}
+                  maxLength={40}
+                  placeholder="Ex: 16h30"
+                  className={inputCls}
+                />
               </Field>
               <Field label="Local">
-                <input type="text" value={form.ceremony_location} onChange={update("ceremony_location")} maxLength={160} placeholder="Ex: Espaço Jardim Secreto — São Paulo/SP" className={inputCls} />
-              </Field>
-            </Group>
-
-            <Group title="Durante a Cerimônia">
-              <Field label="Descrição">
-                <textarea value={form.during_ceremony_note} onChange={update("during_ceremony_note")} rows={4} maxLength={800} placeholder={MANUAL_DEFAULTS.during_ceremony_note} className={textareaCls} />
-              </Field>
-            </Group>
-
-            <Group title="Recepção e Buffet">
-              <Field label="Descrição">
-                <textarea value={form.reception_note} onChange={update("reception_note")} rows={4} maxLength={800} placeholder={MANUAL_DEFAULTS.reception_note} className={textareaCls} />
-              </Field>
-            </Group>
-
-            <Group title="Momento do Bolo e Brinde">
-              <Field label="Descrição">
-                <textarea value={form.cake_note} onChange={update("cake_note")} rows={4} maxLength={800} placeholder={MANUAL_DEFAULTS.cake_note} className={textareaCls} />
-              </Field>
-            </Group>
-
-            <Group title="Abertura da Pista">
-              <Field label="Descrição">
-                <textarea value={form.dancefloor_note} onChange={update("dancefloor_note")} rows={4} maxLength={800} placeholder={MANUAL_DEFAULTS.dancefloor_note} className={textareaCls} />
-              </Field>
-            </Group>
-
-            <Group title="Álbum Colaborativo">
-              <Field label="Descrição">
-                <textarea value={form.album_note} onChange={update("album_note")} rows={3} maxLength={500} placeholder={MANUAL_DEFAULTS.album_note} className={textareaCls} />
-              </Field>
-            </Group>
-
-            <Group title="Lista de Presentes">
-              <Field label="Descrição">
-                <textarea value={form.gift_note} onChange={update("gift_note")} rows={3} maxLength={500} placeholder={MANUAL_DEFAULTS.gift_note} className={textareaCls} />
-              </Field>
-              <Field label="Link da lista (opcional)">
-                <input type="url" value={form.gift_list_url} onChange={update("gift_list_url")} maxLength={500} placeholder="https://…" className={inputCls} />
+                <input
+                  type="text"
+                  value={form.ceremony_location}
+                  onChange={update("ceremony_location")}
+                  maxLength={160}
+                  placeholder="Ex: Espaço Jardim Secreto — São Paulo/SP"
+                  className={inputCls}
+                />
               </Field>
             </Group>
 
             <Group title="Transporte e Estacionamento">
-              <Field label="Observações (opcional)">
-                <textarea value={form.transport_note} onChange={update("transport_note")} rows={3} maxLength={500} placeholder="Ex: dicas de carona, valet, app de transporte…" className={textareaCls} />
-              </Field>
               <Field label="Estacionamento">
-                <input type="text" value={form.parking_info} onChange={update("parking_info")} maxLength={160} placeholder="Ex: Valet no local · R$ 40" className={inputCls} />
+                <input
+                  type="text"
+                  value={form.parking_info}
+                  onChange={update("parking_info")}
+                  maxLength={160}
+                  placeholder="Ex: Valet no local · R$ 40"
+                  className={inputCls}
+                />
               </Field>
               <Field label="Localização / endereço completo">
-                <input type="text" value={form.location_info} onChange={update("location_info")} maxLength={200} placeholder="Ex: Rua das Flores, 123 — Jardins, SP" className={inputCls} />
+                <input
+                  type="text"
+                  value={form.location_info}
+                  onChange={update("location_info")}
+                  maxLength={200}
+                  placeholder="Ex: Rua das Flores, 123 — Jardins, SP"
+                  className={inputCls}
+                />
               </Field>
             </Group>
 
-            <Group title="Mensagem de encerramento">
-              <Field label="Descrição">
-                <textarea value={form.closing_note} onChange={update("closing_note")} rows={4} maxLength={800} placeholder={MANUAL_DEFAULTS.closing_note} className={textareaCls} />
+            <Group title="Lista de presentes">
+              <Field label="Link da lista (opcional)">
+                <input
+                  type="url"
+                  value={form.gift_list_url}
+                  onChange={update("gift_list_url")}
+                  maxLength={500}
+                  placeholder="https://…"
+                  className={inputCls}
+                />
               </Field>
             </Group>
 

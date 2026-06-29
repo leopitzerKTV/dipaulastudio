@@ -1,12 +1,8 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { motion } from "motion/react";
-import { Mail, Calendar, MapPin, Gift, Heart, Wand2, Edit3, Check, Loader2, Smartphone } from "lucide-react";
-import { useEffect, useRef, useState, useCallback } from "react";
-import { toast } from "sonner";
+import { Mail, Calendar, MapPin, Gift, Heart, Wand2, BookOpen } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
 import { Ornament } from "@/components/Ornament";
-import { ManualView, type ManualData } from "@/components/ManualView";
-import { supabase } from "@/integrations/supabase/client";
 import ceremonyImg from "@/assets/ceremony.jpg";
 
 export const Route = createFileRoute("/")({
@@ -22,123 +18,6 @@ export const Route = createFileRoute("/")({
 });
 
 function Index() {
-  const [manualUrl, setManualUrl] = useState("");
-  const [manual, setManual] = useState<ManualData | null>(null);
-  const [rowId, setRowId] = useState<string | null>(null);
-  const [isCouple, setIsCouple] = useState(false);
-  const [viewMode, setViewMode] = useState<"normal" | "edit" | "guest">("normal");
-  const editMode = viewMode === "edit";
-  const guestMode = viewMode === "guest";
-  const [saveState, setSaveState] = useState<"idle" | "saving" | "saved">("idle");
-  const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const [deviceWidth, setDeviceWidth] = useState<360 | 375 | 390 | 414>(() => {
-    if (typeof window === "undefined") return 375;
-    const v = Number(window.localStorage.getItem("manualPreview.width"));
-    return [360, 375, 390, 414].includes(v) ? (v as 360 | 375 | 390 | 414) : 375;
-  });
-  const [orientation, setOrientation] = useState<"portrait" | "landscape">(() => {
-    if (typeof window === "undefined") return "portrait";
-    const v = window.localStorage.getItem("manualPreview.orientation");
-    return v === "landscape" ? "landscape" : "portrait";
-  });
-
-  useEffect(() => {
-    if (typeof window !== "undefined") window.localStorage.setItem("manualPreview.width", String(deviceWidth));
-  }, [deviceWidth]);
-  useEffect(() => {
-    if (typeof window !== "undefined") window.localStorage.setItem("manualPreview.orientation", orientation);
-  }, [orientation]);
-
-  useEffect(() => {
-    setManualUrl(`${window.location.origin}/manual`);
-    let cancelled = false;
-
-    async function load() {
-      const { data } = await supabase
-        .from("guest_manual")
-        .select("*")
-        .order("created_at", { ascending: true })
-        .limit(1)
-        .maybeSingle();
-      if (cancelled) return;
-      if (data) {
-        setManual(data as ManualData);
-        setRowId(data.id as string);
-      }
-    }
-
-    async function checkCouple() {
-      const { data: sess } = await supabase.auth.getSession();
-      if (cancelled || !sess.session) return setIsCouple(false);
-      const { data } = await supabase.rpc("has_role", {
-        _user_id: sess.session.user.id,
-        _role: "couple",
-      });
-      if (!cancelled) setIsCouple(!!data);
-    }
-
-    load();
-    checkCouple();
-
-    const { data: sub } = supabase.auth.onAuthStateChange((e) => {
-      if (e === "SIGNED_IN" || e === "SIGNED_OUT" || e === "USER_UPDATED") checkCouple();
-    });
-
-    return () => {
-      cancelled = true;
-      sub.subscription.unsubscribe();
-      if (saveTimer.current) clearTimeout(saveTimer.current);
-    };
-  }, []);
-
-  const persist = useCallback(
-    async (next: ManualData) => {
-      setSaveState("saving");
-      const trim = (v: string | null | undefined) => (v && v.trim() ? v.trim() : null);
-      const payload = {
-        ceremony_date: trim(next.ceremony_date),
-        ceremony_time: trim(next.ceremony_time),
-        ceremony_location: trim(next.ceremony_location),
-        parking_info: trim(next.parking_info),
-        location_info: trim(next.location_info),
-        gift_list_url: trim(next.gift_list_url),
-        welcome_note: trim(next.welcome_note),
-        dress_code_note: trim(next.dress_code_note),
-        ceremony_note: trim(next.ceremony_note),
-        during_ceremony_note: trim(next.during_ceremony_note),
-        reception_note: trim(next.reception_note),
-        cake_note: trim(next.cake_note),
-        dancefloor_note: trim(next.dancefloor_note),
-        album_note: trim(next.album_note),
-        gift_note: trim(next.gift_note),
-        transport_note: trim(next.transport_note),
-        closing_note: trim(next.closing_note),
-      };
-      const res = rowId
-        ? await supabase.from("guest_manual").update(payload).eq("id", rowId)
-        : await supabase.from("guest_manual").insert(payload).select("id").maybeSingle();
-      if (res.error) {
-        setSaveState("idle");
-        toast.error("Não foi possível salvar");
-        return;
-      }
-      if (!rowId && "data" in res && res.data?.id) setRowId(res.data.id as string);
-      setSaveState("saved");
-      setTimeout(() => setSaveState("idle"), 1500);
-    },
-    [rowId],
-  );
-
-  const handleFieldChange = (field: keyof ManualData, value: string) => {
-    setManual((prev) => {
-      const base = prev ?? ({} as ManualData);
-      const next = { ...base, [field]: value } as ManualData;
-      if (saveTimer.current) clearTimeout(saveTimer.current);
-      saveTimer.current = setTimeout(() => persist(next), 700);
-      return next;
-    });
-  };
-
   return (
     <AppShell>
       {/* Cover */}
@@ -202,99 +81,10 @@ function Index() {
           <ActionCard to="/historia" Icon={Heart} title="Nossa História" sub="O começo, o pedido, o agora" />
           <ActionCard to="/linha-do-tempo" Icon={Calendar} title="Linha do Tempo" sub="Pedido, casamento, festa, lua de mel" />
           <ActionCard to="/album" Icon={Mail} title="Álbum Colaborativo" sub="Fotos dos convidados em tempo real" />
-          
+          <ActionCard to="/manual" Icon={BookOpen} title="Manual do Convidado" sub="Dress code, cerimônia, recepção e mais" />
           <ActionCard to="/editor" Icon={Wand2} title="Editor do Convite" sub="Personalize nomes, data, cores e imagem" />
           <ActionCard to="/painel" Icon={Gift} title="Painel Privado do Casal" sub="RSVP, presentes, mensagens" />
         </div>
-      </section>
-
-      {/* Manual do Convidado — embedded item by item */}
-      <section className="mt-12">
-        <div className="px-6 text-center">
-          <Ornament />
-          <p className="mt-5 font-serif-caps text-[10px] text-[var(--gold-deep)]">No convite</p>
-          <h2 className="mt-2 font-display text-3xl text-[var(--cocoa)]">Manual completo</h2>
-          <p className="mt-1 text-sm text-[var(--cocoa)]/65">
-            {editMode
-              ? "Toque em qualquer item para editar. Salva automaticamente."
-              : guestMode
-                ? "Pré-visualização exatamente como o convidado verá no celular."
-                : "Cada item personalizado pela noiva — role para conhecer."}
-          </p>
-          {isCouple ? (
-            <div className="mt-4 flex flex-wrap items-center justify-center gap-2">
-              <div className="inline-flex rounded-full border border-[var(--gold)]/40 bg-white/60 p-0.5">
-                <ModeBtn active={viewMode === "edit"} onClick={() => setViewMode(viewMode === "edit" ? "normal" : "edit")}>
-                  <Edit3 className="h-3 w-3" /> Editar
-                </ModeBtn>
-                <ModeBtn active={viewMode === "guest"} onClick={() => setViewMode(viewMode === "guest" ? "normal" : "guest")}>
-                  <Smartphone className="h-3 w-3" /> Como convidado
-                </ModeBtn>
-              </div>
-              {editMode && saveState !== "idle" && (
-                <span className="inline-flex items-center gap-1 text-[10px] font-serif-caps text-[var(--cocoa)]/55">
-                  {saveState === "saving" ? (
-                    <>
-                      <Loader2 className="h-3 w-3 animate-spin" /> Salvando…
-                    </>
-                  ) : (
-                    <>
-                      <Check className="h-3 w-3 text-[var(--gold-deep)]" /> Salvo
-                    </>
-                  )}
-                </span>
-              )}
-            </div>
-          ) : (
-            <Link
-              to="/manual/editar"
-              className="mt-4 inline-flex items-center gap-1.5 rounded-full border border-[var(--gold)]/40 bg-white/60 px-3 py-1.5 text-[10px] font-serif-caps text-[var(--gold-deep)] hover:bg-white"
-            >
-              <Edit3 className="h-3 w-3" /> Editar manual
-            </Link>
-          )}
-        </div>
-        {guestMode ? (
-          <div className="mt-4 flex flex-col items-center gap-3 px-4 pb-4">
-            <div className="flex flex-wrap items-center justify-center gap-2">
-              <div className="inline-flex rounded-full border border-[var(--gold)]/40 bg-white/60 p-0.5">
-                {[360, 375, 390, 414].map((w) => (
-                  <ModeBtn key={w} active={deviceWidth === w} onClick={() => setDeviceWidth(w as 360 | 375 | 390 | 414)}>
-                    {w}px
-                  </ModeBtn>
-                ))}
-              </div>
-              <div className="inline-flex rounded-full border border-[var(--gold)]/40 bg-white/60 p-0.5">
-                <ModeBtn active={orientation === "portrait"} onClick={() => setOrientation("portrait")}>
-                  Retrato
-                </ModeBtn>
-                <ModeBtn active={orientation === "landscape"} onClick={() => setOrientation("landscape")}>
-                  Paisagem
-                </ModeBtn>
-              </div>
-            </div>
-            {(() => {
-              const isPortrait = orientation === "portrait";
-              const frameW = isPortrait ? deviceWidth : Math.round(deviceWidth * (16 / 9));
-              const frameH = isPortrait ? Math.round(deviceWidth * (16 / 9)) : deviceWidth;
-              return (
-                <div
-                  className="relative rounded-[2.5rem] border-[10px] border-[var(--cocoa)] bg-[var(--cocoa)] shadow-[var(--shadow-luxe)]"
-                  style={{ width: frameW, maxWidth: "100%" }}
-                >
-                  <div className="absolute left-1/2 top-2 z-10 h-1.5 w-20 -translate-x-1/2 rounded-full bg-[var(--cocoa)]/60" />
-                  <div className="overflow-y-auto rounded-[2rem] bg-[var(--ivory)]" style={{ height: Math.min(frameH, 720) }}>
-                    <ManualView data={manual} linkAlbum={false} />
-                  </div>
-                </div>
-              );
-            })()}
-          </div>
-        ) : (
-          <div className="-mx-0 mt-2 border-y border-[var(--gold)]/20 bg-[var(--ivory)]">
-            <ManualView data={manual} editable={editMode && isCouple} onFieldChange={handleFieldChange} />
-          </div>
-        )}
       </section>
 
       <p className="mt-10 text-center font-serif-caps text-[10px] text-[var(--gold-deep)]/70">Nossa História · App de Casamento</p>
@@ -328,19 +118,5 @@ function ActionCard({ to, Icon, title, sub }: { to: string; Icon: React.Componen
       </div>
       <span className="font-serif-caps text-[10px] text-[var(--gold-deep)] opacity-0 transition-opacity group-hover:opacity-100">abrir</span>
     </Link>
-  );
-}
-
-function ModeBtn({ active, onClick, children }: { active: boolean; onClick: () => void; children: React.ReactNode }) {
-  return (
-    <button
-      onClick={onClick}
-      className={
-        "inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[10px] font-serif-caps transition-colors " +
-        (active ? "bg-[var(--gold-deep)] text-white" : "text-[var(--gold-deep)] hover:bg-white")
-      }
-    >
-      {children}
-    </button>
   );
 }
