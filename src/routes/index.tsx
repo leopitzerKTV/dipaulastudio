@@ -110,16 +110,26 @@ function Index() {
           <h3 className="mt-2 font-display text-2xl text-[var(--cocoa)]">Manual do Convidado</h3>
           <p className="mt-1 text-xs text-[var(--cocoa)]/60">Aponte a câmera do celular para abrir</p>
           <div className="mt-5 inline-flex rounded-2xl bg-white p-3 shadow-[var(--shadow-card)]">
-            <QRCodeSVG value="https://dipaulastudio.lovable.app/manual" size={160} level="M" includeMargin={false} />
+            <QRCodeSVG value={manualUrl} size={160} level="M" includeMargin={false} />
           </div>
-          <Link
-            to="/manual"
-            className="mt-4 inline-block font-serif-caps text-[10px] text-[var(--gold-deep)] hover:underline"
-          >
-            ou abrir manualmente
-          </Link>
+          <div className="mt-4 flex flex-col items-center gap-2">
+            <button
+              onClick={handleCopy}
+              className="inline-flex items-center gap-2 rounded-full border border-[var(--gold)]/30 bg-[var(--gold)]/10 px-4 py-2 font-serif-caps text-[10px] text-[var(--gold-deep)] transition-colors hover:bg-[var(--gold)]/20"
+            >
+              {copied ? <Check className="h-3.5 w-3.5" /> : <Copy className="h-3.5 w-3.5" />}
+              {copied ? "Link copiado!" : "Copiar link do manual"}
+            </button>
+            <Link
+              to="/manual"
+              className="inline-block font-serif-caps text-[10px] text-[var(--gold-deep)] hover:underline"
+            >
+              ou abrir manualmente
+            </Link>
+          </div>
         </div>
       </section>
+
 
       <p className="mt-10 text-center font-serif-caps text-[10px] text-[var(--gold-deep)]/70">Nossa História · App de Casamento</p>
     </AppShell>
