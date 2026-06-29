@@ -15,6 +15,7 @@ function AuthPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [busy, setBusy] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
@@ -24,11 +25,26 @@ function AuthPage() {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+    const cleanEmail = email.trim();
+    setErrorMessage("");
+
+    if (!cleanEmail) {
+      setErrorMessage("Digite o e-mail do casal para entrar.");
+      toast.error("Digite o e-mail do casal");
+      return;
+    }
+
+    if (!password) {
+      setErrorMessage("Digite a senha cadastrada para continuar.");
+      toast.error("Digite a senha");
+      return;
+    }
+
     setBusy(true);
     try {
       if (mode === "signup") {
         const { error } = await supabase.auth.signUp({
-          email: email.trim(),
+          email: cleanEmail,
           password,
           options: { emailRedirectTo: `${window.location.origin}/linha-do-tempo/editar` },
         });
@@ -37,7 +53,7 @@ function AuthPage() {
         setMode("signin");
       } else {
         const { error } = await supabase.auth.signInWithPassword({
-          email: email.trim(),
+          email: cleanEmail,
           password,
         });
         if (error) throw error;
@@ -45,7 +61,9 @@ function AuthPage() {
         navigate({ to: "/linha-do-tempo/editar" });
       }
     } catch (err) {
-      toast.error((err as Error).message || "Não foi possível continuar");
+      const message = friendlyAuthError((err as Error).message);
+      setErrorMessage(message);
+      toast.error(message);
     } finally {
       setBusy(false);
     }
@@ -67,23 +85,36 @@ function AuthPage() {
 
         <input
           type="email"
+          name="email"
           required
           autoComplete="email"
           value={email}
-          onChange={(e) => setEmail(e.target.value)}
+          onChange={(e) => {
+            setEmail(e.target.value);
+            setErrorMessage("");
+          }}
           placeholder="E-mail"
           className="mt-5 w-full rounded-full border border-[var(--gold)]/30 bg-white px-4 py-2.5 text-center text-sm text-[var(--cocoa)] outline-none focus:border-[var(--gold-deep)]"
         />
         <input
           type="password"
+          name="password"
           required
           minLength={8}
           autoComplete={mode === "signin" ? "current-password" : "new-password"}
           value={password}
-          onChange={(e) => setPassword(e.target.value)}
+          onChange={(e) => {
+            setPassword(e.target.value);
+            setErrorMessage("");
+          }}
           placeholder="Senha (mín. 8)"
           className="mt-3 w-full rounded-full border border-[var(--gold)]/30 bg-white px-4 py-2.5 text-center text-sm text-[var(--cocoa)] outline-none focus:border-[var(--gold-deep)]"
         />
+        {errorMessage ? (
+          <p className="mt-3 rounded-2xl border border-[var(--gold)]/25 bg-white/60 px-4 py-2 text-xs text-[var(--cocoa)]/75">
+            {errorMessage}
+          </p>
+        ) : null}
         <button
           type="submit"
           disabled={busy}
@@ -106,4 +137,18 @@ function AuthPage() {
       </form>
     </div>
   );
+}
+
+function friendlyAuthError(message = "") {
+  const normalized = message.toLowerCase();
+  if (normalized.includes("missing email") || normalized.includes("email or phone")) {
+    return "Digite o e-mail do casal para entrar.";
+  }
+  if (normalized.includes("invalid login credentials")) {
+    return "E-mail ou senha incorretos. Confira os dados e tente novamente.";
+  }
+  if (normalized.includes("email not confirmed")) {
+    return "Confirme o e-mail antes de entrar.";
+  }
+  return message || "Não foi possível continuar";
 }

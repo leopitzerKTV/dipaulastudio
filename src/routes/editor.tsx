@@ -113,6 +113,7 @@ function loadJSON<T>(key: string, fallback: T): T {
 }
 
 export const Route = createFileRoute("/editor")({
+  ssr: false,
   head: () => ({
     meta: [
       { title: "Editor do Convite — Nossa História" },
