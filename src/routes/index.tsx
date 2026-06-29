@@ -113,13 +113,28 @@ function Index() {
             <QRCodeSVG value={manualUrl} size={160} level="M" includeMargin={false} />
           </div>
           <div className="mt-4 flex flex-col items-center gap-2">
-            <button
-              onClick={handleCopy}
-              className="inline-flex items-center gap-2 rounded-full border border-[var(--gold)]/30 bg-[var(--gold)]/10 px-4 py-2 font-serif-caps text-[10px] text-[var(--gold-deep)] transition-colors hover:bg-[var(--gold)]/20"
-            >
-              {copied ? <Check className="h-3.5 w-3.5" /> : <Copy className="h-3.5 w-3.5" />}
-              {copied ? "Link copiado!" : "Copiar link do manual"}
-            </button>
+            <div className="flex w-full flex-wrap items-center justify-center gap-2">
+              <button
+                onClick={handleCopy}
+                className="inline-flex items-center gap-2 rounded-full border border-[var(--gold)]/30 bg-[var(--gold)]/10 px-4 py-2 font-serif-caps text-[10px] text-[var(--gold-deep)] transition-colors hover:bg-[var(--gold)]/20"
+              >
+                {copied ? <Check className="h-3.5 w-3.5" /> : <Copy className="h-3.5 w-3.5" />}
+                {copied ? "Link copiado!" : "Copiar link"}
+              </button>
+              <a
+                href={`https://wa.me/?text=${encodeURIComponent(
+                  `Oi! Aqui está o Manual do Convidado do casamento da Amanda e Ricardo. Dá uma olhada em tudo que preparamos com carinho: ${manualUrl}`
+                )}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-2 rounded-full bg-[#25D366] px-4 py-2 font-serif-caps text-[10px] text-white transition-colors hover:bg-[#1ebd59]"
+              >
+                <svg className="h-3.5 w-3.5" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                  <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.521.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.521-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.521.074-.797.372-.275.297-1.05 1.027-1.05 2.503 0 1.476 1.077 2.904 1.227 3.105.149.198 2.123 3.238 5.146 4.54.719.31 1.28.497 1.718.635.722.23 1.379.197 1.898.12.579-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004c-1.06 0-2.107-.28-3.028-.81l-.217-.127-2.252.59.601-2.194-.142-.224c-.598-1.048-.903-2.255-.903-3.504C6.324 8.768 10.588 4.5 15.75 4.5c2.506 0 4.86.977 6.633 2.75 1.772 1.772 2.75 4.127 2.75 6.633 0 5.162-4.268 9.426-9.49 9.426M22.5 12.112C22.5 6.201 17.799 1.5 11.888 1.5 6.026 1.5 1.388 6.138 1.388 12c0 1.423.273 2.792.812 4.076l-.852 3.11 3.184-.836c1.198.654 2.55.998 3.93.998 5.913 0 10.612-4.699 10.612-10.612 0-2.834-1.103-5.497-3.105-7.499S14.696 1.612 11.888 1.612" />
+                </svg>
+                Compartilhar no WhatsApp
+              </a>
+            </div>
             <Link
               to="/manual"
               className="inline-block font-serif-caps text-[10px] text-[var(--gold-deep)] hover:underline"
@@ -127,6 +142,7 @@ function Index() {
               ou abrir manualmente
             </Link>
           </div>
+
         </div>
       </section>
 
