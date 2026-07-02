@@ -298,78 +298,6 @@ export type Database = {
         }
         Relationships: []
       }
-      saved_invites: {
-        Row: {
-          bride_name: string
-          city: string
-          created_at: string
-          date: string
-          deleted_at: string | null
-          groom_name: string
-          id: string
-          image_data_url: string | null
-          image_storage_path: string | null
-          is_published: boolean | null
-          label: string | null
-          message: string | null
-          palette_id: string | null
-          published_url: string | null
-          share_count: number
-          tagline: string | null
-          time: string
-          updated_at: string
-          user_id: string
-          venue: string
-          view_count: number
-        }
-        Insert: {
-          bride_name: string
-          city: string
-          created_at?: string
-          date: string
-          deleted_at?: string | null
-          groom_name: string
-          id?: string
-          image_data_url?: string | null
-          image_storage_path?: string | null
-          is_published?: boolean | null
-          label?: string | null
-          message?: string | null
-          palette_id?: string | null
-          published_url?: string | null
-          share_count?: number
-          tagline?: string | null
-          time: string
-          updated_at?: string
-          user_id: string
-          venue: string
-          view_count?: number
-        }
-        Update: {
-          bride_name?: string
-          city?: string
-          created_at?: string
-          date?: string
-          deleted_at?: string | null
-          groom_name?: string
-          id?: string
-          image_data_url?: string | null
-          image_storage_path?: string | null
-          is_published?: boolean | null
-          label?: string | null
-          message?: string | null
-          palette_id?: string | null
-          published_url?: string | null
-          share_count?: number
-          tagline?: string | null
-          time?: string
-          updated_at?: string
-          user_id?: string
-          venue?: string
-          view_count?: number
-        }
-        Relationships: []
-      }
       user_roles: {
         Row: {
           created_at: string
@@ -438,55 +366,9 @@ export type Database = {
           reservation_id: string
         }[]
       }
-      increment_share_count: {
-        Args: {
-          invite_id: string
-        }
-        Returns: void
-      }
-      increment_view_count: {
-        Args: {
-          invite_id: string
-        }
-        Returns: void
-      }
-      list_admin_users: {
-        Args: never
-        Returns: {
-          user_id: string
-          email: string
-          name: string | null
-          role: Database["public"]["Enums"]["app_role"]
-          created_at: string
-        }[]
-      }
-      add_admin_role: {
-        Args: { _email: string, _name?: string, _role?: Database["public"]["Enums"]["app_role"] }
-        Returns: {
-          success: boolean
-          error?: string
-          user_id?: string
-          role?: Database["public"]["Enums"]["app_role"]
-        }
-      }
-      remove_admin_role: {
-        Args: { _user_id: string }
-        Returns: {
-          success: boolean
-          error?: string
-        }
-      }
-      update_user_role: {
-        Args: { _user_id: string, _new_role: Database["public"]["Enums"]["app_role"], _new_name?: string }
-        Returns: {
-          success: boolean
-          error?: string
-          role?: Database["public"]["Enums"]["app_role"]
-        }
-      }
     }
     Enums: {
-      app_role: "couple" | "super_admin" | "admin" | "editor"
+      app_role: "couple"
       gift_reservation_status: "reserved" | "purchased" | "cancelled"
     }
     CompositeTypes: {
@@ -523,9 +405,9 @@ export type Tables<
     ? (DefaultSchema["Tables"] &
         DefaultSchema["Views"])[DefaultSchemaTableNameOrOptions] extends {
         Row: infer R
-    }
-    ? R
-    : never
+      }
+      ? R
+      : never
     : never
 
 export type TablesInsert<
@@ -548,9 +430,9 @@ export type TablesInsert<
   : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
     ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
         Insert: infer I
-    }
-    ? I
-    : never
+      }
+      ? I
+      : never
     : never
 
 export type TablesUpdate<
@@ -573,9 +455,9 @@ export type TablesUpdate<
   : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
     ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
         Update: infer U
-    }
-    ? U
-    : never
+      }
+      ? U
+      : never
     : never
 
 export type Enums<
@@ -602,7 +484,7 @@ export type CompositeTypes<
   CompositeTypeName extends PublicCompositeTypeNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
-  ? keyof DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
+    ? keyof DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
     : never = never,
 > = PublicCompositeTypeNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
@@ -615,7 +497,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      app_role: ["couple", "admin"],
+      app_role: ["couple"],
       gift_reservation_status: ["reserved", "purchased", "cancelled"],
     },
   },
