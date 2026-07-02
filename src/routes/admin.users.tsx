@@ -6,7 +6,7 @@ import { AdminGate, useAdminAuth } from "@/components/admin/admin-auth";
 import { AdminShell } from "@/components/admin/AdminShell";
 import { supabase } from "@/integrations/supabase/client";
 
-type AdminRole = "super_admin" | "admin" | "editor";
+type AdminRole = "super_admin" | "admin" | "editor" | "couple";
 
 type AdminUser = {
   user_id: string;
@@ -22,12 +22,14 @@ const ROLE_LABELS: Record<AdminRole, string> = {
   super_admin: "Super Admin",
   admin: "Administrador",
   editor: "Editor",
+  couple: "Casal",
 };
 
 const ROLE_ICONS: Record<AdminRole, React.ReactNode> = {
   super_admin: <ShieldAlert className="h-5 w-5" />,
   admin: <Shield className="h-5 w-5" />,
   editor: <Shield className="h-5 w-5" />,
+  couple: <Shield className="h-5 w-5" />,
 };
 
 export const Route = createFileRoute("/admin/users")({
