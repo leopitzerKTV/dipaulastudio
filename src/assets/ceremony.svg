@@ -1,0 +1,29 @@
+<svg width="900" height="1600" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="grad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#f9f4ef" />
+      <stop offset="60%" stop-color="#eed6c4" />
+      <stop offset="100%" stop-color="#d6b48c" />
+    </linearGradient>
+    <linearGradient id="sun" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#fff6da" />
+      <stop offset="100%" stop-color="#f3c066" />
+    </linearGradient>
+  </defs>
+  <rect width="900" height="1600" fill="url(#grad)" />
+  <circle cx="450" cy="380" r="180" fill="url(#sun)" opacity="0.5" />
+  <g fill="none" stroke="#b17b4a" stroke-width="4" opacity="0.6">
+    <path d="M120 1300 C220 1150 680 1150 780 1300" />
+    <path d="M90 1380 C220 1220 680 1220 810 1380" />
+    <path d="M60 1460 C220 1280 680 1280 840 1460" />
+  </g>
+  <g fill="#b17b4a" opacity="0.85">
+    <rect x="400" y="700" width="100" height="320" rx="30" />
+    <rect x="360" y="1020" width="180" height="320" rx="40" />
+  </g>
+  <g fill="none" stroke="#ffffff" stroke-width="3" opacity="0.45">
+    <circle cx="450" cy="820" r="120" />
+    <circle cx="450" cy="820" r="160" />
+    <circle cx="450" cy="820" r="200" />
+  </g>
+</svg>
