@@ -8,13 +8,35 @@ function record(error: unknown) {
   lastCapturedError = { error, at: Date.now() };
 }
 
+// List of errors to ignore in SPA mode (they don't break functionality)
+const IGNORABLE_ERRORS = [
+  'Invariant failed',
+  'Cannot read property',
+];
+
+function isIgnorableError(error: unknown): boolean {
+  const message = String(error).toLowerCase();
+  return IGNORABLE_ERRORS.some(err => message.includes(err.toLowerCase()));
+}
+
 if (typeof globalThis.addEventListener === "function") {
-  globalThis.addEventListener("error", (event) => record((event as ErrorEvent).error ?? event));
+  globalThis.addEventListener("error", (event) => {
+    const error = (event as ErrorEvent).error ?? event;
+    if (!isIgnorableError(error)) {
+      record(error);
+    }
+  });
+
   globalThis.addEventListener("unhandledrejection", (event) => {
-    record((event as PromiseRejectionEvent).reason);
-    // Prevent unhandled promise rejections from crashing the app in SPA mode
-    if (typeof event.preventDefault === 'function') {
-      event.preventDefault();
+    const reason = (event as PromiseRejectionEvent).reason;
+    // Always prevent unhandled rejections from crashing in client mode
+    event.preventDefault();
+
+    if (!isIgnorableError(reason)) {
+      record(reason);
+    } else {
+      // Log ignorable errors for debugging but don't break the app
+      console.debug('[IgnorableError]', reason);
     }
   });
 }
