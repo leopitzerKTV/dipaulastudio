@@ -111,6 +111,9 @@ ErrorDocument 404 /404.html
 </FilesMatch>`;
     fs.writeFileSync(path.join(distDir, '.htaccess'), htaccess);
 
+    // Create .htaccess.txt as backup (in case .htaccess doesn't get copied)
+    fs.writeFileSync(path.join(distDir, '.htaccess.txt'), htaccess);
+
     // Create web.config for IIS support
     const webConfig = `<?xml version="1.0" encoding="UTF-8"?>
 <configuration>
@@ -159,11 +162,37 @@ ErrorDocument 404 /404.html
 </html>`;
     fs.writeFileSync(path.join(distDir, '404.html'), notFoundHtml);
 
+    // Create index.php as universal fallback for SPA routing
+    const indexPhp = `<?php
+  // SPA routing fallback - serve index.html for all non-file/non-directory requests
+  $request_path = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
+  $file_path = __DIR__ . $request_path;
+
+  // Check if it's a real file or directory
+  if (is_file($file_path) || is_dir($file_path)) {
+    // Let the server handle it normally
+    return false;
+  }
+
+  // Don't redirect static assets
+  if (preg_match('/\\.(js|css|json|png|jpg|jpeg|gif|svg|ico)$/i', $request_path)) {
+    header('HTTP/1.0 404 Not Found');
+    echo '404 Not Found';
+    exit;
+  }
+
+  // Serve index.html for all other requests (SPA routing)
+  include __DIR__ . '/index.html';
+?>`;
+    fs.writeFileSync(path.join(distDir, 'index.php'), indexPhp);
+
     console.log('✓ SPA build created successfully in dist/');
     console.log(`✓ Using entry point: ${indexFile}`);
     console.log('✓ Created .htaccess for Apache SPA routing');
+    console.log('✓ Created .htaccess.txt as backup (for FTP compatibility)');
     console.log('✓ Created web.config for IIS SPA routing');
     console.log('✓ Created 404.html as fallback SPA routing');
+    console.log('✓ Created index.php as universal SPA router');
     console.log('Ready for FTP deployment!');
   } catch (error) {
     console.error('Error building SPA:', error);
