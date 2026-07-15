@@ -31,7 +31,6 @@ function RootComponent() {
         <QueryClientProvider client={queryClientRef.current!}>
           <Outlet />
         </QueryClientProvider>
-        <Scripts />
       </body>
     </html>
   );
