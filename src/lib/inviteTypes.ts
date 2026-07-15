@@ -1,5 +1,5 @@
 import { Tables, TablesInsert } from "@/integrations/supabase/types";
-import ceremonyImg from "@/assets/cerimonia.webp";
+import ceremonyImg from "@/assets/ceremony.jpg";
 
 // ============================================================================
 // LOCAL STORAGE KEYS

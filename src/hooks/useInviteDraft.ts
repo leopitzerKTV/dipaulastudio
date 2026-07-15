@@ -52,12 +52,11 @@ export function useInviteDraft(initial?: Partial<InviteDraft> | null) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [brideName, groomName, date, time, venue, city, message, tagline, palette.id, imageSrc]);
 
-  const onPickImage = async (file: File) => {
+  const onPickImage = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
     const reader = new FileReader();
-    reader.onload = (e) => {
-      const dataUrl = e.target?.result as string;
-      setImageSrc(dataUrl);
-    };
+    reader.onload = () => setImageSrc(String(reader.result));
     reader.readAsDataURL(file);
   };
 
