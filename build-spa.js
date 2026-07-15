@@ -48,7 +48,7 @@ function buildSPA() {
     // Find the main index-*.js file
     const assetsDir = path.join(distDir, 'assets');
     const files = fs.readdirSync(assetsDir);
-    const indexFile = files.find(f => f.match(/^index-[a-zA-Z0-9]+\.js$/));
+    const indexFile = files.find(f => f.match(/^index-[a-zA-Z0-9-]+\.js$/));
 
     if (!indexFile) {
       throw new Error('Could not find index-*.js file in dist/assets/');
