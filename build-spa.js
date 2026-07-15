@@ -112,10 +112,36 @@ function buildSPA() {
 </configuration>`;
     fs.writeFileSync(path.join(distDir, 'web.config'), webConfig);
 
+    // Create 404.html for SPA routing fallback (if .htaccess doesn't work)
+    const notFoundHtml = `<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>DiPaula Studio</title>
+  <script>
+    // Redirect 404s to index.html for SPA routing
+    var path = window.location.pathname;
+    if (path !== '/' && !path.match(/\\.(js|css|json|png|jpg|jpeg|gif|svg|ico)$/i)) {
+      window.location.replace('/');
+    }
+  </script>
+</head>
+<body>
+  <script>
+    // Fallback if JavaScript redirect doesn't work
+    document.write('<meta http-equiv="refresh" content="0; url=/" />');
+  </script>
+  <p>Redirecionando...</p>
+</body>
+</html>`;
+    fs.writeFileSync(path.join(distDir, '404.html'), notFoundHtml);
+
     console.log('✓ SPA build created successfully in dist/');
     console.log(`✓ Using entry point: ${indexFile}`);
     console.log('✓ Created .htaccess for Apache SPA routing');
     console.log('✓ Created web.config for IIS SPA routing');
+    console.log('✓ Created 404.html as fallback SPA routing');
     console.log('Ready for FTP deployment!');
   } catch (error) {
     console.error('Error building SPA:', error);
