@@ -71,7 +71,8 @@ function buildSPA() {
     fs.writeFileSync(path.join(distDir, 'index.html'), indexHtml);
 
     // Create .htaccess for SPA routing fallback (Apache)
-    const htaccess = `<IfModule mod_rewrite.c>
+    const htaccess = `# Enable mod_rewrite
+<IfModule mod_rewrite.c>
   RewriteEngine On
   RewriteBase /
 
@@ -83,9 +84,22 @@ function buildSPA() {
   RewriteRule ^ index.html [QSA,L]
 </IfModule>
 
-# Also try without mod_rewrite for fallback
+# Set default directory index
 <IfModule mod_dir.c>
   DirectoryIndex index.html
+</IfModule>
+
+# Serve 404.html for missing files (as SPA fallback)
+ErrorDocument 404 /404.html
+
+# Optimize caching
+<IfModule mod_expires.c>
+  ExpiresActive On
+  ExpiresByType text/html "access plus 0 seconds"
+  ExpiresByType application/javascript "access plus 1 year"
+  ExpiresByType text/css "access plus 1 year"
+  ExpiresByType image/jpeg "access plus 1 year"
+  ExpiresByType image/png "access plus 1 year"
 </IfModule>`;
     fs.writeFileSync(path.join(distDir, '.htaccess'), htaccess);
 
