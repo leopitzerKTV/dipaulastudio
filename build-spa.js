@@ -111,8 +111,8 @@ ErrorDocument 404 /404.html
 </FilesMatch>`;
     fs.writeFileSync(path.join(distDir, '.htaccess'), htaccess);
 
-    // Create .htaccess.txt as backup (in case .htaccess doesn't get copied)
-    fs.writeFileSync(path.join(distDir, '.htaccess.txt'), htaccess);
+    // Create htaccess (visible name for FTP compatibility)
+    fs.writeFileSync(path.join(distDir, 'htaccess'), htaccess);
 
     // Create web.config for IIS support
     const webConfig = `<?xml version="1.0" encoding="UTF-8"?>

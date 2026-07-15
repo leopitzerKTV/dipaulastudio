@@ -38,3 +38,13 @@ jobs:
           local-dir: ./dist/
           server-dir: /public_html/
           state-name: .ftp-deploy-sync-state.json
+
+      - name: Rename htaccess to .htaccess via LFTP
+        run: |
+          echo "Attempting to rename htaccess to .htaccess via LFTP..."
+          lftp -u "${{ secrets.FTP_USERNAME }}","${{ secrets.FTP_PASSWORD }}" "${{ secrets.FTP_SERVER }}" <<EOF
+          cd /public_html/
+          rename htaccess .htaccess
+          bye
+          EOF
+        continue-on-error: true
