@@ -70,20 +70,52 @@ function buildSPA() {
 
     fs.writeFileSync(path.join(distDir, 'index.html'), indexHtml);
 
-    // Create .htaccess for SPA routing fallback
+    // Create .htaccess for SPA routing fallback (Apache)
     const htaccess = `<IfModule mod_rewrite.c>
   RewriteEngine On
   RewriteBase /
 
+  # Don't rewrite existing files or directories
   RewriteCond %{REQUEST_FILENAME} !-f
   RewriteCond %{REQUEST_FILENAME} !-d
+
+  # Rewrite all other requests to index.html
   RewriteRule ^ index.html [QSA,L]
+</IfModule>
+
+# Also try without mod_rewrite for fallback
+<IfModule mod_dir.c>
+  DirectoryIndex index.html
 </IfModule>`;
     fs.writeFileSync(path.join(distDir, '.htaccess'), htaccess);
 
+    // Create web.config for IIS support
+    const webConfig = `<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+  <system.webServer>
+    <rewrite>
+      <rules>
+        <rule name="SPA-Routing" stopProcessing="true">
+          <match url=".*" />
+          <conditions logicalGrouping="MatchAll">
+            <add input="{REQUEST_FILENAME}" matchType="IsFile" negate="true" />
+            <add input="{REQUEST_FILENAME}" matchType="IsDirectory" negate="true" />
+          </conditions>
+          <action type="Rewrite" url="index.html" />
+        </rule>
+      </rules>
+    </rewrite>
+    <staticContent>
+      <mimeMap fileExtension=".json" mimeType="application/json" />
+    </staticContent>
+  </system.webServer>
+</configuration>`;
+    fs.writeFileSync(path.join(distDir, 'web.config'), webConfig);
+
     console.log('✓ SPA build created successfully in dist/');
     console.log(`✓ Using entry point: ${indexFile}`);
-    console.log('✓ Created .htaccess for SPA routing');
+    console.log('✓ Created .htaccess for Apache SPA routing');
+    console.log('✓ Created web.config for IIS SPA routing');
     console.log('Ready for FTP deployment!');
   } catch (error) {
     console.error('Error building SPA:', error);
