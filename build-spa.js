@@ -63,7 +63,7 @@ function buildSPA() {
     <title>DiPaula Studio</title>
   </head>
   <body>
-    <div id="app"></div>
+    <div id="root"></div>
     <script type="module" src="/assets/${indexFile}"></script>
   </body>
 </html>`;
