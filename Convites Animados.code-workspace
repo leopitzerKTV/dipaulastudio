@@ -1,9 +1,9 @@
 {
-	"folders": [
-		{
-			"path": "."
-		}
-	],
-	"settings": {},
-	"workbenchMode": "windsurf-agent-window"
+  "folders": [
+    {
+      "path": ".",
+    },
+  ],
+  "settings": {},
+  "workbenchMode": "windsurf-agent-window",
 }

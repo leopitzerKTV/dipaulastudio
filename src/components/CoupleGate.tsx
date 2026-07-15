@@ -58,7 +58,8 @@ export function CoupleGate({ children }: { children: ReactNode }) {
         <div className="w-full max-w-sm rounded-3xl border border-[var(--gold)]/25 bg-white/70 p-8 text-center shadow-[var(--shadow-luxe)]">
           <h1 className="font-display text-2xl text-[var(--cocoa)]">Acesso restrito</h1>
           <p className="mt-2 text-sm text-[var(--cocoa)]/65">
-            Sua conta não tem permissão para editar este convite. Apenas o casal pode alterar o conteúdo.
+            Sua conta não tem permissão para editar este convite. Apenas o casal pode alterar o
+            conteúdo.
           </p>
           <button
             onClick={async () => {
@@ -70,7 +71,10 @@ export function CoupleGate({ children }: { children: ReactNode }) {
           >
             <LogOut className="h-4 w-4" /> Sair
           </button>
-          <a href="/" className="mt-3 block text-xs text-[var(--cocoa)]/55 underline-offset-2 hover:underline">
+          <a
+            href="/"
+            className="mt-3 block text-xs text-[var(--cocoa)]/55 underline-offset-2 hover:underline"
+          >
             Voltar para o início
           </a>
         </div>

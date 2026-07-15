@@ -7,7 +7,12 @@ import { supabase } from "@/integrations/supabase/client";
 import { AdminAuthProvider, useAdminAuth } from "@/components/admin/admin-auth";
 
 export const Route = createFileRoute("/admin/login")({
-  head: () => ({ meta: [{ title: "Entrar — Área Administrativa" }, { name: "robots", content: "noindex,nofollow" }] }),
+  head: () => ({
+    meta: [
+      { title: "Entrar — Área Administrativa" },
+      { name: "robots", content: "noindex,nofollow" },
+    ],
+  }),
   component: () => (
     <AdminAuthProvider>
       <AdminLoginPage />
@@ -69,7 +74,9 @@ function AdminLoginPage() {
 
       if (roleError || !isAdmin) {
         await supabase.auth.signOut();
-        throw new Error("Seu usuário não possui acesso administrativo. Solicite liberação à equipe responsável.");
+        throw new Error(
+          "Seu usuário não possui acesso administrativo. Solicite liberação à equipe responsável.",
+        );
       }
 
       toast.success("Bem-vindo à área administrativa");
@@ -107,8 +114,12 @@ function AdminLoginPage() {
         <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-[var(--gold)]/15 text-[var(--gold-deep)]">
           <ShieldCheck className="h-5 w-5" />
         </div>
-        <h1 className="mt-4 text-center font-display text-3xl text-[var(--cocoa)]">Área Administrativa</h1>
-        <p className="mt-2 text-center text-sm text-[var(--cocoa)]/70">Entre com as credenciais da equipe responsável pelos convites.</p>
+        <h1 className="mt-4 text-center font-display text-3xl text-[var(--cocoa)]">
+          Área Administrativa
+        </h1>
+        <p className="mt-2 text-center text-sm text-[var(--cocoa)]/70">
+          Entre com as credenciais da equipe responsável pelos convites.
+        </p>
 
         <form onSubmit={handleSubmit} className="mt-6 space-y-4">
           <label className="block text-sm font-medium text-[var(--cocoa)]/80">
@@ -145,7 +156,11 @@ function AdminLoginPage() {
                   setErrorMessage("");
                 }}
               />
-              <button type="button" onClick={() => setShowPassword((prev) => !prev)} className="text-[var(--cocoa)]/65">
+              <button
+                type="button"
+                onClick={() => setShowPassword((prev) => !prev)}
+                className="text-[var(--cocoa)]/65"
+              >
                 {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
               </button>
             </div>
@@ -168,7 +183,11 @@ function AdminLoginPage() {
         </form>
 
         <div className="mt-4 flex flex-col gap-2 text-center text-xs text-[var(--cocoa)]/65">
-          <button type="button" onClick={handleResetPassword} className="underline-offset-2 hover:underline">
+          <button
+            type="button"
+            onClick={handleResetPassword}
+            className="underline-offset-2 hover:underline"
+          >
             Esqueci minha senha
           </button>
           <a href="/" className="underline-offset-2 hover:underline">

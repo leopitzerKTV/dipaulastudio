@@ -1,6 +1,14 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { motion } from "motion/react";
-import { ArrowLeft, Users, CalendarHeart, Image as ImageIcon, MessageCircle, Gift, Lock } from "lucide-react";
+import {
+  ArrowLeft,
+  Users,
+  CalendarHeart,
+  Image as ImageIcon,
+  MessageCircle,
+  Gift,
+  Lock,
+} from "lucide-react";
 import { AppShell } from "@/components/AppShell";
 import { Ornament } from "@/components/Ornament";
 
@@ -32,7 +40,10 @@ function Painel() {
   return (
     <AppShell>
       <header className="sticky top-0 z-30 flex items-center justify-between border-b border-[var(--gold)]/20 bg-[var(--ivory)]/85 px-4 py-3 backdrop-blur-xl">
-        <Link to="/" className="grid h-9 w-9 place-items-center rounded-full bg-[var(--gold)]/12 text-[var(--gold-deep)]">
+        <Link
+          to="/"
+          className="grid h-9 w-9 place-items-center rounded-full bg-[var(--gold)]/12 text-[var(--gold-deep)]"
+        >
           <ArrowLeft className="h-4 w-4" />
         </Link>
         <p className="font-serif-caps text-[11px] text-[var(--cocoa)]/70">Painel Privado</p>
@@ -43,8 +54,12 @@ function Painel() {
 
       <section className="px-6 pt-6">
         <Ornament />
-        <h1 className="mt-4 text-center font-display text-4xl text-[var(--cocoa)]">Painel do <span className="italic gold-text">Casal</span></h1>
-        <p className="mx-auto mt-2 max-w-xs text-center text-sm text-[var(--cocoa)]/65">Acompanhe RSVP, presentes e mensagens — apenas vocês dois.</p>
+        <h1 className="mt-4 text-center font-display text-4xl text-[var(--cocoa)]">
+          Painel do <span className="italic gold-text">Casal</span>
+        </h1>
+        <p className="mx-auto mt-2 max-w-xs text-center text-sm text-[var(--cocoa)]/65">
+          Acompanhe RSVP, presentes e mensagens — apenas vocês dois.
+        </p>
 
         {/* Hero card */}
         <motion.div
@@ -106,7 +121,10 @@ function Painel() {
                   <span className="font-display text-[var(--cocoa)]">{g.count}</span>
                 </div>
                 <div className="mt-1.5 h-1 overflow-hidden rounded-full bg-[var(--muted)]">
-                  <div className="h-full rounded-full" style={{ width: `${(g.count / 60) * 100}%`, background: g.color }} />
+                  <div
+                    className="h-full rounded-full"
+                    style={{ width: `${(g.count / 60) * 100}%`, background: g.color }}
+                  />
                 </div>
               </div>
             ))}

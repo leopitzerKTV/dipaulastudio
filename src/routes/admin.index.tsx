@@ -1,5 +1,15 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { ArrowUpRight, Users, Settings, Sparkles, ClipboardCheck, UserPlus, CalendarClock, LogOut, Shield } from "lucide-react";
+import {
+  ArrowUpRight,
+  Users,
+  Settings,
+  Sparkles,
+  ClipboardCheck,
+  UserPlus,
+  CalendarClock,
+  LogOut,
+  Shield,
+} from "lucide-react";
 
 import { AdminGate, useAdminAuth } from "@/components/admin/admin-auth";
 import { AdminShell } from "@/components/admin/AdminShell";
@@ -48,7 +58,12 @@ const nextSteps = [
 ];
 
 export const Route = createFileRoute("/admin/")({
-  head: () => ({ meta: [{ title: "Dashboard — Área Administrativa" }, { name: "robots", content: "noindex,nofollow" }] }),
+  head: () => ({
+    meta: [
+      { title: "Dashboard — Área Administrativa" },
+      { name: "robots", content: "noindex,nofollow" },
+    ],
+  }),
   component: () => (
     <AdminGate>
       <AdminDashboard />
@@ -87,7 +102,9 @@ function AdminDashboard() {
       <section className="mt-8 grid gap-5 lg:grid-cols-[1.2fr_0.8fr]">
         <div className="rounded-[28px] border border-[var(--gold)]/20 bg-[var(--champagne)]/35 p-6 shadow-[var(--shadow-card)]">
           <p className="font-serif-caps text-[11px] text-[var(--gold-deep)]">Próximo passo</p>
-          <h2 className="mt-2 font-display text-3xl text-[var(--cocoa)]">Crie o convite do novo casal</h2>
+          <h2 className="mt-2 font-display text-3xl text-[var(--cocoa)]">
+            Crie o convite do novo casal
+          </h2>
           <p className="mt-2 max-w-2xl text-sm text-[var(--cocoa)]/70">
             Configure layouts, agenda, fotos e gere as credenciais dos noivos sem sair deste painel.
           </p>
@@ -104,7 +121,10 @@ function AdminDashboard() {
           <p className="font-serif-caps text-[11px] text-[var(--gold-deep)]">Próximas entregas</p>
           <ul className="mt-4 space-y-4">
             {nextSteps.map((step) => (
-              <li key={step.title} className="flex items-center justify-between gap-4 rounded-2xl border border-[var(--gold)]/20 px-4 py-3">
+              <li
+                key={step.title}
+                className="flex items-center justify-between gap-4 rounded-2xl border border-[var(--gold)]/20 px-4 py-3"
+              >
                 <div>
                   <p className="text-sm font-medium text-[var(--cocoa)]">{step.title}</p>
                   <p className="text-xs text-[var(--cocoa)]/60">{step.due}</p>
@@ -118,8 +138,13 @@ function AdminDashboard() {
 
       <section className="mt-8 grid gap-5 lg:grid-cols-3">
         {stats.map((stat) => (
-          <article key={stat.label} className="rounded-3xl border border-[var(--gold)]/25 bg-white/85 p-5 shadow-[var(--shadow-card)]">
-            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[var(--cocoa)]/60">{stat.label}</p>
+          <article
+            key={stat.label}
+            className="rounded-3xl border border-[var(--gold)]/25 bg-white/85 p-5 shadow-[var(--shadow-card)]"
+          >
+            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[var(--cocoa)]/60">
+              {stat.label}
+            </p>
             <p className="mt-3 font-display text-4xl text-[var(--cocoa)]">{stat.value}</p>
             <p className="mt-2 text-xs text-[var(--gold-deep)]">{stat.badge}</p>
           </article>
@@ -128,13 +153,19 @@ function AdminDashboard() {
 
       <section className="mt-8 grid gap-5 lg:grid-cols-3">
         {quickLinks.map((link) => (
-          <article key={link.title} className="flex h-full flex-col rounded-3xl border border-[var(--gold)]/25 bg-white/90 p-5 shadow-[var(--shadow-card)]">
+          <article
+            key={link.title}
+            className="flex h-full flex-col rounded-3xl border border-[var(--gold)]/25 bg-white/90 p-5 shadow-[var(--shadow-card)]"
+          >
             <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[var(--gold)]/12 text-[var(--gold-deep)]">
               <link.icon className="h-5 w-5" />
             </div>
             <h3 className="mt-4 text-xl text-[var(--cocoa)]">{link.title}</h3>
             <p className="mt-2 flex-1 text-sm text-[var(--cocoa)]/70">{link.description}</p>
-            <Link to={link.to} className="mt-4 inline-flex items-center gap-2 text-sm font-semibold text-[var(--gold-deep)]">
+            <Link
+              to={link.to}
+              className="mt-4 inline-flex items-center gap-2 text-sm font-semibold text-[var(--gold-deep)]"
+            >
               {link.action}
               <ArrowUpRight className="h-4 w-4" />
             </Link>
@@ -148,14 +179,18 @@ function AdminDashboard() {
             <UserPlus className="h-5 w-5 text-[var(--gold-deep)]" />
             <div>
               <h3 className="text-lg text-[var(--cocoa)]">Casais aguardando credenciais</h3>
-              <p className="text-xs text-[var(--cocoa)]/60">Libere usuários assim que o convite estiver publicado.</p>
+              <p className="text-xs text-[var(--cocoa)]/60">
+                Libere usuários assim que o convite estiver publicado.
+              </p>
             </div>
           </div>
           <div className="mt-4 space-y-3 text-sm">
             <div className="flex items-center justify-between rounded-2xl border border-[var(--gold)]/20 px-4 py-3">
               <div>
                 <p className="font-medium text-[var(--cocoa)]">Bianca & Thiago</p>
-                <p className="text-xs text-[var(--cocoa)]/60">Convite floral — versão final enviada</p>
+                <p className="text-xs text-[var(--cocoa)]/60">
+                  Convite floral — versão final enviada
+                </p>
               </div>
               <button className="rounded-full border border-[var(--gold)]/50 px-4 py-1 text-xs font-semibold text-[var(--gold-deep)]">
                 Gerar acesso

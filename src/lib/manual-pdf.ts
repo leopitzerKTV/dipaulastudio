@@ -55,7 +55,12 @@ export function downloadBlob(blob: Blob, filename: string) {
   setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
 
-export async function sharePdf(blob: Blob, filename: string, title: string, text: string): Promise<boolean> {
+export async function sharePdf(
+  blob: Blob,
+  filename: string,
+  title: string,
+  text: string,
+): Promise<boolean> {
   if (typeof navigator === "undefined") return false;
   const file = new File([blob], filename, { type: "application/pdf" });
   const nav = navigator as Navigator & {

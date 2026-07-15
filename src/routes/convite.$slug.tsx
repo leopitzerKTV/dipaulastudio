@@ -4,7 +4,13 @@ import { ArrowLeft, Share2, Download, Heart } from "lucide-react";
 import { toast } from "sonner";
 import { AppShell } from "@/components/AppShell";
 import { QRCodeButton } from "@/components/QRCodeButton";
-import { AnimatedContainer, AnimatedCard, AnimatedButton, StaggerContainer, StaggerItem } from "@/components/MotionWrapper";
+import {
+  AnimatedContainer,
+  AnimatedCard,
+  AnimatedButton,
+  StaggerContainer,
+  StaggerItem,
+} from "@/components/MotionWrapper";
 import { supabase } from "@/integrations/supabase/client";
 import type { Tables } from "@/integrations/supabase/types";
 import ceremonyImg from "@/assets/ceremony.jpg";
@@ -145,11 +151,25 @@ function InvitePreview({ invite }: { invite: SavedInviteRow }) {
 
   return (
     <AnimatedContainer>
-      <div className="min-h-screen bg-[var(--bg)]" style={{ "--bg": palette.bg, "--card": palette.card, "--ink": palette.ink, "--gold": palette.gold, "--gold-deep": palette.goldDeep } as React.CSSProperties}>
+      <div
+        className="min-h-screen bg-[var(--bg)]"
+        style={
+          {
+            "--bg": palette.bg,
+            "--card": palette.card,
+            "--ink": palette.ink,
+            "--gold": palette.gold,
+            "--gold-deep": palette.goldDeep,
+          } as React.CSSProperties
+        }
+      >
         <div className="container mx-auto px-4 py-6 max-w-2xl">
           <StaggerContainer>
             <div className="mb-6 flex items-center justify-between">
-              <a href="/" className="inline-flex items-center gap-2 text-[var(--gold-deep)] hover:underline">
+              <a
+                href="/"
+                className="inline-flex items-center gap-2 text-[var(--gold-deep)] hover:underline"
+              >
                 <ArrowLeft className="h-4 w-4" /> Voltar
               </a>
               <StaggerItem>
@@ -175,7 +195,8 @@ function InvitePreview({ invite }: { invite: SavedInviteRow }) {
                         : "border-[var(--gold)]/30 bg-[var(--gold)]/10 text-[var(--gold-deep)] hover:bg-[var(--gold)]/20"
                     }`}
                   >
-                    <Heart className={`h-3 w-3 ${liked ? "fill-current" : ""}`} /> {liked ? "Curtido" : "Curtir"}
+                    <Heart className={`h-3 w-3 ${liked ? "fill-current" : ""}`} />{" "}
+                    {liked ? "Curtido" : "Curtir"}
                   </AnimatedButton>
                 </div>
               </StaggerItem>
@@ -216,9 +237,13 @@ function InvitePreview({ invite }: { invite: SavedInviteRow }) {
 
                       <StaggerItem className="space-y-2">
                         <p className="font-serif text-lg text-[var(--ink)]">{draft.date}</p>
-                        <p className="font-serif-caps text-[12px] text-[var(--gold-deep)]">{draft.time}</p>
+                        <p className="font-serif-caps text-[12px] text-[var(--gold-deep)]">
+                          {draft.time}
+                        </p>
                         <p className="font-serif text-base text-[var(--ink)]">{draft.venue}</p>
-                        <p className="font-serif-caps text-[11px] text-[var(--gold-deep)]">{draft.city}</p>
+                        <p className="font-serif-caps text-[11px] text-[var(--gold-deep)]">
+                          {draft.city}
+                        </p>
                       </StaggerItem>
 
                       <StaggerItem>
@@ -237,7 +262,8 @@ function InvitePreview({ invite }: { invite: SavedInviteRow }) {
             <StaggerItem>
               <div className="mt-8 text-center">
                 <p className="font-serif-caps text-[10px] text-[var(--gold-deep)]/60 uppercase tracking-widest">
-                  Com amor — {new Date(invite.updated_at ?? invite.created_at).toLocaleDateString("pt-BR")}
+                  Com amor —{" "}
+                  {new Date(invite.updated_at ?? invite.created_at).toLocaleDateString("pt-BR")}
                 </p>
               </div>
             </StaggerItem>
@@ -309,7 +335,10 @@ function InviteSlugRoute() {
           <div className="w-full max-w-sm rounded-3xl border border-[var(--gold)]/25 bg-white/70 p-8 text-center shadow-[var(--shadow-luxe)]">
             <h1 className="font-display text-2xl text-[var(--cocoa)]">Convite não encontrado</h1>
             <p className="mt-2 text-sm text-[var(--cocoa)]/65">{error}</p>
-            <a href="/" className="mt-5 inline-block rounded-full bg-[var(--gold-deep)] px-4 py-2.5 text-sm font-medium text-white hover:bg-[var(--gold)] transition-colors">
+            <a
+              href="/"
+              className="mt-5 inline-block rounded-full bg-[var(--gold-deep)] px-4 py-2.5 text-sm font-medium text-white hover:bg-[var(--gold)] transition-colors"
+            >
               Voltar para o início
             </a>
           </div>

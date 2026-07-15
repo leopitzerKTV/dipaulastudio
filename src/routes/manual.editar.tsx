@@ -8,7 +8,6 @@ import { ManualView, type ManualData } from "@/components/ManualView";
 import { supabase } from "@/integrations/supabase/client";
 import { downloadBlob, generateManualPdf, sharePdf } from "@/lib/manual-pdf";
 
-
 type FormState = {
   ceremony_date: string;
   ceremony_time: string;
@@ -78,7 +77,6 @@ function EditManual() {
     }
   }
 
-
   useEffect(() => {
     let cancelled = false;
     (async () => {
@@ -122,8 +120,9 @@ function EditManual() {
     [form],
   );
 
-  const update = (k: keyof FormState) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
-    setForm((f) => ({ ...f, [k]: e.target.value }));
+  const update =
+    (k: keyof FormState) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
+      setForm((f) => ({ ...f, [k]: e.target.value }));
 
   async function save(e: React.FormEvent) {
     e.preventDefault();
@@ -161,7 +160,10 @@ function EditManual() {
     <div className="min-h-screen">
       {/* Topbar */}
       <div className="sticky top-0 z-20 flex items-center justify-between border-b border-[var(--gold)]/20 bg-[var(--ivory)]/85 px-5 py-3 backdrop-blur">
-        <Link to="/manual" className="inline-flex items-center gap-1.5 text-xs font-serif-caps text-[var(--gold-deep)]">
+        <Link
+          to="/manual"
+          className="inline-flex items-center gap-1.5 text-xs font-serif-caps text-[var(--gold-deep)]"
+        >
           <ArrowLeft className="h-3.5 w-3.5" /> Voltar
         </Link>
         <p className="font-display text-sm text-[var(--cocoa)]">Editar Manual</p>
@@ -291,7 +293,12 @@ function EditManual() {
                   disabled={pdfBusy !== null}
                   className="inline-flex items-center gap-1 rounded-full border border-[var(--gold)]/40 bg-white/60 px-2.5 py-1 text-[10px] font-serif-caps text-[var(--gold-deep)] disabled:opacity-50"
                 >
-                  {pdfBusy === "download" ? <Loader2 className="h-3 w-3 animate-spin" /> : <Download className="h-3 w-3" />} PDF
+                  {pdfBusy === "download" ? (
+                    <Loader2 className="h-3 w-3 animate-spin" />
+                  ) : (
+                    <Download className="h-3 w-3" />
+                  )}{" "}
+                  PDF
                 </button>
                 <button
                   type="button"
@@ -299,7 +306,12 @@ function EditManual() {
                   disabled={pdfBusy !== null}
                   className="inline-flex items-center gap-1 rounded-full bg-[var(--gold-deep)] px-2.5 py-1 text-[10px] font-serif-caps text-white disabled:opacity-50"
                 >
-                  {pdfBusy === "share" ? <Loader2 className="h-3 w-3 animate-spin" /> : <Share2 className="h-3 w-3" />} Compartilhar
+                  {pdfBusy === "share" ? (
+                    <Loader2 className="h-3 w-3 animate-spin" />
+                  ) : (
+                    <Share2 className="h-3 w-3" />
+                  )}{" "}
+                  Compartilhar
                 </button>
               </div>
             </div>
@@ -309,7 +321,6 @@ function EditManual() {
               </div>
             </div>
           </div>
-
         </div>
       </div>
     </div>

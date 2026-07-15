@@ -13,7 +13,12 @@ const PAD = 8;
 
 function getRect(el: Element): Rect {
   const r = el.getBoundingClientRect();
-  return { top: r.top - PAD, left: r.left - PAD, width: r.width + PAD * 2, height: r.height + PAD * 2 };
+  return {
+    top: r.top - PAD,
+    left: r.left - PAD,
+    width: r.width + PAD * 2,
+    height: r.height + PAD * 2,
+  };
 }
 
 export function EditorTour({

@@ -1,6 +1,20 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { motion } from "motion/react";
-import { ArrowLeft, Camera, Upload, Heart, Loader2, Check, X, AlertCircle, ArrowDownUp, MoreVertical, Trash2, AlertTriangle, Tag as TagIcon } from "lucide-react";
+import {
+  ArrowLeft,
+  Camera,
+  Upload,
+  Heart,
+  Loader2,
+  Check,
+  X,
+  AlertCircle,
+  ArrowDownUp,
+  MoreVertical,
+  Trash2,
+  AlertTriangle,
+  Tag as TagIcon,
+} from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { AppShell } from "@/components/AppShell";
@@ -41,10 +55,17 @@ type UploadItem = {
 };
 
 const BUCKET = "album-photos";
-const TAGS = ["Geral", "Cerimônia", "Festa", "Making of", "Pré-wedding", "Convidados", "Buquê"] as const;
+const TAGS = [
+  "Geral",
+  "Cerimônia",
+  "Festa",
+  "Making of",
+  "Pré-wedding",
+  "Convidados",
+  "Buquê",
+] as const;
 type Tag = (typeof TAGS)[number];
 type SortOrder = "recent" | "old";
-
 
 function Album() {
   const [photos, setPhotos] = useState<Photo[]>([]);
@@ -54,23 +75,24 @@ function Album() {
   const [sortOrder, setSortOrder] = useState<SortOrder>("recent");
   const [editing, setEditing] = useState<Photo | null>(null);
   const [confirmDelete, setConfirmDelete] = useState<Photo | null>(null);
-  const [pendingDeleteIds, setPendingDeleteIds] = useState<Set<string>>(() => getPendingDeleteIds());
+  const [pendingDeleteIds, setPendingDeleteIds] = useState<Set<string>>(() =>
+    getPendingDeleteIds(),
+  );
   const [authorName, setAuthorName] = useState<string>(() =>
-    typeof window !== "undefined" ? localStorage.getItem("album.authorName") ?? "" : ""
+    typeof window !== "undefined" ? (localStorage.getItem("album.authorName") ?? "") : "",
   );
   const fileRef = useRef<HTMLInputElement>(null);
-  const uploading = uploads.some((u) => u.status === "uploading" || u.status === "saving" || u.status === "pending");
+  const uploading = uploads.some(
+    (u) => u.status === "uploading" || u.status === "saving" || u.status === "pending",
+  );
   const uploadTag: Tag = filterTag === "Todas" ? "Geral" : filterTag;
 
-  const visiblePhotos = (filterTag === "Todas"
-    ? photos
-    : photos.filter((p) => p.tag === filterTag)
-  )
+  const visiblePhotos = (filterTag === "Todas" ? photos : photos.filter((p) => p.tag === filterTag))
     .slice()
     .sort((a, b) =>
       sortOrder === "recent"
         ? b.created_at.localeCompare(a.created_at)
-        : a.created_at.localeCompare(b.created_at)
+        : a.created_at.localeCompare(b.created_at),
     );
 
   const tagCounts = photos.reduce<Record<string, number>>((acc, p) => {
@@ -80,9 +102,10 @@ function Album() {
 
   async function hydrateUrls(rows: Photo[]): Promise<Photo[]> {
     if (rows.length === 0) return rows;
-    const { data } = await supabase.storage
-      .from(BUCKET)
-      .createSignedUrls(rows.map((r) => r.storage_path), 60 * 60);
+    const { data } = await supabase.storage.from(BUCKET).createSignedUrls(
+      rows.map((r) => r.storage_path),
+      60 * 60,
+    );
     const map = new Map((data ?? []).map((d) => [d.path, d.signedUrl]));
     return rows.map((r) => ({ ...r, url: map.get(r.storage_path) ?? undefined }));
   }
@@ -108,9 +131,9 @@ function Album() {
           const row = payload.new as Photo;
           const [hydrated] = await hydrateUrls([row]);
           setPhotos((prev) =>
-            prev.some((p) => p.id === hydrated.id) ? prev : [hydrated, ...prev]
+            prev.some((p) => p.id === hydrated.id) ? prev : [hydrated, ...prev],
           );
-        }
+        },
       )
       .on(
         "postgres_changes",
@@ -118,9 +141,9 @@ function Album() {
         (payload) => {
           const row = payload.new as Photo;
           setPhotos((prev) =>
-            prev.map((p) => (p.id === row.id ? { ...p, ...row, url: p.url } : p))
+            prev.map((p) => (p.id === row.id ? { ...p, ...row, url: p.url } : p)),
           );
-        }
+        },
       )
       .on(
         "postgres_changes",
@@ -128,7 +151,7 @@ function Album() {
         (payload) => {
           const row = payload.old as { id: string };
           setPhotos((prev) => prev.filter((p) => p.id !== row.id));
-        }
+        },
       )
       .subscribe();
     return () => {
@@ -138,10 +161,7 @@ function Album() {
 
   async function updatePhotoTag(photo: Photo, tag: Tag) {
     setPhotos((prev) => prev.map((p) => (p.id === photo.id ? { ...p, tag } : p)));
-    const { error } = await supabase
-      .from("album_photos")
-      .update({ tag })
-      .eq("id", photo.id);
+    const { error } = await supabase.from("album_photos").update({ tag }).eq("id", photo.id);
     if (error) {
       console.error(error);
       setPhotos((prev) => prev.map((p) => (p.id === photo.id ? { ...p, tag: photo.tag } : p)));
@@ -163,7 +183,9 @@ function Album() {
     if (moveErr) {
       console.error(moveErr);
       setPhotos((prev) => (prev.some((p) => p.id === photo.id) ? prev : [photo, ...prev]));
-      toast.error("Não foi possível excluir a foto", { description: "Tente novamente em instantes." });
+      toast.error("Não foi possível excluir a foto", {
+        description: "Tente novamente em instantes.",
+      });
       return;
     }
 
@@ -174,7 +196,9 @@ function Album() {
       // Roll back the storage move
       await supabase.storage.from(BUCKET).move(trashPath, photo.storage_path);
       setPhotos((prev) => (prev.some((p) => p.id === photo.id) ? prev : [photo, ...prev]));
-      toast.error("Não foi possível excluir a foto", { description: "Tente novamente em instantes." });
+      toast.error("Não foi possível excluir a foto", {
+        description: "Tente novamente em instantes.",
+      });
       return;
     }
 
@@ -215,7 +239,6 @@ function Album() {
     return () => window.removeEventListener("keydown", onKeyDown);
   }, []);
 
-
   async function handleFiles(files: FileList | null) {
     if (!files || files.length === 0) return;
     const name =
@@ -239,7 +262,12 @@ function Album() {
     if (items.length === 0) return;
     setUploads((prev) => [...items, ...prev]);
 
-    const fileMap = new Map(items.map((it, i) => [it.id, Array.from(files).filter((f) => f.type.startsWith("image/"))[i]]));
+    const fileMap = new Map(
+      items.map((it, i) => [
+        it.id,
+        Array.from(files).filter((f) => f.type.startsWith("image/"))[i],
+      ]),
+    );
 
     const updateItem = (id: string, patch: Partial<UploadItem>) =>
       setUploads((prev) => prev.map((u) => (u.id === id ? { ...u, ...patch } : u)));
@@ -301,7 +329,10 @@ function Album() {
   return (
     <AppShell>
       <header className="sticky top-0 z-30 flex items-center justify-between border-b border-[var(--gold)]/20 bg-[var(--ivory)]/85 px-4 py-3 backdrop-blur-xl">
-        <Link to="/" className="grid h-9 w-9 place-items-center rounded-full bg-[var(--gold)]/12 text-[var(--gold-deep)]">
+        <Link
+          to="/"
+          className="grid h-9 w-9 place-items-center rounded-full bg-[var(--gold)]/12 text-[var(--gold-deep)]"
+        >
           <ArrowLeft className="h-4 w-4" />
         </Link>
         <p className="font-serif-caps text-[11px] text-[var(--cocoa)]/70">Álbum do Casal</p>
@@ -345,7 +376,7 @@ function Album() {
         <div className="mt-2 -mx-5 flex gap-1.5 overflow-x-auto px-5 pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
           {(["Todas", ...TAGS] as const).map((t) => {
             const active = filterTag === t;
-            const count = t === "Todas" ? photos.length : tagCounts[t] ?? 0;
+            const count = t === "Todas" ? photos.length : (tagCounts[t] ?? 0);
             return (
               <button
                 key={t}
@@ -412,7 +443,9 @@ function Album() {
                 <div className="absolute inset-x-0 bottom-0 z-20 flex items-end justify-between p-2.5 text-[var(--ivory)]">
                   <div>
                     <p className="font-serif-caps text-[8.5px] opacity-80">{p.tag}</p>
-                    <p className="font-display text-xs leading-tight">por {p.author_name ?? "convidado"}</p>
+                    <p className="font-display text-xs leading-tight">
+                      por {p.author_name ?? "convidado"}
+                    </p>
                   </div>
                   <Heart className="h-3.5 w-3.5" fill="currentColor" />
                 </div>
@@ -475,8 +508,8 @@ function Album() {
                         u.status === "error"
                           ? "bg-red-500"
                           : u.status === "done"
-                          ? "bg-emerald-500"
-                          : ""
+                            ? "bg-emerald-500"
+                            : ""
                       }`}
                       style={{
                         width: `${u.status === "done" ? 100 : u.progress}%`,
@@ -487,14 +520,14 @@ function Album() {
                       }}
                     />
                   </div>
-                  {u.error && (
-                    <p className="mt-0.5 text-[9px] text-red-600">{u.error}</p>
-                  )}
+                  {u.error && <p className="mt-0.5 text-[9px] text-red-600">{u.error}</p>}
                 </div>
                 <span className="flex-none">
                   {u.status === "done" && <Check className="h-3.5 w-3.5 text-emerald-600" />}
                   {u.status === "error" && <AlertCircle className="h-3.5 w-3.5 text-red-600" />}
-                  {(u.status === "uploading" || u.status === "saving" || u.status === "pending") && (
+                  {(u.status === "uploading" ||
+                    u.status === "saving" ||
+                    u.status === "pending") && (
                     <Loader2 className="h-3.5 w-3.5 animate-spin text-[var(--gold-deep)]" />
                   )}
                 </span>
@@ -504,7 +537,6 @@ function Album() {
         </div>
       )}
 
-
       <div className="fixed bottom-24 left-1/2 z-40 -translate-x-1/2 flex flex-col items-center gap-1.5">
         <motion.button
           whileTap={{ scale: 0.94 }}
@@ -513,7 +545,11 @@ function Album() {
           className="flex items-center gap-2 rounded-full px-6 py-3.5 font-serif-caps text-[10px] text-[var(--ivory)] shadow-[var(--shadow-luxe)] disabled:opacity-70"
           style={{ background: "var(--gradient-gold)" }}
         >
-          {uploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
+          {uploading ? (
+            <Loader2 className="h-4 w-4 animate-spin" />
+          ) : (
+            <Upload className="h-4 w-4" />
+          )}
           {uploading ? "Enviando..." : `Enviar para ${uploadTag}`}
         </motion.button>
         <p className="font-serif-caps text-[9px] text-[var(--cocoa)]/55">
@@ -544,11 +580,7 @@ function Album() {
             </div>
 
             {editing.url && (
-              <img
-                src={editing.url}
-                alt=""
-                className="mt-3 h-40 w-full rounded-2xl object-cover"
-              />
+              <img src={editing.url} alt="" className="mt-3 h-40 w-full rounded-2xl object-cover" />
             )}
 
             <p className="mt-4 inline-flex items-center gap-1.5 font-serif-caps text-[10px] text-[var(--cocoa)]/65">
@@ -601,9 +633,12 @@ function Album() {
             <div className="mx-auto grid h-12 w-12 place-items-center rounded-full bg-red-100 text-red-600">
               <AlertTriangle className="h-5 w-5" />
             </div>
-            <p className="mt-4 text-center font-display text-lg text-[var(--cocoa)]">Excluir foto?</p>
+            <p className="mt-4 text-center font-display text-lg text-[var(--cocoa)]">
+              Excluir foto?
+            </p>
             <p className="mt-1 px-2 text-center text-sm leading-snug text-[var(--cocoa)]/65">
-              A foto de <strong>{confirmDelete.author_name ?? "convidado"}</strong> será removida. Você terá 5 segundos para desfazer a exclusão.
+              A foto de <strong>{confirmDelete.author_name ?? "convidado"}</strong> será removida.
+              Você terá 5 segundos para desfazer a exclusão.
             </p>
 
             <div className="mt-5 grid grid-cols-2 gap-3">
@@ -624,7 +659,6 @@ function Album() {
           </div>
         </div>
       )}
-
     </AppShell>
   );
 }

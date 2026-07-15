@@ -19,7 +19,7 @@ type RestoreHandler = (photo: PendingDelete["photo"]) => void;
 
 // Estado global para armazenar exclusões pendentes
 let pendingDeletes: PendingDelete[] = [];
-let subscribers: Set<() => void> = new Set();
+const subscribers: Set<() => void> = new Set();
 let restoreHandler: RestoreHandler | null = null;
 
 const PENDING_DELETE_KEY = "album.pendingDeletes";
@@ -50,7 +50,7 @@ function savePendingDeletes(): void {
 function cleanupExpiredDeletes(): void {
   const now = Date.now();
   const beforeCount = pendingDeletes.length;
-  pendingDeletes = pendingDeletes.filter(item => now - item.timestamp < UNDO_WINDOW_MS);
+  pendingDeletes = pendingDeletes.filter((item) => now - item.timestamp < UNDO_WINDOW_MS);
   if (pendingDeletes.length !== beforeCount) {
     savePendingDeletes();
     notifySubscribers();
@@ -59,14 +59,11 @@ function cleanupExpiredDeletes(): void {
 
 // Notificar todos os assinantes
 function notifySubscribers(): void {
-  subscribers.forEach(callback => callback());
+  subscribers.forEach((callback) => callback());
 }
 
 // Agendar uma exclusão pendente
-export function schedulePendingDelete(
-  photo: PendingDelete["photo"],
-  trashPath: string
-): void {
+export function schedulePendingDelete(photo: PendingDelete["photo"], trashPath: string): void {
   const pendingDelete: PendingDelete = {
     id: crypto.randomUUID(),
     photo,
@@ -86,13 +83,13 @@ export function schedulePendingDelete(
 
 // Cancelar uma exclusão pendente (undo)
 export async function cancelPendingDelete(photoId: string): Promise<void> {
-  const pending = pendingDeletes.find(item => item.photo.id === photoId);
+  const pending = pendingDeletes.find((item) => item.photo.id === photoId);
   if (!pending) return;
 
   try {
     // Restaurar o arquivo do trash para o caminho original
     const { supabase } = await import("@/integrations/supabase/client");
-    
+
     const { error: moveErr } = await supabase.storage
       .from("album-photos")
       .move(pending.trashPath, pending.photo.storage_path);
@@ -103,16 +100,14 @@ export async function cancelPendingDelete(photoId: string): Promise<void> {
     }
 
     // Re-inserir a foto no banco de dados
-    const { error: insertErr } = await supabase
-      .from("album_photos")
-      .insert({
-        id: pending.photo.id,
-        storage_path: pending.photo.storage_path,
-        author_name: pending.photo.author_name,
-        caption: pending.photo.caption,
-        tag: pending.photo.tag,
-        created_at: pending.photo.created_at,
-      });
+    const { error: insertErr } = await supabase.from("album_photos").insert({
+      id: pending.photo.id,
+      storage_path: pending.photo.storage_path,
+      author_name: pending.photo.author_name,
+      caption: pending.photo.caption,
+      tag: pending.photo.tag,
+      created_at: pending.photo.created_at,
+    });
 
     if (insertErr) {
       console.error("Erro ao restaurar foto no banco:", insertErr);
@@ -124,7 +119,7 @@ export async function cancelPendingDelete(photoId: string): Promise<void> {
     }
 
     // Remover da lista de pendentes
-    pendingDeletes = pendingDeletes.filter(item => item.id !== pending.id);
+    pendingDeletes = pendingDeletes.filter((item) => item.id !== pending.id);
     savePendingDeletes();
     notifySubscribers();
 
@@ -138,7 +133,6 @@ export async function cancelPendingDelete(photoId: string): Promise<void> {
     toast.success("Foto restaurada", {
       description: "A foto foi restaurada com sucesso.",
     });
-
   } catch (error) {
     console.error("Erro ao cancelar exclusão:", error);
   }
@@ -147,29 +141,29 @@ export async function cancelPendingDelete(photoId: string): Promise<void> {
 // Obter IDs de fotos com exclusão pendente
 export function getPendingDeleteIds(): Set<string> {
   cleanupExpiredDeletes();
-  return new Set(pendingDeletes.map(item => item.photo.id));
+  return new Set(pendingDeletes.map((item) => item.photo.id));
 }
 
 // Obter o ID mais recente de exclusão pendente
 export function getLatestPendingId(): string | null {
   cleanupExpiredDeletes();
   if (pendingDeletes.length === 0) return null;
-  
+
   // Retornar o mais recente
-  const latest = pendingDeletes.reduce((prev, current) => 
-    current.timestamp > prev.timestamp ? current : prev
+  const latest = pendingDeletes.reduce((prev, current) =>
+    current.timestamp > prev.timestamp ? current : prev,
   );
-  
+
   return latest.photo.id;
 }
 
 // Inscrever para receber notificações de mudanças
 export function subscribePendingDeletes(callback: () => void): () => void {
   subscribers.add(callback);
-  
+
   // Cleanup automático a cada segundo
   const interval = setInterval(cleanupExpiredDeletes, 1000);
-  
+
   return () => {
     subscribers.delete(callback);
     clearInterval(interval);

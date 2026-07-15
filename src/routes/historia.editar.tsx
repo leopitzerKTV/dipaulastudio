@@ -1,5 +1,17 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { ArrowLeft, Plus, Trash2, ArrowUp, ArrowDown, Loader2, Upload, Save, Eye, EyeOff, GripVertical } from "lucide-react";
+import {
+  ArrowLeft,
+  Plus,
+  Trash2,
+  ArrowUp,
+  ArrowDown,
+  Loader2,
+  Upload,
+  Save,
+  Eye,
+  EyeOff,
+  GripVertical,
+} from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { AppShell } from "@/components/AppShell";
@@ -8,7 +20,9 @@ import { supabase } from "@/integrations/supabase/client";
 import { CoupleGate } from "@/components/CoupleGate";
 
 export const Route = createFileRoute("/historia/editar")({
-  head: () => ({ meta: [{ title: "Editar Nossa História" }, { name: "robots", content: "noindex,nofollow" }] }),
+  head: () => ({
+    meta: [{ title: "Editar Nossa História" }, { name: "robots", content: "noindex,nofollow" }],
+  }),
   component: () => (
     <CoupleGate>
       <EditarHistoria />
@@ -62,7 +76,12 @@ function EditarHistoria() {
         if (s.signedUrl && s.path) urlMap.set(s.path, s.signedUrl);
       });
     }
-    setChapters(rows.map((r) => ({ ...r, imageUrl: r.storage_path ? urlMap.get(r.storage_path) : undefined })));
+    setChapters(
+      rows.map((r) => ({
+        ...r,
+        imageUrl: r.storage_path ? urlMap.get(r.storage_path) : undefined,
+      })),
+    );
     setLoading(false);
   }
 
@@ -200,8 +219,8 @@ function EditarHistoria() {
     refocusId.current = fromId;
     const results = await Promise.all(
       renumbered.map((x) =>
-        supabase.from("story_chapters").update({ position: x.position }).eq("id", x.id)
-      )
+        supabase.from("story_chapters").update({ position: x.position }).eq("id", x.id),
+      ),
     );
     if (results.some((r) => r.error)) {
       toast.error("Não foi possível reordenar");
@@ -209,7 +228,12 @@ function EditarHistoria() {
     }
   }
 
-  function onGripKeyDown(e: React.KeyboardEvent<HTMLButtonElement>, c: Chapter, idx: number, total: number) {
+  function onGripKeyDown(
+    e: React.KeyboardEvent<HTMLButtonElement>,
+    c: Chapter,
+    idx: number,
+    total: number,
+  ) {
     const meta = e.metaKey || e.ctrlKey;
     let target: number | null = null;
     if (e.key === "ArrowUp") target = meta ? 0 : idx - 1;
@@ -271,7 +295,10 @@ function EditarHistoria() {
   return (
     <AppShell>
       <header className="sticky top-0 z-30 flex items-center justify-between border-b border-[var(--gold)]/20 bg-[var(--ivory)]/85 px-4 py-3 backdrop-blur-xl">
-        <Link to="/historia" className="grid h-9 w-9 place-items-center rounded-full bg-[var(--gold)]/12 text-[var(--gold-deep)]">
+        <Link
+          to="/historia"
+          className="grid h-9 w-9 place-items-center rounded-full bg-[var(--gold)]/12 text-[var(--gold-deep)]"
+        >
           <ArrowLeft className="h-4 w-4" />
         </Link>
         <p className="font-serif-caps text-[11px] text-[var(--cocoa)]/70">Editar capítulos</p>
@@ -288,7 +315,9 @@ function EditarHistoria() {
         <section className="px-5 pt-4">
           <div className="overflow-hidden rounded-2xl border border-[var(--gold)]/25 bg-[var(--card)] shadow-[var(--shadow-card)]">
             <div className="flex items-center justify-between border-b border-[var(--gold)]/15 bg-[var(--ivory)]/70 px-3 py-2">
-              <p className="font-serif-caps text-[10px] text-[var(--cocoa)]/70">Preview ao vivo · /historia</p>
+              <p className="font-serif-caps text-[10px] text-[var(--cocoa)]/70">
+                Preview ao vivo · /historia
+              </p>
               <span className="relative flex h-2 w-2">
                 <span className="absolute inset-0 animate-ping rounded-full bg-[var(--gold)] opacity-70" />
                 <span className="relative h-2 w-2 rounded-full bg-[var(--gold-deep)]" />
@@ -467,7 +496,11 @@ function EditarHistoria() {
                   className="inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 font-serif-caps text-[10px] text-[var(--ivory)] disabled:opacity-60"
                   style={{ background: "var(--gradient-gold)" }}
                 >
-                  {savingId === c.id ? <Loader2 className="h-3 w-3 animate-spin" /> : <Save className="h-3 w-3" />}
+                  {savingId === c.id ? (
+                    <Loader2 className="h-3 w-3 animate-spin" />
+                  ) : (
+                    <Save className="h-3 w-3" />
+                  )}
                   Salvar
                 </button>
                 <button

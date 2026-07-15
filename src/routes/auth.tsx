@@ -5,7 +5,9 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/auth")({
-  head: () => ({ meta: [{ title: "Entrar — Área do Casal" }, { name: "robots", content: "noindex,nofollow" }] }),
+  head: () => ({
+    meta: [{ title: "Entrar — Área do Casal" }, { name: "robots", content: "noindex,nofollow" }],
+  }),
   component: AuthPage,
 });
 
@@ -131,7 +133,10 @@ function AuthPage() {
         >
           {mode === "signin" ? "Primeira vez? Criar conta do casal" : "Já tenho conta — entrar"}
         </button>
-        <a href="/" className="mt-2 inline-block text-xs text-[var(--cocoa)]/55 underline-offset-2 hover:underline">
+        <a
+          href="/"
+          className="mt-2 inline-block text-xs text-[var(--cocoa)]/55 underline-offset-2 hover:underline"
+        >
           Voltar para o início
         </a>
       </form>

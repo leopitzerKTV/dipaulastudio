@@ -47,21 +47,21 @@
 
 :root {
   /* Wedding palette: champagne, ivory, deep gold, cocoa */
-  --background: oklch(0.975 0.012 80);          /* warm ivory */
-  --foreground: oklch(0.22 0.025 50);           /* cocoa */
+  --background: oklch(0.975 0.012 80); /* warm ivory */
+  --foreground: oklch(0.22 0.025 50); /* cocoa */
   --card: oklch(0.99 0.008 85);
   --card-foreground: oklch(0.22 0.025 50);
   --muted: oklch(0.93 0.015 80);
   --muted-foreground: oklch(0.48 0.025 55);
-  --primary: oklch(0.55 0.085 65);              /* deep gold */
+  --primary: oklch(0.55 0.085 65); /* deep gold */
   --primary-foreground: oklch(0.985 0.008 85);
-  --accent: oklch(0.88 0.045 75);               /* champagne */
+  --accent: oklch(0.88 0.045 75); /* champagne */
   --accent-foreground: oklch(0.28 0.03 55);
   --border: oklch(0.85 0.025 75);
   --ring: oklch(0.55 0.085 65);
 
   --gold: oklch(0.68 0.105 75);
-  --gold-deep: oklch(0.50 0.085 60);
+  --gold-deep: oklch(0.5 0.085 60);
   --gold-soft: oklch(0.82 0.06 80);
   --ivory: oklch(0.975 0.012 80);
   --champagne: oklch(0.92 0.035 80);
@@ -70,22 +70,28 @@
 
   --gradient-gold: linear-gradient(135deg, oklch(0.55 0.085 65), oklch(0.72 0.11 80));
   --gradient-ivory: linear-gradient(180deg, oklch(0.985 0.01 85), oklch(0.94 0.025 80));
-  --shadow-luxe: 0 30px 60px -20px oklch(0.35 0.04 55 / 0.25), 0 12px 24px -8px oklch(0.35 0.04 55 / 0.12);
+  --shadow-luxe:
+    0 30px 60px -20px oklch(0.35 0.04 55 / 0.25), 0 12px 24px -8px oklch(0.35 0.04 55 / 0.12);
   --shadow-card: 0 18px 40px -16px oklch(0.35 0.04 55 / 0.22);
-  --shadow-frame: 0 40px 80px -24px oklch(0.20 0.03 50 / 0.45);
+  --shadow-frame: 0 40px 80px -24px oklch(0.2 0.03 50 / 0.45);
   --radius: 1.25rem;
 }
 
 @layer base {
-  * { border-color: var(--color-border); }
-  html, body { background: var(--color-background); color: var(--color-foreground); }
+  * {
+    border-color: var(--color-border);
+  }
+  html,
+  body {
+    background: var(--color-background);
+    color: var(--color-foreground);
+  }
   body {
     font-family: var(--font-sans);
     -webkit-font-smoothing: antialiased;
     background:
       radial-gradient(ellipse at top, oklch(0.92 0.035 80 / 0.6), transparent 60%),
-      radial-gradient(ellipse at bottom, oklch(0.85 0.05 70 / 0.4), transparent 55%),
-      var(--ivory);
+      radial-gradient(ellipse at bottom, oklch(0.85 0.05 70 / 0.4), transparent 55%), var(--ivory);
     min-height: 100vh;
   }
   button,
@@ -100,9 +106,21 @@
   input[type="submit"]:disabled {
     cursor: not-allowed;
   }
-  h1, h2, h3 { font-family: var(--font-display); font-weight: 400; letter-spacing: -0.01em; }
-  .font-display { font-family: var(--font-display); }
-  .font-serif-caps { font-family: var(--font-serif); letter-spacing: 0.18em; text-transform: uppercase; }
+  h1,
+  h2,
+  h3 {
+    font-family: var(--font-display);
+    font-weight: 400;
+    letter-spacing: -0.01em;
+  }
+  .font-display {
+    font-family: var(--font-display);
+  }
+  .font-serif-caps {
+    font-family: var(--font-serif);
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+  }
 }
 
 @utility gold-text {
@@ -125,5 +143,7 @@
   border-radius: 3rem;
   background: linear-gradient(160deg, #1a1410, #2a201a);
   padding: 0.55rem;
-  box-shadow: var(--shadow-frame), inset 0 0 0 1.5px oklch(0.55 0.085 65 / 0.35);
+  box-shadow:
+    var(--shadow-frame),
+    inset 0 0 0 1.5px oklch(0.55 0.085 65 / 0.35);
 }

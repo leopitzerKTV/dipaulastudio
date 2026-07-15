@@ -58,7 +58,13 @@ export const scaleIn = {
   exit: { opacity: 0, scale: 0.9 },
 };
 
-export function AnimatedContainer({ children, className = "" }: { children: ReactNode; className?: string }) {
+export function AnimatedContainer({
+  children,
+  className = "",
+}: {
+  children: ReactNode;
+  className?: string;
+}) {
   return (
     <MotionWrapper
       className={className}
@@ -70,7 +76,12 @@ export function AnimatedContainer({ children, className = "" }: { children: Reac
   );
 }
 
-export function AnimatedButton({ children, onClick, className = "", disabled = false }: {
+export function AnimatedButton({
+  children,
+  onClick,
+  className = "",
+  disabled = false,
+}: {
   children: ReactNode;
   onClick?: () => void;
   className?: string;
@@ -90,7 +101,13 @@ export function AnimatedButton({ children, onClick, className = "", disabled = f
   );
 }
 
-export function AnimatedCard({ children, className = "" }: { children: ReactNode; className?: string }) {
+export function AnimatedCard({
+  children,
+  className = "",
+}: {
+  children: ReactNode;
+  className?: string;
+}) {
   return (
     <MotionWrapper
       className={className}
@@ -102,7 +119,13 @@ export function AnimatedCard({ children, className = "" }: { children: ReactNode
   );
 }
 
-export function StaggerContainer({ children, className = "" }: { children: ReactNode; className?: string }) {
+export function StaggerContainer({
+  children,
+  className = "",
+}: {
+  children: ReactNode;
+  className?: string;
+}) {
   return (
     <motion.div
       className={className}
@@ -121,7 +144,13 @@ export function StaggerContainer({ children, className = "" }: { children: React
   );
 }
 
-export function StaggerItem({ children, className = "" }: { children: ReactNode; className?: string }) {
+export function StaggerItem({
+  children,
+  className = "",
+}: {
+  children: ReactNode;
+  className?: string;
+}) {
   return (
     <MotionWrapper
       className={className}

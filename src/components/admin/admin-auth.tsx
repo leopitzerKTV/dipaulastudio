@@ -1,4 +1,12 @@
-import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+  type ReactNode,
+} from "react";
 import { useNavigate } from "@tanstack/react-router";
 import type { Session } from "@supabase/supabase-js";
 import { Loader2, LogOut, ShieldAlert } from "lucide-react";
@@ -80,7 +88,10 @@ export function AdminAuthProvider({ children }: { children: ReactNode }) {
     setStatus("signed_out");
   }, []);
 
-  const value = useMemo(() => ({ status, session, refresh, signOut }), [refresh, session, signOut, status]);
+  const value = useMemo(
+    () => ({ status, session, refresh, signOut }),
+    [refresh, session, signOut, status],
+  );
 
   return <AdminAuthContext.Provider value={value}>{children}</AdminAuthContext.Provider>;
 }
@@ -120,8 +131,8 @@ export function AdminGate({ children }: { children: ReactNode }) {
           </div>
           <h1 className="mt-4 font-display text-2xl text-[var(--cocoa)]">Acesso restrito</h1>
           <p className="mt-2 text-sm text-[var(--cocoa)]/70">
-            Sua conta não possui o perfil administrativo necessário para entrar nesta área. Confirme com a equipe se o
-            seu usuário está liberado como administrador.
+            Sua conta não possui o perfil administrativo necessário para entrar nesta área. Confirme
+            com a equipe se o seu usuário está liberado como administrador.
           </p>
           <button
             type="button"
@@ -130,7 +141,10 @@ export function AdminGate({ children }: { children: ReactNode }) {
           >
             <LogOut className="h-4 w-4" /> Sair
           </button>
-          <a href="/" className="mt-3 block text-xs text-[var(--cocoa)]/55 underline-offset-2 hover:underline">
+          <a
+            href="/"
+            className="mt-3 block text-xs text-[var(--cocoa)]/55 underline-offset-2 hover:underline"
+          >
             Voltar para o site
           </a>
         </div>

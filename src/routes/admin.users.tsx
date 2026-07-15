@@ -1,6 +1,16 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState, useEffect, useMemo } from "react";
-import { ArrowUpRight, Edit, Pencil, Search, Shield, ShieldAlert, Trash2, UserPlus, X } from "lucide-react";
+import {
+  ArrowUpRight,
+  Edit,
+  Pencil,
+  Search,
+  Shield,
+  ShieldAlert,
+  Trash2,
+  UserPlus,
+  X,
+} from "lucide-react";
 
 import { AdminGate, useAdminAuth } from "@/components/admin/admin-auth";
 import { AdminShell } from "@/components/admin/AdminShell";
@@ -33,7 +43,12 @@ const ROLE_ICONS: Record<AdminRole, React.ReactNode> = {
 };
 
 export const Route = createFileRoute("/admin/users")({
-  head: () => ({ meta: [{ title: "Usuários Administrativos — Área Administrativa" }, { name: "robots", content: "noindex,nofollow" }] }),
+  head: () => ({
+    meta: [
+      { title: "Usuários Administrativos — Área Administrativa" },
+      { name: "robots", content: "noindex,nofollow" },
+    ],
+  }),
   component: () => (
     <AdminGate>
       <AdminUsersPage />
@@ -83,8 +98,12 @@ function AdminUsersPage() {
       return;
     }
 
-    const { data, error } = await supabase.rpc("add_admin_role", { _email: newEmail, _name: newName || null, _role: newRole });
-    
+    const { data, error } = await supabase.rpc("add_admin_role", {
+      _email: newEmail,
+      _name: newName || null,
+      _role: newRole,
+    });
+
     if (error) {
       setAddError("Erro ao adicionar administrador");
     } else if (!data?.success) {
@@ -96,18 +115,20 @@ function AdminUsersPage() {
       setShowAddForm(false);
       await loadAdminUsers();
     }
-    
+
     setAdding(false);
   };
 
   const handleRemoveAdmin = async () => {
     if (!removeConfirm) return;
-    
+
     setRemoving(true);
     setRemoveError("");
 
-    const { data, error } = await supabase.rpc("remove_admin_role", { _user_id: removeConfirm.user_id });
-    
+    const { data, error } = await supabase.rpc("remove_admin_role", {
+      _user_id: removeConfirm.user_id,
+    });
+
     if (error) {
       setRemoveError("Erro ao remover administrador");
     } else if (!data?.success) {
@@ -116,22 +137,22 @@ function AdminUsersPage() {
       setRemoveConfirm(null);
       await loadAdminUsers();
     }
-    
+
     setRemoving(false);
   };
 
   const handleUpdateRole = async () => {
     if (!editUser) return;
-    
+
     setUpdating(true);
     setUpdateError("");
 
-    const { data, error } = await supabase.rpc("update_user_role", { 
-      _user_id: editUser.user_id, 
-      _new_role: isSuperAdmin(editUser.role) ? null : editRole, 
-      _new_name: editName || null 
+    const { data, error } = await supabase.rpc("update_user_role", {
+      _user_id: editUser.user_id,
+      _new_role: isSuperAdmin(editUser.role) ? null : editRole,
+      _new_name: editName || null,
     });
-    
+
     if (error) {
       setUpdateError("Erro ao atualizar papel");
     } else if (!data?.success) {
@@ -142,7 +163,7 @@ function AdminUsersPage() {
       setEditRole("admin");
       await loadAdminUsers();
     }
-    
+
     setUpdating(false);
   };
 
@@ -157,7 +178,9 @@ function AdminUsersPage() {
 
   const sessionIsSuperAdmin = useMemo(() => {
     if (!session?.user.id) return false;
-    return adminUsers.some((user) => user.user_id === session.user.id && user.role === "super_admin");
+    return adminUsers.some(
+      (user) => user.user_id === session.user.id && user.role === "super_admin",
+    );
   }, [adminUsers, session?.user.id]);
 
   useEffect(() => {
@@ -166,7 +189,9 @@ function AdminUsersPage() {
     }
   }, [sessionIsSuperAdmin, newRole]);
 
-  const roleSelectOptions: AdminRole[] = sessionIsSuperAdmin ? ["admin", "editor", "super_admin"] : ["admin", "editor"];
+  const roleSelectOptions: AdminRole[] = sessionIsSuperAdmin
+    ? ["admin", "editor", "super_admin"]
+    : ["admin", "editor"];
 
   const canEditUser = (user: AdminUser) => {
     if (isSuperAdmin(user.role)) {
@@ -175,8 +200,8 @@ function AdminUsersPage() {
     return true;
   };
 
-  const filteredUsers = adminUsers.filter(user =>
-    user.email.toLowerCase().includes(searchQuery.toLowerCase())
+  const filteredUsers = adminUsers.filter((user) =>
+    user.email.toLowerCase().includes(searchQuery.toLowerCase()),
   );
 
   // Carregar usuários ao montar
@@ -189,7 +214,9 @@ function AdminUsersPage() {
       <header className="flex flex-col gap-4 border-b border-[var(--gold)]/25 pb-6 lg:flex-row lg:items-center lg:justify-between">
         <div>
           <p className="font-serif-caps text-[11px] text-[var(--cocoa)]/70">Gestão de acessos</p>
-          <h1 className="mt-2 font-display text-4xl text-[var(--cocoa)]">Usuários Administrativos</h1>
+          <h1 className="mt-2 font-display text-4xl text-[var(--cocoa)]">
+            Usuários Administrativos
+          </h1>
           <p className="mt-1 text-sm text-[var(--cocoa)]/65">
             Gerencie quem tem acesso à área administrativa do sistema.
           </p>
@@ -255,9 +282,7 @@ function AdminUsersPage() {
               </button>
             </div>
           </form>
-          {addError && (
-            <p className="mt-2 text-xs text-red-600">{addError}</p>
-          )}
+          {addError && <p className="mt-2 text-xs text-red-600">{addError}</p>}
         </div>
       )}
 
@@ -289,7 +314,9 @@ function AdminUsersPage() {
         <div className="mt-8 rounded-3xl border border-[var(--gold)]/25 bg-white/80 p-12 text-center">
           <Shield className="mx-auto h-12 w-12 text-[var(--gold)]/50" />
           <p className="mt-4 text-sm text-[var(--cocoa)]/70">
-            {searchQuery ? "Nenhum administrador encontrado com este email." : "Nenhum administrador cadastrado."}
+            {searchQuery
+              ? "Nenhum administrador encontrado com este email."
+              : "Nenhum administrador cadastrado."}
           </p>
         </div>
       ) : (
@@ -323,7 +350,9 @@ function AdminUsersPage() {
                         {ROLE_ICONS[user.role] || <Shield className="h-5 w-5" />}
                       </div>
                       <div>
-                        <p className="text-sm font-medium text-[var(--cocoa)]">{user.name || user.email}</p>
+                        <p className="text-sm font-medium text-[var(--cocoa)]">
+                          {user.name || user.email}
+                        </p>
                         {user.name && (
                           <p className="text-xs text-[var(--cocoa)]/50">{user.email}</p>
                         )}
@@ -331,13 +360,15 @@ function AdminUsersPage() {
                     </div>
                   </td>
                   <td className="px-6 py-4">
-                    <span className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold ${
-                      user.role === 'super_admin' 
-                        ? 'bg-[var(--gold)]/20 text-[var(--gold-deep)]' 
-                        : user.role === 'admin'
-                        ? 'bg-blue-100 text-blue-700'
-                        : 'bg-gray-100 text-gray-700'
-                    }`}>
+                    <span
+                      className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold ${
+                        user.role === "super_admin"
+                          ? "bg-[var(--gold)]/20 text-[var(--gold-deep)]"
+                          : user.role === "admin"
+                            ? "bg-blue-100 text-blue-700"
+                            : "bg-gray-100 text-gray-700"
+                      }`}
+                    >
                       {ROLE_LABELS[user.role] || user.role}
                     </span>
                   </td>
@@ -383,11 +414,10 @@ function AdminUsersPage() {
             </div>
             <h3 className="mt-4 font-display text-xl text-[var(--cocoa)]">Remover administrador</h3>
             <p className="mt-2 text-sm text-[var(--cocoa)]/70">
-              Tem certeza que deseja remover o acesso administrativo de <strong>{removeConfirm.email}</strong>?
+              Tem certeza que deseja remover o acesso administrativo de{" "}
+              <strong>{removeConfirm.email}</strong>?
             </p>
-            {removeError && (
-              <p className="mt-3 text-xs text-red-600">{removeError}</p>
-            )}
+            {removeError && <p className="mt-3 text-xs text-red-600">{removeError}</p>}
             <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:justify-end">
               <button
                 type="button"
@@ -418,12 +448,16 @@ function AdminUsersPage() {
             <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-blue-100 text-blue-600">
               <Edit className="h-6 w-6" />
             </div>
-            <h3 className="mt-4 font-display text-xl text-[var(--cocoa)]">Editar papel do usuário</h3>
+            <h3 className="mt-4 font-display text-xl text-[var(--cocoa)]">
+              Editar papel do usuário
+            </h3>
             <p className="mt-2 text-sm text-[var(--cocoa)]/70">
               Alterar o nível de acesso de <strong>{editUser.email}</strong>
             </p>
             <div className="mt-4">
-              <label className="block text-xs font-semibold text-[var(--cocoa)]/70 mb-2">Nome</label>
+              <label className="block text-xs font-semibold text-[var(--cocoa)]/70 mb-2">
+                Nome
+              </label>
               <input
                 type="text"
                 value={editName}
@@ -433,7 +467,9 @@ function AdminUsersPage() {
               />
             </div>
             <div className="mt-4">
-              <label className="block text-xs font-semibold text-[var(--cocoa)]/70 mb-2">Papel</label>
+              <label className="block text-xs font-semibold text-[var(--cocoa)]/70 mb-2">
+                Papel
+              </label>
               {isSuperAdmin(editUser?.role || "") ? (
                 <div className="rounded-2xl border border-[var(--gold)]/30 bg-[var(--champagne)]/35 px-4 py-3 text-sm text-[var(--cocoa)]">
                   Super Admin
@@ -452,9 +488,7 @@ function AdminUsersPage() {
                 </select>
               )}
             </div>
-            {updateError && (
-              <p className="mt-3 text-xs text-red-600">{updateError}</p>
-            )}
+            {updateError && <p className="mt-3 text-xs text-red-600">{updateError}</p>}
             <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:justify-end">
               <button
                 type="button"

@@ -56,9 +56,7 @@ export function setAlbumRestoreHandler(h: RestoreHandler | null) {
 }
 
 async function hydrateUrl(photo: AlbumPhoto): Promise<AlbumPhoto> {
-  const { data } = await supabase.storage
-    .from(BUCKET)
-    .createSignedUrl(photo.storage_path, 60 * 60);
+  const { data } = await supabase.storage.from(BUCKET).createSignedUrl(photo.storage_path, 60 * 60);
   return { ...photo, url: data?.signedUrl ?? photo.url };
 }
 
@@ -140,7 +138,7 @@ function refreshConsolidatedToast() {
         onUndo={() => void cancelPendingDelete(latestPhoto.id)}
       />
     ),
-    { duration: remaining, id: CONSOLIDATED_TOAST_ID }
+    { duration: remaining, id: CONSOLIDATED_TOAST_ID },
   );
 }
 
@@ -181,7 +179,6 @@ export async function cancelPendingDelete(photoId: string) {
   notify();
   refreshConsolidatedToast();
 
-
   const restoringToast = toast.loading("Restaurando foto...", {
     description: "Recriando o registro e devolvendo o arquivo ao álbum.",
   });
@@ -193,7 +190,8 @@ export async function cancelPendingDelete(photoId: string) {
     console.error(moveErr);
     toast.dismiss(restoringToast);
     toast.error("Falha na restauração do arquivo", {
-      description: "O arquivo original não pôde ser recuperado do armazenamento. A foto permanece excluída.",
+      description:
+        "O arquivo original não pôde ser recuperado do armazenamento. A foto permanece excluída.",
     });
     return;
   }
@@ -210,7 +208,8 @@ export async function cancelPendingDelete(photoId: string) {
     console.error(insertErr);
     toast.dismiss(restoringToast);
     toast.error("Falha na restauração do registro", {
-      description: "O arquivo foi recuperado, mas o registro não pôde ser recriado. Tente recarregar a página.",
+      description:
+        "O arquivo foi recuperado, mas o registro não pôde ser recriado. Tente recarregar a página.",
     });
     return;
   }

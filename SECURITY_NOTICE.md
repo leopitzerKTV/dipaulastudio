@@ -6,11 +6,14 @@
 **Severidade**: ALTA
 
 ### Problema
+
 As credenciais do Supabase foram commitadas no arquivo `.env` e expostas publicamente no histórico do Git:
+
 - **Project ID**: `miszggfikfioehokhuzk`
 - **Publishable Key (Anon)**: Exposta no git
 
 ### Ações Tomadas
+
 ✅ Removido `.env` do git  
 ✅ Adicionado `.env` ao `.gitignore`  
 ✅ Criado `.env.example` template  
@@ -36,9 +39,10 @@ Você **DEVE refazer as credenciais Supabase** imediatamente, pois foram exposta
 - [ ] Implementar GitHub Secrets para CI/CD (não usar `.env` em workflows)
 
 ### Referências
+
 - [Supabase Security Guide](https://supabase.com/docs/guides/platform/security)
 - [GitHub Secrets Management](https://docs.github.com/en/actions/security-guides/encrypted-secrets)
 
 ---
 
-*Este aviso pode ser removido após confirmar que as credenciais foram rotacionadas.*
+_Este aviso pode ser removido após confirmar que as credenciais foram rotacionadas._

@@ -46,7 +46,7 @@ export function useInvitePublish() {
         setPublishing(false);
       }
     },
-    [generateSlug]
+    [generateSlug],
   );
 
   const unpublishInvite = useCallback(async (inviteId: string): Promise<boolean> => {

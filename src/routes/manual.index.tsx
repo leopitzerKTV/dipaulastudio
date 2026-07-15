@@ -11,7 +11,11 @@ export const Route = createFileRoute("/manual/")({
   head: () => ({
     meta: [
       { title: "Manual do Convidado — Amanda & Ricardo" },
-      { name: "description", content: "Tudo o que você precisa saber para celebrar conosco: dress code, cerimônia, recepção e momentos especiais." },
+      {
+        name: "description",
+        content:
+          "Tudo o que você precisa saber para celebrar conosco: dress code, cerimônia, recepção e momentos especiais.",
+      },
       { property: "og:title", content: "Manual do Convidado — Amanda & Ricardo" },
       { property: "og:description", content: "Dress code, cerimônia, recepção, presentes e mais." },
     ],
@@ -29,7 +33,9 @@ function ManualPage() {
     let cancelled = false;
     supabase
       .from("guest_manual")
-      .select("ceremony_date,ceremony_time,ceremony_location,parking_info,location_info,gift_list_url,welcome_note")
+      .select(
+        "ceremony_date,ceremony_time,ceremony_location,parking_info,location_info,gift_list_url,welcome_note",
+      )
       .order("created_at", { ascending: true })
       .limit(1)
       .maybeSingle()
@@ -97,19 +103,31 @@ function ManualPage() {
             disabled={pdfBusy !== null || loading}
             className="inline-flex items-center gap-1.5 rounded-full border border-[var(--gold)]/40 bg-white/60 px-3 py-1.5 text-[10px] font-serif-caps text-[var(--gold-deep)] disabled:opacity-50"
           >
-            {pdfBusy === "download" ? <Loader2 className="h-3 w-3 animate-spin" /> : <Download className="h-3 w-3" />} PDF
+            {pdfBusy === "download" ? (
+              <Loader2 className="h-3 w-3 animate-spin" />
+            ) : (
+              <Download className="h-3 w-3" />
+            )}{" "}
+            PDF
           </button>
           <button
             onClick={handleShare}
             disabled={pdfBusy !== null || loading}
             className="inline-flex items-center gap-1.5 rounded-full bg-[var(--gold-deep)] px-3 py-1.5 text-[10px] font-serif-caps text-white disabled:opacity-50"
           >
-            {pdfBusy === "share" ? <Loader2 className="h-3 w-3 animate-spin" /> : <Share2 className="h-3 w-3" />} Compartilhar
+            {pdfBusy === "share" ? (
+              <Loader2 className="h-3 w-3 animate-spin" />
+            ) : (
+              <Share2 className="h-3 w-3" />
+            )}{" "}
+            Compartilhar
           </button>
         </div>
       </div>
       <ManualView data={m} innerRef={manualRef} />
-      {loading && <p className="-mt-4 mb-6 text-center text-xs text-[var(--cocoa)]/40">Carregando…</p>}
+      {loading && (
+        <p className="-mt-4 mb-6 text-center text-xs text-[var(--cocoa)]/40">Carregando…</p>
+      )}
     </AppShell>
   );
 }

@@ -1,7 +1,26 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { toJpeg, toPng } from "html-to-image";
-import { ArrowLeft, Download, FileDown, FileImage, Image as ImageIcon, Palette, Type, Calendar, MapPin, History, Save, Trash2, Check, Package, AlertTriangle, Sparkles, Loader2, Share2 } from "lucide-react";
+import {
+  ArrowLeft,
+  Download,
+  FileDown,
+  FileImage,
+  Image as ImageIcon,
+  Palette,
+  Type,
+  Calendar,
+  MapPin,
+  History,
+  Save,
+  Trash2,
+  Check,
+  Package,
+  AlertTriangle,
+  Sparkles,
+  Loader2,
+  Share2,
+} from "lucide-react";
 import { CoupleGate } from "@/components/CoupleGate";
 import { Ornament } from "@/components/Ornament";
 import { EditorTour, type TourStep } from "@/components/EditorTour";
@@ -96,7 +115,6 @@ function base64ToBlob(b64: string, type = "application/pdf"): Blob {
   return new Blob([bytes], { type });
 }
 
-
 type InviteDraft = {
   brideName: string;
   groomName: string;
@@ -110,7 +128,12 @@ type InviteDraft = {
   imageSrc: string;
 };
 
-type SavedVersion = InviteDraft & { id: string; savedAt: number; label: string; publishedUrl?: string };
+type SavedVersion = InviteDraft & {
+  id: string;
+  savedAt: number;
+  label: string;
+  publishedUrl?: string;
+};
 
 const DEFAULT_DRAFT: InviteDraft = {
   brideName: "Amanda",
@@ -140,7 +163,11 @@ function normalizeDraft(partial?: Partial<InviteDraft> | null): InviteDraft {
   };
 }
 
-function buildInvitePayload(draft: InviteDraft, userId: string, overrides?: Partial<SavedInviteInsert>): SavedInviteInsert {
+function buildInvitePayload(
+  draft: InviteDraft,
+  userId: string,
+  overrides?: Partial<SavedInviteInsert>,
+): SavedInviteInsert {
   return {
     user_id: userId,
     bride_name: draft.brideName,
@@ -266,7 +293,11 @@ export const Route = createFileRoute("/editor")({
   head: () => ({
     meta: [
       { title: "Editor do Convite — Nossa História" },
-      { name: "description", content: "Personalize seu convite digital: nomes, data, mensagem, cores e imagem. Exporte em alta resolução." },
+      {
+        name: "description",
+        content:
+          "Personalize seu convite digital: nomes, data, mensagem, cores e imagem. Exporte em alta resolução.",
+      },
     ],
   }),
   component: () => (
@@ -332,8 +363,7 @@ const PALETTES: Palette[] = [
 
 function Editor() {
   const initial = loadJSON<InviteDraft | null>(DRAFT_KEY, null);
-  const initialPalette =
-    PALETTES.find((p) => p.id === initial?.paletteId) ?? PALETTES[0];
+  const initialPalette = PALETTES.find((p) => p.id === initial?.paletteId) ?? PALETTES[0];
 
   const [brideName, setBrideName] = useState(initial?.brideName ?? DEFAULT_DRAFT.brideName);
   const [groomName, setGroomName] = useState(initial?.groomName ?? DEFAULT_DRAFT.groomName);
@@ -375,7 +405,14 @@ function Editor() {
   };
 
   const previewRef = useRef<HTMLDivElement>(null);
-  const { publishing, unpublishing, publishInvite, unpublishInvite, getPublicUrl, incrementShareCount } = useInvitePublish();
+  const {
+    publishing,
+    unpublishing,
+    publishInvite,
+    unpublishInvite,
+    getPublicUrl,
+    incrementShareCount,
+  } = useInvitePublish();
 
   useEffect(() => {
     let cancelled = false;
@@ -394,8 +431,16 @@ function Editor() {
   }, []);
 
   const draft: InviteDraft = {
-    brideName, groomName, date, time, venue, city, message, tagline,
-    paletteId: palette.id, imageSrc,
+    brideName,
+    groomName,
+    date,
+    time,
+    venue,
+    city,
+    message,
+    tagline,
+    paletteId: palette.id,
+    imageSrc,
   };
 
   const fetchSavedInvites = useCallback(
@@ -437,7 +482,7 @@ function Editor() {
       }
 
       const nonDraftRows = data.filter((row) => row.label !== AUTOSAVE_LABEL);
-      const remoteVersions = nonDraftRows.slice(0, MAX_VERSIONS).map(row => ({
+      const remoteVersions = nonDraftRows.slice(0, MAX_VERSIONS).map((row) => ({
         ...rowToSavedVersion(row),
         publishedUrl: row.published_url ?? undefined,
       }));
@@ -445,7 +490,13 @@ function Editor() {
       persistVersionsLocally(remoteVersions);
       const overflow = nonDraftRows.slice(MAX_VERSIONS);
       if (overflow.length > 0) {
-        void supabase.from("saved_invites").delete().in("id", overflow.map((row) => row.id));
+        void supabase
+          .from("saved_invites")
+          .delete()
+          .in(
+            "id",
+            overflow.map((row) => row.id),
+          );
       }
     },
     [userId],
@@ -509,7 +560,21 @@ function Editor() {
       clearTimeout(t);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [userId, autosaveReady, draftRowId, brideName, groomName, date, time, venue, city, message, tagline, palette.id, imageSrc]);
+  }, [
+    userId,
+    autosaveReady,
+    draftRowId,
+    brideName,
+    groomName,
+    date,
+    time,
+    venue,
+    city,
+    message,
+    tagline,
+    palette.id,
+    imageSrc,
+  ]);
 
   // Invalidate partial batch results when the invitation content changes
   useEffect(() => {
@@ -576,8 +641,6 @@ function Editor() {
       persistVersionsLocally(previous);
     }
   }
-
-
 
   function onPickImage(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
@@ -686,14 +749,18 @@ function Editor() {
     pdfBlobUrl: string;
     pdfBlob: Blob;
   } | null>(null);
-  const anyExporting = exporting || exportingPdf || exportingJpg || exportingZip || preparingBatch || cancellingBatch;
+  const anyExporting =
+    exporting || exportingPdf || exportingJpg || exportingZip || preparingBatch || cancellingBatch;
 
   // Persist partial batch progress so a reload can resume from where it stopped
   useEffect(() => {
     let cancelled = false;
     (async () => {
       try {
-        if (!batchPartial || (!batchPartial.pngUrl && !batchPartial.jpgUrl && !batchPartial.pdfBlob)) {
+        if (
+          !batchPartial ||
+          (!batchPartial.pngUrl && !batchPartial.jpgUrl && !batchPartial.pdfBlob)
+        ) {
           window.localStorage.removeItem(BATCH_PARTIAL_KEY);
           return;
         }
@@ -715,9 +782,11 @@ function Editor() {
     };
   }, [batchPartial]);
 
-
-
-  const [batchProgress, setBatchProgress] = useState<{ step: number; total: number; label: string }>({
+  const [batchProgress, setBatchProgress] = useState<{
+    step: number;
+    total: number;
+    label: string;
+  }>({
     step: 0,
     total: 4,
     label: "",
@@ -748,7 +817,6 @@ function Editor() {
     try {
       window.localStorage.setItem(BATCH_CLEAR_MESSAGE_KEY, JSON.stringify(clearConfirmMessage));
     } catch {}
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [clearConfirmTitle, clearConfirmMessage]);
 
   function promptCancelBatch() {
@@ -803,8 +871,7 @@ function Editor() {
     setCancelled(false);
     setCancellingBatch(false);
     setPreparingBatch(true);
-    const tick = (step: number, label: string) =>
-      setBatchProgress({ step, total: 4, label });
+    const tick = (step: number, label: string) => setBatchProgress({ step, total: 4, label });
     const checkCancel = () => {
       if (cancelBatchRef.current) throw new Error("CANCELLED");
     };
@@ -821,7 +888,9 @@ function Editor() {
       if (!pngUrl) {
         tick(1, "Renderizando PNG em alta resolução…");
         pngUrl = await toPng(previewRef.current, {
-          pixelRatio: 4, cacheBust: true, backgroundColor: palette.bg,
+          pixelRatio: 4,
+          cacheBust: true,
+          backgroundColor: palette.bg,
         });
         setBatchPartial((prev) => ({ ...prev, pngUrl }));
       } else {
@@ -833,7 +902,10 @@ function Editor() {
       if (!jpgUrl) {
         tick(2, "Renderizando JPG (qualidade 95%)…");
         jpgUrl = await toJpeg(previewRef.current, {
-          pixelRatio: 4, cacheBust: true, quality: 0.95, backgroundColor: palette.bg,
+          pixelRatio: 4,
+          cacheBust: true,
+          quality: 0.95,
+          backgroundColor: palette.bg,
         });
         setBatchPartial((prev) => ({ ...prev, pngUrl, jpgUrl }));
       } else {
@@ -844,8 +916,15 @@ function Editor() {
 
       if (!pdfBlob || !pdfBlobUrl) {
         tick(3, "Montando PDF A4…");
-        const pdf = new jsPDFMod.jsPDF({ orientation: "portrait", unit: "mm", format: "a4", compress: true });
-        const pageW = 210, pageH = 297, marginY = 12;
+        const pdf = new jsPDFMod.jsPDF({
+          orientation: "portrait",
+          unit: "mm",
+          format: "a4",
+          compress: true,
+        });
+        const pageW = 210,
+          pageH = 297,
+          marginY = 12;
         const imgH = pageH - marginY * 2;
         const imgW = (imgH * 9) / 16;
         const offsetX = (pageW - imgW) / 2;
@@ -861,7 +940,12 @@ function Editor() {
 
       tick(4, "Pronto!");
       if (batchPreview) URL.revokeObjectURL(batchPreview.pdfBlobUrl);
-      setBatchPreview({ pngUrl: pngUrl!, jpgUrl: jpgUrl!, pdfBlobUrl: pdfBlobUrl!, pdfBlob: pdfBlob! });
+      setBatchPreview({
+        pngUrl: pngUrl!,
+        jpgUrl: jpgUrl!,
+        pdfBlobUrl: pdfBlobUrl!,
+        pdfBlob: pdfBlob!,
+      });
       setBatchPartial(null);
     } catch (err) {
       if ((err as Error).message !== "CANCELLED") throw err;
@@ -871,9 +955,6 @@ function Editor() {
       cancelBatchRef.current = false;
     }
   }
-
-
-
 
   function closeBatchPreview() {
     if (batchPreview) URL.revokeObjectURL(batchPreview.pdfBlobUrl);
@@ -903,9 +984,6 @@ function Editor() {
     }
   }
 
-
-
-
   return (
     <div
       className="min-h-screen w-full"
@@ -914,7 +992,10 @@ function Editor() {
       }}
     >
       <header className="sticky top-0 z-30 flex items-center justify-between border-b border-[var(--gold)]/20 bg-[var(--ivory)]/85 px-4 py-3 backdrop-blur-xl">
-        <Link to="/" className="inline-flex items-center gap-2 text-[var(--cocoa)]/70 hover:text-[var(--cocoa)]">
+        <Link
+          to="/"
+          className="inline-flex items-center gap-2 text-[var(--cocoa)]/70 hover:text-[var(--cocoa)]"
+        >
           <ArrowLeft className="h-4 w-4" />
           <span className="font-serif-caps text-[10px]">voltar</span>
         </Link>
@@ -922,9 +1003,13 @@ function Editor() {
           <h1 className="font-display text-lg text-[var(--cocoa)]">Editor do Convite</h1>
           <span className="font-serif-caps text-[9px] text-[var(--gold-deep)]/80 flex items-center gap-1">
             {autoStatus === "saving" ? (
-              <><Save className="h-2.5 w-2.5 animate-pulse" /> salvando…</>
+              <>
+                <Save className="h-2.5 w-2.5 animate-pulse" /> salvando…
+              </>
             ) : autoStatus === "saved" ? (
-              <><Check className="h-2.5 w-2.5" /> rascunho salvo</>
+              <>
+                <Check className="h-2.5 w-2.5" /> rascunho salvo
+              </>
             ) : (
               <>rascunho automático</>
             )}
@@ -990,7 +1075,10 @@ function Editor() {
               <p className="mt-4 font-display text-[13px] italic opacity-70">{tagline}</p>
               <h2 className="mt-2 font-display text-[56px] leading-[0.95]">
                 {brideName}
-                <span className="block font-display italic text-[34px] my-0.5" style={{ color: palette.goldDeep }}>
+                <span
+                  className="block font-display italic text-[34px] my-0.5"
+                  style={{ color: palette.goldDeep }}
+                >
                   e
                 </span>
                 {groomName}
@@ -999,7 +1087,12 @@ function Editor() {
             </div>
 
             <div className="relative mx-5 mt-5 aspect-[9/13] overflow-hidden rounded-2xl">
-              <img src={imageSrc} alt="Cerimônia" className="h-full w-full object-cover" crossOrigin="anonymous" />
+              <img
+                src={imageSrc}
+                alt="Cerimônia"
+                className="h-full w-full object-cover"
+                crossOrigin="anonymous"
+              />
               <div
                 className="absolute inset-0"
                 style={{ background: `linear-gradient(to top, ${palette.ink}cc, transparent 55%)` }}
@@ -1014,7 +1107,9 @@ function Editor() {
               <p className="font-display text-[13px] italic opacity-80">"{message}"</p>
               <div className="mt-3 flex items-center justify-center gap-2 text-[11px] opacity-80">
                 <MapPin className="h-3 w-3" style={{ color: palette.goldDeep }} />
-                <span>{venue} · {city}</span>
+                <span>
+                  {venue} · {city}
+                </span>
               </div>
               <OrnamentLine color={palette.gold} className="mt-3" />
               <p className="mt-2 font-serif-caps text-[9px]" style={{ color: palette.goldDeep }}>
@@ -1027,155 +1122,167 @@ function Editor() {
         {/* Form */}
         <aside className="space-y-5">
           <div data-tour="names">
-          <Section icon={Type} title="Nomes do casal">
-            <Field label="Noiva" value={brideName} onChange={setBrideName} />
-            <Field label="Noivo" value={groomName} onChange={setGroomName} />
-          </Section>
+            <Section icon={Type} title="Nomes do casal">
+              <Field label="Noiva" value={brideName} onChange={setBrideName} />
+              <Field label="Noivo" value={groomName} onChange={setGroomName} />
+            </Section>
           </div>
 
           <div data-tour="date">
-          <Section icon={Calendar} title="Data & cerimônia">
-            <Field label="Data" value={date} onChange={setDate} />
-            <Field label="Hora" value={time} onChange={setTime} />
-            <Field label="Local" value={venue} onChange={setVenue} />
-            <Field label="Cidade" value={city} onChange={setCity} />
-          </Section>
+            <Section icon={Calendar} title="Data & cerimônia">
+              <Field label="Data" value={date} onChange={setDate} />
+              <Field label="Hora" value={time} onChange={setTime} />
+              <Field label="Local" value={venue} onChange={setVenue} />
+              <Field label="Cidade" value={city} onChange={setCity} />
+            </Section>
           </div>
 
           <div data-tour="message">
-          <Section icon={Type} title="Mensagem">
-            <Field label="Chamada" value={tagline} onChange={setTagline} />
-            <Field label="Convite" value={message} onChange={setMessage} multiline />
-          </Section>
+            <Section icon={Type} title="Mensagem">
+              <Field label="Chamada" value={tagline} onChange={setTagline} />
+              <Field label="Convite" value={message} onChange={setMessage} multiline />
+            </Section>
           </div>
 
           <div data-tour="palette">
-          <Section icon={Palette} title="Paleta">
-            <div className="grid grid-cols-2 gap-2">
-              {PALETTES.map((p) => (
-                <button
-                  key={p.id}
-                  onClick={() => setPalette(p)}
-                  className={`rounded-xl border p-2 text-left transition-all ${
-                    palette.id === p.id
-                      ? "border-[var(--gold-deep)] shadow-[var(--shadow-card)]"
-                      : "border-[var(--gold)]/25 hover:border-[var(--gold)]/60"
-                  }`}
-                  style={{ background: p.card }}
-                >
-                  <div className="flex gap-1">
-                    <span className="h-5 w-5 rounded-full" style={{ background: p.gold }} />
-                    <span className="h-5 w-5 rounded-full" style={{ background: p.goldDeep }} />
-                    <span className="h-5 w-5 rounded-full border border-[var(--gold)]/30" style={{ background: p.bg }} />
-                  </div>
-                  <p className="mt-1.5 font-display text-xs" style={{ color: p.ink }}>
-                    {p.name}
-                  </p>
-                </button>
-              ))}
-            </div>
-          </Section>
+            <Section icon={Palette} title="Paleta">
+              <div className="grid grid-cols-2 gap-2">
+                {PALETTES.map((p) => (
+                  <button
+                    key={p.id}
+                    onClick={() => setPalette(p)}
+                    className={`rounded-xl border p-2 text-left transition-all ${
+                      palette.id === p.id
+                        ? "border-[var(--gold-deep)] shadow-[var(--shadow-card)]"
+                        : "border-[var(--gold)]/25 hover:border-[var(--gold)]/60"
+                    }`}
+                    style={{ background: p.card }}
+                  >
+                    <div className="flex gap-1">
+                      <span className="h-5 w-5 rounded-full" style={{ background: p.gold }} />
+                      <span className="h-5 w-5 rounded-full" style={{ background: p.goldDeep }} />
+                      <span
+                        className="h-5 w-5 rounded-full border border-[var(--gold)]/30"
+                        style={{ background: p.bg }}
+                      />
+                    </div>
+                    <p className="mt-1.5 font-display text-xs" style={{ color: p.ink }}>
+                      {p.name}
+                    </p>
+                  </button>
+                ))}
+              </div>
+            </Section>
           </div>
 
           <div data-tour="image">
-          <Section icon={ImageIcon} title="Imagem principal">
-            <label className="flex cursor-pointer items-center justify-center gap-2 rounded-xl border border-dashed border-[var(--gold)]/45 bg-[var(--card)] px-3 py-4 font-serif-caps text-[10px] text-[var(--gold-deep)] hover:bg-[var(--gold)]/5">
-              <ImageIcon className="h-3.5 w-3.5" />
-              Escolher imagem (9:16)
-              <input type="file" accept="image/*" className="hidden" onChange={onPickImage} />
-            </label>
-          </Section>
+            <Section icon={ImageIcon} title="Imagem principal">
+              <label className="flex cursor-pointer items-center justify-center gap-2 rounded-xl border border-dashed border-[var(--gold)]/45 bg-[var(--card)] px-3 py-4 font-serif-caps text-[10px] text-[var(--gold-deep)] hover:bg-[var(--gold)]/5">
+                <ImageIcon className="h-3.5 w-3.5" />
+                Escolher imagem (9:16)
+                <input type="file" accept="image/*" className="hidden" onChange={onPickImage} />
+              </label>
+            </Section>
           </div>
-
 
           <div data-tour="versions">
-          <Section icon={History} title="Versões salvas">
-            <button
-              onClick={saveVersion}
-              disabled={savingVersion}
-              className="flex w-full items-center justify-center gap-2 rounded-lg border border-[var(--gold)]/30 bg-[var(--gold)]/10 px-3 py-2 font-serif-caps text-[10px] text-[var(--gold-deep)] hover:bg-[var(--gold)]/20 disabled:opacity-60 disabled:cursor-not-allowed"
-            >
-              {savingVersion ? (
-                <>
-                  <Loader2 className="h-3 w-3 animate-spin" /> Salvando…
-                </>
+            <Section icon={History} title="Versões salvas">
+              <button
+                onClick={saveVersion}
+                disabled={savingVersion}
+                className="flex w-full items-center justify-center gap-2 rounded-lg border border-[var(--gold)]/30 bg-[var(--gold)]/10 px-3 py-2 font-serif-caps text-[10px] text-[var(--gold-deep)] hover:bg-[var(--gold)]/20 disabled:opacity-60 disabled:cursor-not-allowed"
+              >
+                {savingVersion ? (
+                  <>
+                    <Loader2 className="h-3 w-3 animate-spin" /> Salvando…
+                  </>
+                ) : (
+                  <>
+                    <Save className="h-3 w-3" /> Salvar versão atual
+                  </>
+                )}
+              </button>
+              {versions.length === 0 ? (
+                <p className="text-center font-display text-[12px] italic text-[var(--cocoa)]/50">
+                  Nenhuma versão salva ainda. Seu rascunho é guardado automaticamente.
+                </p>
               ) : (
-                <>
-                  <Save className="h-3 w-3" /> Salvar versão atual
-                </>
-              )}
-            </button>
-            {versions.length === 0 ? (
-              <p className="text-center font-display text-[12px] italic text-[var(--cocoa)]/50">
-                Nenhuma versão salva ainda. Seu rascunho é guardado automaticamente.
-              </p>
-            ) : (
-              <ul className="space-y-1.5">
-                {versions.map((v) => (
-                  <li
-                    key={v.id}
-                    className="flex items-start justify-between gap-2 rounded-lg border border-[var(--gold)]/20 bg-[var(--ivory)] px-2.5 py-2"
-                  >
-                    <div className="flex-1">
-                      <button onClick={() => loadVersion(v)} className="text-left w-full">
-                        <p className="font-display text-sm text-[var(--cocoa)] leading-tight">{v.label}</p>
-                        <p className="font-serif-caps text-[9px] text-[var(--gold-deep)]/70">
-                          {new Date(v.savedAt).toLocaleString("pt-BR", {
-                            day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit",
-                          })}
-                        </p>
-                      </button>
-                      {v.publishedUrl && (
-                        <div className="mt-1.5 flex items-center gap-1.5">
-                          <a
-                            href={getPublicUrl(v.publishedUrl)}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            onClick={() => incrementShareCount(v.id)}
-                            className="inline-flex items-center gap-1 rounded-full border border-[var(--gold)]/30 bg-[var(--gold)]/10 px-2 py-0.5 text-[9px] font-medium text-[var(--gold-deep)] hover:bg-[var(--gold)]/20"
-                          >
-                            <Share2 className="h-2.5 w-2.5" /> Ver convite
-                          </a>
-                          <button
-                            onClick={() => unpublishInvite(v.id)}
-                            disabled={unpublishing}
-                            className="rounded-full border border-red-400/40 bg-red-50 px-2 py-0.5 text-[9px] font-medium text-red-600 hover:bg-red-100 disabled:opacity-60"
-                          >
-                            Despublicar
-                          </button>
-                        </div>
-                      )}
-                      {!v.publishedUrl && (
-                        <button
-                          onClick={() => publishInvite(v.id, brideName, groomName).then((slug) => {
-                            if (slug) {
-                              // Update local version state to reflect published status
-                              setVersions(prev => prev.map(version =>
-                                version.id === v.id ? { ...version, publishedUrl: slug } : version
-                              ));
-                            }
-                          })}
-                          disabled={publishing}
-                          className="mt-1.5 rounded-full border border-[var(--gold)]/30 bg-[var(--gold)]/10 px-2 py-0.5 text-[9px] font-medium text-[var(--gold-deep)] hover:bg-[var(--gold)]/20 disabled:opacity-60"
-                        >
-                          {publishing ? "Publicando..." : "Publicar"}
-                        </button>
-                      )}
-                    </div>
-                    <button
-                      onClick={() => deleteVersion(v.id)}
-                      className="rounded-md p-1.5 text-[var(--cocoa)]/40 hover:bg-red-50 hover:text-red-500"
-                      aria-label="Excluir versão"
+                <ul className="space-y-1.5">
+                  {versions.map((v) => (
+                    <li
+                      key={v.id}
+                      className="flex items-start justify-between gap-2 rounded-lg border border-[var(--gold)]/20 bg-[var(--ivory)] px-2.5 py-2"
                     >
-                      <Trash2 className="h-3.5 w-3.5" />
-                    </button>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </Section>
+                      <div className="flex-1">
+                        <button onClick={() => loadVersion(v)} className="text-left w-full">
+                          <p className="font-display text-sm text-[var(--cocoa)] leading-tight">
+                            {v.label}
+                          </p>
+                          <p className="font-serif-caps text-[9px] text-[var(--gold-deep)]/70">
+                            {new Date(v.savedAt).toLocaleString("pt-BR", {
+                              day: "2-digit",
+                              month: "2-digit",
+                              hour: "2-digit",
+                              minute: "2-digit",
+                            })}
+                          </p>
+                        </button>
+                        {v.publishedUrl && (
+                          <div className="mt-1.5 flex items-center gap-1.5">
+                            <a
+                              href={getPublicUrl(v.publishedUrl)}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              onClick={() => incrementShareCount(v.id)}
+                              className="inline-flex items-center gap-1 rounded-full border border-[var(--gold)]/30 bg-[var(--gold)]/10 px-2 py-0.5 text-[9px] font-medium text-[var(--gold-deep)] hover:bg-[var(--gold)]/20"
+                            >
+                              <Share2 className="h-2.5 w-2.5" /> Ver convite
+                            </a>
+                            <button
+                              onClick={() => unpublishInvite(v.id)}
+                              disabled={unpublishing}
+                              className="rounded-full border border-red-400/40 bg-red-50 px-2 py-0.5 text-[9px] font-medium text-red-600 hover:bg-red-100 disabled:opacity-60"
+                            >
+                              Despublicar
+                            </button>
+                          </div>
+                        )}
+                        {!v.publishedUrl && (
+                          <button
+                            onClick={() =>
+                              publishInvite(v.id, brideName, groomName).then((slug) => {
+                                if (slug) {
+                                  // Update local version state to reflect published status
+                                  setVersions((prev) =>
+                                    prev.map((version) =>
+                                      version.id === v.id
+                                        ? { ...version, publishedUrl: slug }
+                                        : version,
+                                    ),
+                                  );
+                                }
+                              })
+                            }
+                            disabled={publishing}
+                            className="mt-1.5 rounded-full border border-[var(--gold)]/30 bg-[var(--gold)]/10 px-2 py-0.5 text-[9px] font-medium text-[var(--gold-deep)] hover:bg-[var(--gold)]/20 disabled:opacity-60"
+                          >
+                            {publishing ? "Publicando..." : "Publicar"}
+                          </button>
+                        )}
+                      </div>
+                      <button
+                        onClick={() => deleteVersion(v.id)}
+                        className="rounded-md p-1.5 text-[var(--cocoa)]/40 hover:bg-red-50 hover:text-red-500"
+                        aria-label="Excluir versão"
+                      >
+                        <Trash2 className="h-3.5 w-3.5" />
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </Section>
           </div>
-
 
           <Section icon={AlertTriangle} title="Aviso de apagar progresso">
             <Field
@@ -1203,56 +1310,56 @@ function Editor() {
           </Section>
 
           <div data-tour="export" className="space-y-2">
-          <div className="grid grid-cols-3 gap-2">
-          <button
-            onClick={onExport}
-            disabled={anyExporting}
-            className="inline-flex flex-col items-center justify-center gap-1 rounded-2xl border border-[var(--gold-deep)]/40 bg-[var(--ivory)] py-3 font-serif-caps text-[10px] text-[var(--gold-deep)] hover:bg-[var(--gold)]/10 disabled:opacity-60"
-          >
-            <Download className="h-4 w-4" />
-            {exporting ? "…" : "PNG 9:16"}
-          </button>
-          <button
-            onClick={onExportJpg}
-            disabled={anyExporting}
-            className="inline-flex flex-col items-center justify-center gap-1 rounded-2xl border border-[var(--gold-deep)]/40 bg-[var(--ivory)] py-3 font-serif-caps text-[10px] text-[var(--gold-deep)] hover:bg-[var(--gold)]/10 disabled:opacity-60"
-          >
-            <FileImage className="h-4 w-4" />
-            {exportingJpg ? "…" : "JPG 9:16"}
-          </button>
-          <button
-            onClick={onExportPdf}
-            disabled={anyExporting}
-              className="inline-flex flex-col items-center justify-center gap-1 rounded-2xl py-3 font-serif-caps text-[10px] text-[var(--ivory)] shadow-[var(--shadow-card)] disabled:opacity-60"
-              style={{ background: palette.gradient }}
-            >
-              <FileDown className="h-4 w-4" />
-              {exportingPdf ? "…" : "PDF A4"}
-            </button>
-          </div>
-          <button
-            onClick={onPrepareBatch}
-            disabled={anyExporting}
-            className="flex w-full items-center justify-center gap-2 rounded-2xl bg-[var(--cocoa)] py-3 font-serif-caps text-[10px] text-[var(--ivory)] shadow-[var(--shadow-card)] hover:opacity-90 disabled:opacity-60"
-          >
-            <Package className="h-4 w-4" />
-            {preparingBatch
-              ? "Preparando prévia…"
-              : batchPartial
-              ? "Retomar prévia (PNG + JPG + PDF)"
-              : "Prévia em lote (PNG + JPG + PDF)"}
-          </button>
-
-          {batchPartial && (
+            <div className="grid grid-cols-3 gap-2">
+              <button
+                onClick={onExport}
+                disabled={anyExporting}
+                className="inline-flex flex-col items-center justify-center gap-1 rounded-2xl border border-[var(--gold-deep)]/40 bg-[var(--ivory)] py-3 font-serif-caps text-[10px] text-[var(--gold-deep)] hover:bg-[var(--gold)]/10 disabled:opacity-60"
+              >
+                <Download className="h-4 w-4" />
+                {exporting ? "…" : "PNG 9:16"}
+              </button>
+              <button
+                onClick={onExportJpg}
+                disabled={anyExporting}
+                className="inline-flex flex-col items-center justify-center gap-1 rounded-2xl border border-[var(--gold-deep)]/40 bg-[var(--ivory)] py-3 font-serif-caps text-[10px] text-[var(--gold-deep)] hover:bg-[var(--gold)]/10 disabled:opacity-60"
+              >
+                <FileImage className="h-4 w-4" />
+                {exportingJpg ? "…" : "JPG 9:16"}
+              </button>
+              <button
+                onClick={onExportPdf}
+                disabled={anyExporting}
+                className="inline-flex flex-col items-center justify-center gap-1 rounded-2xl py-3 font-serif-caps text-[10px] text-[var(--ivory)] shadow-[var(--shadow-card)] disabled:opacity-60"
+                style={{ background: palette.gradient }}
+              >
+                <FileDown className="h-4 w-4" />
+                {exportingPdf ? "…" : "PDF A4"}
+              </button>
+            </div>
             <button
-              onClick={promptClearBatchProgress}
-              disabled={preparingBatch}
-              className="flex w-full items-center justify-center gap-2 rounded-2xl border border-red-300 bg-red-50 px-3 py-2 font-serif-caps text-[10px] text-red-600 hover:bg-red-100 disabled:opacity-60"
+              onClick={onPrepareBatch}
+              disabled={anyExporting}
+              className="flex w-full items-center justify-center gap-2 rounded-2xl bg-[var(--cocoa)] py-3 font-serif-caps text-[10px] text-[var(--ivory)] shadow-[var(--shadow-card)] hover:opacity-90 disabled:opacity-60"
             >
-              <Trash2 className="h-3 w-3" />
-              Limpar progresso salvo e recomeçar
+              <Package className="h-4 w-4" />
+              {preparingBatch
+                ? "Preparando prévia…"
+                : batchPartial
+                  ? "Retomar prévia (PNG + JPG + PDF)"
+                  : "Prévia em lote (PNG + JPG + PDF)"}
             </button>
-          )}
+
+            {batchPartial && (
+              <button
+                onClick={promptClearBatchProgress}
+                disabled={preparingBatch}
+                className="flex w-full items-center justify-center gap-2 rounded-2xl border border-red-300 bg-red-50 px-3 py-2 font-serif-caps text-[10px] text-red-600 hover:bg-red-100 disabled:opacity-60"
+              >
+                <Trash2 className="h-3 w-3" />
+                Limpar progresso salvo e recomeçar
+              </button>
+            )}
           </div>
         </aside>
       </div>
@@ -1290,8 +1397,8 @@ function Editor() {
                       done
                         ? "text-[var(--gold-deep)]"
                         : active
-                        ? "text-[var(--cocoa)]"
-                        : "text-[var(--cocoa)]/40"
+                          ? "text-[var(--cocoa)]"
+                          : "text-[var(--cocoa)]/40"
                     }`}
                   >
                     {done ? (
@@ -1335,7 +1442,11 @@ function Editor() {
                 className="mt-4 flex w-full items-center justify-center gap-2 rounded-full border border-red-300 bg-white px-3 py-2 font-serif-caps text-[10px] text-red-600 hover:bg-red-50 disabled:opacity-60"
               >
                 <Trash2 className="h-3 w-3" />
-                {cancellingBatch ? "Cancelando geração…" : cancelled ? "Cancelando…" : "Cancelar geração"}
+                {cancellingBatch
+                  ? "Cancelando geração…"
+                  : cancelled
+                    ? "Cancelando…"
+                    : "Cancelar geração"}
               </button>
             )}
           </div>
@@ -1353,7 +1464,9 @@ function Editor() {
           >
             <div className="mb-4 flex items-start justify-between gap-4">
               <div>
-                <h3 className="font-display text-xl text-[var(--cocoa)]">Confira antes de gerar o ZIP</h3>
+                <h3 className="font-display text-xl text-[var(--cocoa)]">
+                  Confira antes de gerar o ZIP
+                </h3>
                 <p className="font-serif-caps text-[10px] text-[var(--gold-deep)]/80">
                   prévia dos 3 arquivos que serão incluídos
                 </p>
@@ -1381,14 +1494,22 @@ function Editor() {
                     sub="alta resolução"
                     onDownload={() => downloadHref(batchPreview.pngUrl, `${slug}.png`)}
                   >
-                    <img src={batchPreview.pngUrl} alt="Prévia PNG" className="h-full w-full object-cover" />
+                    <img
+                      src={batchPreview.pngUrl}
+                      alt="Prévia PNG"
+                      className="h-full w-full object-cover"
+                    />
                   </PreviewTile>
                   <PreviewTile
                     label="JPG 9:16"
                     sub="qualidade 95%"
                     onDownload={() => downloadHref(batchPreview.jpgUrl, `${slug}.jpg`)}
                   >
-                    <img src={batchPreview.jpgUrl} alt="Prévia JPG" className="h-full w-full object-cover" />
+                    <img
+                      src={batchPreview.jpgUrl}
+                      alt="Prévia JPG"
+                      className="h-full w-full object-cover"
+                    />
                   </PreviewTile>
                   <PreviewTile
                     label="PDF A4"
@@ -1518,9 +1639,16 @@ function Field({
     "w-full rounded-lg border border-[var(--gold)]/25 bg-[var(--ivory)] px-3 py-2 text-sm text-[var(--cocoa)] outline-none focus:border-[var(--gold-deep)]";
   return (
     <label className="block">
-      <span className="mb-1 block font-serif-caps text-[9px] text-[var(--gold-deep)]/80">{label}</span>
+      <span className="mb-1 block font-serif-caps text-[9px] text-[var(--gold-deep)]/80">
+        {label}
+      </span>
       {multiline ? (
-        <textarea rows={3} value={value} onChange={(e) => onChange(e.target.value)} className={cls} />
+        <textarea
+          rows={3}
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          className={cls}
+        />
       ) : (
         <input value={value} onChange={(e) => onChange(e.target.value)} className={cls} />
       )}
@@ -1553,7 +1681,10 @@ function Section({
 function OrnamentLine({ color, className = "" }: { color: string; className?: string }) {
   return (
     <div className={`flex items-center justify-center gap-3 ${className}`}>
-      <span className="h-px w-10" style={{ background: `linear-gradient(to right, transparent, ${color})` }} />
+      <span
+        className="h-px w-10"
+        style={{ background: `linear-gradient(to right, transparent, ${color})` }}
+      />
       <svg width="20" height="13" viewBox="0 0 22 14" fill="none" style={{ color }}>
         <path
           d="M11 13C5.5 8 2 7 2 4.5C2 2.5 4 1 6 1.5C8 2 10 4 11 5.5C12 4 14 2 16 1.5C18 1 20 2.5 20 4.5C20 7 16.5 8 11 13Z"
@@ -1563,7 +1694,10 @@ function OrnamentLine({ color, className = "" }: { color: string; className?: st
           fillOpacity="0.2"
         />
       </svg>
-      <span className="h-px w-10" style={{ background: `linear-gradient(to left, transparent, ${color})` }} />
+      <span
+        className="h-px w-10"
+        style={{ background: `linear-gradient(to left, transparent, ${color})` }}
+      />
     </div>
   );
 }
