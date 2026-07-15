@@ -45,6 +45,15 @@ function buildSPA() {
     // Copy .output/public to dist
     copyRecursive(outputDir, distDir);
 
+    // Find the main index-*.js file
+    const assetsDir = path.join(distDir, 'assets');
+    const files = fs.readdirSync(assetsDir);
+    const indexFile = files.find(f => f.match(/^index-[a-zA-Z0-9]+\.js$/));
+
+    if (!indexFile) {
+      throw new Error('Could not find index-*.js file in dist/assets/');
+    }
+
     // Create index.html for SPA routing
     const indexHtml = `<!DOCTYPE html>
 <html lang="en">
@@ -56,13 +65,14 @@ function buildSPA() {
   </head>
   <body>
     <div id="app"></div>
-    <script type="module" src="/assets/index.js"></script>
+    <script type="module" src="/assets/${indexFile}"></script>
   </body>
 </html>`;
 
     fs.writeFileSync(path.join(distDir, 'index.html'), indexHtml);
 
     console.log('✓ SPA build created successfully in dist/');
+    console.log(`✓ Using entry point: ${indexFile}`);
     console.log('Ready for FTP deployment!');
   } catch (error) {
     console.error('Error building SPA:', error);
