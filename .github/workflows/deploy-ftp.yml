@@ -25,6 +25,9 @@ jobs:
 
       - name: Build project
         run: npm run build:ftp
+        env:
+          VITE_SUPABASE_URL: https://miszggfikfioehokhuzk.supabase.co
+          VITE_SUPABASE_PUBLISHABLE_KEY: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1pc3pnZ2Zpa2Zpb2Vob2todXprIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI2MDMyNDQsImV4cCI6MjA5ODE3OTI0NH0.Qi9QsZZRfjBH3ljFRFsA-ZPs0gD7ogutUDBIi9ePFag
 
       - name: Deploy to FTP
         uses: SamKirkland/FTP-Deploy-Action@v4.3.4
