@@ -70,20 +70,126 @@ function buildSPA() {
 
     fs.writeFileSync(path.join(distDir, 'index.html'), indexHtml);
 
-    // Create .htaccess for SPA routing fallback
+    // Create .htaccess for SPA routing fallback (Apache)
     const htaccess = `<IfModule mod_rewrite.c>
   RewriteEngine On
   RewriteBase /
 
-  RewriteCond %{REQUEST_FILENAME} !-f
-  RewriteCond %{REQUEST_FILENAME} !-d
+  # Don't rewrite files or directories that exist
+  RewriteCond %{REQUEST_FILENAME} -f [OR]
+  RewriteCond %{REQUEST_FILENAME} -d
+  RewriteRule ^ - [L]
+
+  # Rewrite everything else to index.html
   RewriteRule ^ index.html [QSA,L]
+</IfModule>
+
+<IfModule mod_headers.c>
+  # Prevent caching of HTML files
+  <FilesMatch "\\.html$">
+    Header set Cache-Control "max-age=0, no-cache, no-store, must-revalidate"
+    Header set Pragma "no-cache"
+  </FilesMatch>
+
+  # Cache assets for 1 year
+  <FilesMatch "\\.(js|css|png|jpg|jpeg|gif|svg|ico|woff|woff2)$">
+    Header set Cache-Control "max-age=31536000, public, immutable"
+  </FilesMatch>
+</IfModule>
+
+# Disable directory listing
+<IfModule mod_autoindex.c>
+  Options -Indexes
+</IfModule>
+
+# Set default document
+<IfModule mod_dir.c>
+  DirectoryIndex index.html
 </IfModule>`;
     fs.writeFileSync(path.join(distDir, '.htaccess'), htaccess);
 
+    // Create htaccess (visible name for FTP compatibility)
+    fs.writeFileSync(path.join(distDir, 'htaccess'), htaccess);
+
+    // Create web.config for IIS support
+    const webConfig = `<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+  <system.webServer>
+    <rewrite>
+      <rules>
+        <rule name="SPA-Routing" stopProcessing="true">
+          <match url=".*" />
+          <conditions logicalGrouping="MatchAll">
+            <add input="{REQUEST_FILENAME}" matchType="IsFile" negate="true" />
+            <add input="{REQUEST_FILENAME}" matchType="IsDirectory" negate="true" />
+          </conditions>
+          <action type="Rewrite" url="index.html" />
+        </rule>
+      </rules>
+    </rewrite>
+    <staticContent>
+      <mimeMap fileExtension=".json" mimeType="application/json" />
+    </staticContent>
+  </system.webServer>
+</configuration>`;
+    fs.writeFileSync(path.join(distDir, 'web.config'), webConfig);
+
+    // Create 404.html for SPA routing fallback (if .htaccess doesn't work)
+    const notFoundHtml = `<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>DiPaula Studio</title>
+  <script>
+    // Redirect 404s to index.html for SPA routing
+    var path = window.location.pathname;
+    if (path !== '/' && !path.match(/\\.(js|css|json|png|jpg|jpeg|gif|svg|ico)$/i)) {
+      window.location.replace('/');
+    }
+  </script>
+</head>
+<body>
+  <script>
+    // Fallback if JavaScript redirect doesn't work
+    document.write('<meta http-equiv="refresh" content="0; url=/" />');
+  </script>
+  <p>Redirecionando...</p>
+</body>
+</html>`;
+    fs.writeFileSync(path.join(distDir, '404.html'), notFoundHtml);
+
+    // Create index.php as universal fallback for SPA routing
+    const indexPhp = `<?php
+  // SPA routing fallback - serve index.html for all non-file/non-directory requests
+  $request_path = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
+  $file_path = __DIR__ . $request_path;
+
+  // Check if it's a real file or directory
+  if (is_file($file_path) || is_dir($file_path)) {
+    // Let the server handle it normally
+    return false;
+  }
+
+  // Don't redirect static assets
+  if (preg_match('/\\.(js|css|json|png|jpg|jpeg|gif|svg|ico)$/i', $request_path)) {
+    header('HTTP/1.0 404 Not Found');
+    echo '404 Not Found';
+    exit;
+  }
+
+  // Serve index.html for all other requests (SPA routing)
+  include __DIR__ . '/index.html';
+?>`;
+    fs.writeFileSync(path.join(distDir, 'index.php'), indexPhp);
+
     console.log('✓ SPA build created successfully in dist/');
     console.log(`✓ Using entry point: ${indexFile}`);
-    console.log('✓ Created .htaccess for SPA routing');
+    console.log('✓ Created .htaccess for Apache SPA routing');
+    console.log('✓ Created .htaccess.txt as backup (for FTP compatibility)');
+    console.log('✓ Created web.config for IIS SPA routing');
+    console.log('✓ Created 404.html as fallback SPA routing');
+    console.log('✓ Created index.php as universal SPA router');
     console.log('Ready for FTP deployment!');
   } catch (error) {
     console.error('Error building SPA:', error);
