@@ -10,6 +10,7 @@ import {
   PersistedBatchPartial,
 } from "@/lib/inviteTypes";
 import { blobToBase64, loadJSON } from "@/lib/inviteUtils";
+import { safeSetItem, safeGetItem, safeRemoveItem } from "@/lib/safeStorage";
 
 export function useBatchExport(
   previewRef: React.RefObject<HTMLDivElement>,
@@ -85,7 +86,7 @@ export function useBatchExport(
           !batchPartial ||
           (!batchPartial.pngUrl && !batchPartial.jpgUrl && !batchPartial.pdfBlob)
         ) {
-          window.localStorage.removeItem(BATCH_PARTIAL_KEY);
+          safeRemoveItem(BATCH_PARTIAL_KEY);
           return;
         }
         const payload: PersistedBatchPartial = {
@@ -96,9 +97,12 @@ export function useBatchExport(
           payload.pdfBase64 = await blobToBase64(batchPartial.pdfBlob);
         }
         if (cancelled) return;
-        window.localStorage.setItem(BATCH_PARTIAL_KEY, JSON.stringify(payload));
-      } catch {
-        // localStorage quota or serialization issue
+        const success = safeSetItem(BATCH_PARTIAL_KEY, JSON.stringify(payload));
+        if (!success) {
+          console.warn("[useBatchExport] Falha ao persistir progresso batch");
+        }
+      } catch (error) {
+        console.error("[useBatchExport] Erro ao persistir progresso:", error);
       }
     })();
     return () => {
@@ -108,12 +112,17 @@ export function useBatchExport(
 
   // Persist custom titles/messages
   useEffect(() => {
-    try {
-      window.localStorage.setItem(BATCH_CLEAR_TITLE_KEY, JSON.stringify(clearConfirmTitle));
-    } catch {}
-    try {
-      window.localStorage.setItem(BATCH_CLEAR_MESSAGE_KEY, JSON.stringify(clearConfirmMessage));
-    } catch {}
+    const titleSuccess = safeSetItem(BATCH_CLEAR_TITLE_KEY, JSON.stringify(clearConfirmTitle));
+    if (!titleSuccess) {
+      console.warn("[useBatchExport] Falha ao salvar título de confirmação");
+    }
+    const messageSuccess = safeSetItem(
+      BATCH_CLEAR_MESSAGE_KEY,
+      JSON.stringify(clearConfirmMessage),
+    );
+    if (!messageSuccess) {
+      console.warn("[useBatchExport] Falha ao salvar mensagem de confirmação");
+    }
   }, [clearConfirmTitle, clearConfirmMessage]);
 
   // Cancel batch handlers
@@ -147,21 +156,23 @@ export function useBatchExport(
   };
 
   const confirmClearBatchProgress = (saveSkipPreference: boolean) => {
-    try {
-      window.localStorage.removeItem(BATCH_PARTIAL_KEY);
-      if (saveSkipPreference) {
-        window.localStorage.setItem(BATCH_CLEAR_SKIP_CONFIRM_KEY, JSON.stringify(true));
+    safeRemoveItem(BATCH_PARTIAL_KEY);
+    if (saveSkipPreference) {
+      const success = safeSetItem(BATCH_CLEAR_SKIP_CONFIRM_KEY, JSON.stringify(true));
+      if (!success) {
+        console.warn("[useBatchExport] Falha ao salvar preferência de skip");
       }
-    } catch {}
+    }
     if (batchPartial?.pdfBlobUrl) URL.revokeObjectURL(batchPartial.pdfBlobUrl);
     setBatchPartial(null);
     setShowClearConfirm(false);
   };
 
   const clearSkipPreference = () => {
-    try {
-      window.localStorage.removeItem(BATCH_CLEAR_SKIP_CONFIRM_KEY);
-    } catch {}
+    const success = safeRemoveItem(BATCH_CLEAR_SKIP_CONFIRM_KEY);
+    if (!success) {
+      console.warn("[useBatchExport] Falha ao remover preferência de skip");
+    }
   };
 
   // Batch preparation

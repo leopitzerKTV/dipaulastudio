@@ -11,6 +11,7 @@ import {
   AUTOSAVE_LABEL,
   PALETTES,
 } from "./inviteTypes";
+import { safeSetItem, safeGetItem, safeRemoveItem } from "./safeStorage";
 
 // ============================================================================
 // BLOB CONVERSION
@@ -129,19 +130,17 @@ export function rowToSavedVersion(row: SavedInviteRow): SavedVersion {
 
 export function persistDraftLocally(draft: InviteDraft) {
   if (typeof window === "undefined") return;
-  try {
-    window.localStorage.setItem(DRAFT_KEY, JSON.stringify(draft));
-  } catch {
-    // ignore localStorage quota exceeded
+  const success = safeSetItem(DRAFT_KEY, JSON.stringify(draft));
+  if (!success) {
+    console.warn("[persistDraftLocally] Falha ao salvar rascunho no localStorage");
   }
 }
 
 export function persistVersionsLocally(versions: SavedVersion[]) {
   if (typeof window === "undefined") return;
-  try {
-    window.localStorage.setItem(VERSIONS_KEY, JSON.stringify(versions));
-  } catch {
-    // ignore localStorage quota exceeded
+  const success = safeSetItem(VERSIONS_KEY, JSON.stringify(versions));
+  if (!success) {
+    console.warn("[persistVersionsLocally] Falha ao salvar versões no localStorage");
   }
 }
 
@@ -151,43 +150,54 @@ export function persistVersionsLocally(versions: SavedVersion[]) {
 
 export async function migrateLocalDraftsToSupabase(userId: string) {
   if (typeof window === "undefined") return false;
-  if (window.localStorage.getItem(MIGRATION_FLAG_KEY) === "1") return false;
+  if (safeGetItem(MIGRATION_FLAG_KEY) === "1") return false;
   let migrated = false;
   try {
-    const draftRaw = window.localStorage.getItem(DRAFT_KEY);
-    const versionsRaw = window.localStorage.getItem(VERSIONS_KEY);
+    const draftRaw = safeGetItem(DRAFT_KEY);
+    const versionsRaw = safeGetItem(VERSIONS_KEY);
     const payloads: SavedInviteInsert[] = [];
+
     if (draftRaw) {
-      const parsed = normalizeDraft(JSON.parse(draftRaw) as Partial<InviteDraft>);
-      payloads.push(buildInvitePayload(parsed, userId, { label: AUTOSAVE_LABEL }));
+      try {
+        const parsed = normalizeDraft(JSON.parse(draftRaw) as Partial<InviteDraft>);
+        payloads.push(buildInvitePayload(parsed, userId, { label: AUTOSAVE_LABEL }));
+      } catch (err) {
+        console.warn("[migrateLocalDraftsToSupabase] Falha ao parsear rascunho", err);
+      }
     }
+
     if (versionsRaw) {
-      const parsed = JSON.parse(versionsRaw) as SavedVersion[];
-      parsed.forEach((version, index) => {
-        const normalized = normalizeDraft(version);
-        payloads.push(
-          buildInvitePayload(normalized, userId, {
-            label: version.label ? `${version.label}-${index}` : `versao-${index}`,
-            created_at: new Date(version.savedAt).toISOString(),
-            updated_at: new Date(version.savedAt).toISOString(),
-          }),
-        );
-      });
+      try {
+        const parsed = JSON.parse(versionsRaw) as SavedVersion[];
+        parsed.forEach((version, index) => {
+          const normalized = normalizeDraft(version);
+          payloads.push(
+            buildInvitePayload(normalized, userId, {
+              label: version.label ? `${version.label}-${index}` : `versao-${index}`,
+              created_at: new Date(version.savedAt).toISOString(),
+              updated_at: new Date(version.savedAt).toISOString(),
+            }),
+          );
+        });
+      } catch (err) {
+        console.warn("[migrateLocalDraftsToSupabase] Falha ao parsear versões", err);
+      }
     }
+
     for (const payload of payloads) {
       const { error } = await supabase.from("saved_invites").insert(payload);
       if (error && error.code !== "23505") {
-        console.error("Falha ao migrar convite", error);
+        console.error("[migrateLocalDraftsToSupabase] Falha ao migrar convite:", error);
         break;
       }
       migrated = true;
     }
     return migrated;
   } catch (error) {
-    console.error("Erro durante migração para Supabase", error);
+    console.error("[migrateLocalDraftsToSupabase] Erro durante migração:", error);
     return false;
   } finally {
-    window.localStorage.setItem(MIGRATION_FLAG_KEY, "1");
+    safeSetItem(MIGRATION_FLAG_KEY, "1");
   }
 }
 
@@ -198,9 +208,10 @@ export async function migrateLocalDraftsToSupabase(userId: string) {
 export function loadJSON<T>(key: string, fallback: T): T {
   if (typeof window === "undefined") return fallback;
   try {
-    const raw = window.localStorage.getItem(key);
+    const raw = safeGetItem(key);
     return raw ? (JSON.parse(raw) as T) : fallback;
-  } catch {
+  } catch (error) {
+    console.warn(`[loadJSON] Falha ao fazer parse da chave "${key}":`, error);
     return fallback;
   }
 }

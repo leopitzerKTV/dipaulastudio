@@ -1,6 +1,7 @@
 import * as React from "react";
 import { Outlet, createRootRoute, HeadContent, Scripts } from "@tanstack/react-router";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { ErrorBoundary } from "@/components/ErrorBoundary";
 
 import stylesUrl from "@/styles.css?url";
 
@@ -29,7 +30,9 @@ function RootComponent() {
       </head>
       <body>
         <QueryClientProvider client={queryClientRef.current!}>
-          <Outlet />
+          <ErrorBoundary>
+            <Outlet />
+          </ErrorBoundary>
         </QueryClientProvider>
         <Scripts />
       </body>
