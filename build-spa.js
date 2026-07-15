@@ -48,7 +48,7 @@ function buildSPA() {
     // Find the main index-*.js file
     const assetsDir = path.join(distDir, 'assets');
     const files = fs.readdirSync(assetsDir);
-    const indexFile = files.find(f => f.match(/^index-[a-zA-Z0-9]+\.js$/));
+    const indexFile = files.find(f => f.match(/^index-[a-zA-Z0-9-]+\.js$/));
 
     if (!indexFile) {
       throw new Error('Could not find index-*.js file in dist/assets/');
@@ -70,8 +70,20 @@ function buildSPA() {
 
     fs.writeFileSync(path.join(distDir, 'index.html'), indexHtml);
 
+    // Create .htaccess for SPA routing fallback
+    const htaccess = `<IfModule mod_rewrite.c>
+  RewriteEngine On
+  RewriteBase /
+
+  RewriteCond %{REQUEST_FILENAME} !-f
+  RewriteCond %{REQUEST_FILENAME} !-d
+  RewriteRule ^ index.html [QSA,L]
+</IfModule>`;
+    fs.writeFileSync(path.join(distDir, '.htaccess'), htaccess);
+
     console.log('✓ SPA build created successfully in dist/');
     console.log(`✓ Using entry point: ${indexFile}`);
+    console.log('✓ Created .htaccess for SPA routing');
     console.log('Ready for FTP deployment!');
   } catch (error) {
     console.error('Error building SPA:', error);

@@ -101,7 +101,7 @@ function Album() {
         </div>
 
         <div style={{ textAlign: "center", marginTop: "40px" }}>
-          <p style={{ fontSize: "12px", color: "var(--cocoa)", opacity: 0.6" }}>
+          <p style={{ fontSize: "12px", color: "var(--cocoa)", opacity: 0.6 }}>
             Dúvidas? Entre em contato conosco
           </p>
           <div style={{ display: "flex", justifyContent: "center", gap: "16px", marginTop: "12px" }}>
