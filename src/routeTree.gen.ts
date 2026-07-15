@@ -9,315 +9,38 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as PainelRouteImport } from './routes/painel'
-import { Route as ManualRouteImport } from './routes/manual'
-import { Route as LinhaDoTempoRouteImport } from './routes/linha-do-tempo'
-import { Route as HistoriaRouteImport } from './routes/historia'
-import { Route as EditorRouteImport } from './routes/editor'
-import { Route as AuthRouteImport } from './routes/auth'
-import { Route as AlbumRouteImport } from './routes/album'
-import { Route as AdminRouteImport } from './routes/admin'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as ManualIndexRouteImport } from './routes/manual.index'
-import { Route as LinhaDoTempoIndexRouteImport } from './routes/linha-do-tempo.index'
-import { Route as HistoriaIndexRouteImport } from './routes/historia.index'
-import { Route as AdminIndexRouteImport } from './routes/admin.index'
-import { Route as ManualEditarRouteImport } from './routes/manual.editar'
-import { Route as LinhaDoTempoEditarRouteImport } from './routes/linha-do-tempo.editar'
-import { Route as HistoriaEditarRouteImport } from './routes/historia.editar'
-import { Route as ConviteSlugRouteImport } from './routes/convite.$slug'
-import { Route as AdminUsersRouteImport } from './routes/admin.users'
-import { Route as AdminLoginRouteImport } from './routes/admin.login'
 
-const PainelRoute = PainelRouteImport.update({
-  id: '/painel',
-  path: '/painel',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ManualRoute = ManualRouteImport.update({
-  id: '/manual',
-  path: '/manual',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const LinhaDoTempoRoute = LinhaDoTempoRouteImport.update({
-  id: '/linha-do-tempo',
-  path: '/linha-do-tempo',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const HistoriaRoute = HistoriaRouteImport.update({
-  id: '/historia',
-  path: '/historia',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const EditorRoute = EditorRouteImport.update({
-  id: '/editor',
-  path: '/editor',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AuthRoute = AuthRouteImport.update({
-  id: '/auth',
-  path: '/auth',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AlbumRoute = AlbumRouteImport.update({
-  id: '/album',
-  path: '/album',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AdminRoute = AdminRouteImport.update({
-  id: '/admin',
-  path: '/admin',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ManualIndexRoute = ManualIndexRouteImport.update({
-  id: '/',
-  path: '/',
-  getParentRoute: () => ManualRoute,
-} as any)
-const LinhaDoTempoIndexRoute = LinhaDoTempoIndexRouteImport.update({
-  id: '/',
-  path: '/',
-  getParentRoute: () => LinhaDoTempoRoute,
-} as any)
-const HistoriaIndexRoute = HistoriaIndexRouteImport.update({
-  id: '/',
-  path: '/',
-  getParentRoute: () => HistoriaRoute,
-} as any)
-const AdminIndexRoute = AdminIndexRouteImport.update({
-  id: '/',
-  path: '/',
-  getParentRoute: () => AdminRoute,
-} as any)
-const ManualEditarRoute = ManualEditarRouteImport.update({
-  id: '/editar',
-  path: '/editar',
-  getParentRoute: () => ManualRoute,
-} as any)
-const LinhaDoTempoEditarRoute = LinhaDoTempoEditarRouteImport.update({
-  id: '/editar',
-  path: '/editar',
-  getParentRoute: () => LinhaDoTempoRoute,
-} as any)
-const HistoriaEditarRoute = HistoriaEditarRouteImport.update({
-  id: '/editar',
-  path: '/editar',
-  getParentRoute: () => HistoriaRoute,
-} as any)
-const ConviteSlugRoute = ConviteSlugRouteImport.update({
-  id: '/convite/$slug',
-  path: '/convite/$slug',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AdminUsersRoute = AdminUsersRouteImport.update({
-  id: '/users',
-  path: '/users',
-  getParentRoute: () => AdminRoute,
-} as any)
-const AdminLoginRoute = AdminLoginRouteImport.update({
-  id: '/login',
-  path: '/login',
-  getParentRoute: () => AdminRoute,
-} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/admin': typeof AdminRouteWithChildren
-  '/album': typeof AlbumRoute
-  '/auth': typeof AuthRoute
-  '/editor': typeof EditorRoute
-  '/historia': typeof HistoriaRouteWithChildren
-  '/linha-do-tempo': typeof LinhaDoTempoRouteWithChildren
-  '/manual': typeof ManualRouteWithChildren
-  '/painel': typeof PainelRoute
-  '/admin/login': typeof AdminLoginRoute
-  '/admin/users': typeof AdminUsersRoute
-  '/convite/$slug': typeof ConviteSlugRoute
-  '/historia/editar': typeof HistoriaEditarRoute
-  '/linha-do-tempo/editar': typeof LinhaDoTempoEditarRoute
-  '/manual/editar': typeof ManualEditarRoute
-  '/admin/': typeof AdminIndexRoute
-  '/historia/': typeof HistoriaIndexRoute
-  '/linha-do-tempo/': typeof LinhaDoTempoIndexRoute
-  '/manual/': typeof ManualIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/album': typeof AlbumRoute
-  '/auth': typeof AuthRoute
-  '/editor': typeof EditorRoute
-  '/painel': typeof PainelRoute
-  '/admin/login': typeof AdminLoginRoute
-  '/admin/users': typeof AdminUsersRoute
-  '/convite/$slug': typeof ConviteSlugRoute
-  '/historia/editar': typeof HistoriaEditarRoute
-  '/linha-do-tempo/editar': typeof LinhaDoTempoEditarRoute
-  '/manual/editar': typeof ManualEditarRoute
-  '/admin': typeof AdminIndexRoute
-  '/historia': typeof HistoriaIndexRoute
-  '/linha-do-tempo': typeof LinhaDoTempoIndexRoute
-  '/manual': typeof ManualIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
-  '/admin': typeof AdminRouteWithChildren
-  '/album': typeof AlbumRoute
-  '/auth': typeof AuthRoute
-  '/editor': typeof EditorRoute
-  '/historia': typeof HistoriaRouteWithChildren
-  '/linha-do-tempo': typeof LinhaDoTempoRouteWithChildren
-  '/manual': typeof ManualRouteWithChildren
-  '/painel': typeof PainelRoute
-  '/admin/login': typeof AdminLoginRoute
-  '/admin/users': typeof AdminUsersRoute
-  '/convite/$slug': typeof ConviteSlugRoute
-  '/historia/editar': typeof HistoriaEditarRoute
-  '/linha-do-tempo/editar': typeof LinhaDoTempoEditarRoute
-  '/manual/editar': typeof ManualEditarRoute
-  '/admin/': typeof AdminIndexRoute
-  '/historia/': typeof HistoriaIndexRoute
-  '/linha-do-tempo/': typeof LinhaDoTempoIndexRoute
-  '/manual/': typeof ManualIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths:
-    | '/'
-    | '/admin'
-    | '/album'
-    | '/auth'
-    | '/editor'
-    | '/historia'
-    | '/linha-do-tempo'
-    | '/manual'
-    | '/painel'
-    | '/admin/login'
-    | '/admin/users'
-    | '/convite/$slug'
-    | '/historia/editar'
-    | '/linha-do-tempo/editar'
-    | '/manual/editar'
-    | '/admin/'
-    | '/historia/'
-    | '/linha-do-tempo/'
-    | '/manual/'
+  fullPaths: '/'
   fileRoutesByTo: FileRoutesByTo
-  to:
-    | '/'
-    | '/album'
-    | '/auth'
-    | '/editor'
-    | '/painel'
-    | '/admin/login'
-    | '/admin/users'
-    | '/convite/$slug'
-    | '/historia/editar'
-    | '/linha-do-tempo/editar'
-    | '/manual/editar'
-    | '/admin'
-    | '/historia'
-    | '/linha-do-tempo'
-    | '/manual'
-  id:
-    | '__root__'
-    | '/'
-    | '/admin'
-    | '/album'
-    | '/auth'
-    | '/editor'
-    | '/historia'
-    | '/linha-do-tempo'
-    | '/manual'
-    | '/painel'
-    | '/admin/login'
-    | '/admin/users'
-    | '/convite/$slug'
-    | '/historia/editar'
-    | '/linha-do-tempo/editar'
-    | '/manual/editar'
-    | '/admin/'
-    | '/historia/'
-    | '/linha-do-tempo/'
-    | '/manual/'
+  to: '/'
+  id: '__root__' | '/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
-  AdminRoute: typeof AdminRouteWithChildren
-  AlbumRoute: typeof AlbumRoute
-  AuthRoute: typeof AuthRoute
-  EditorRoute: typeof EditorRoute
-  HistoriaRoute: typeof HistoriaRouteWithChildren
-  LinhaDoTempoRoute: typeof LinhaDoTempoRouteWithChildren
-  ManualRoute: typeof ManualRouteWithChildren
-  PainelRoute: typeof PainelRoute
-  ConviteSlugRoute: typeof ConviteSlugRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/painel': {
-      id: '/painel'
-      path: '/painel'
-      fullPath: '/painel'
-      preLoaderRoute: typeof PainelRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/manual': {
-      id: '/manual'
-      path: '/manual'
-      fullPath: '/manual'
-      preLoaderRoute: typeof ManualRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/linha-do-tempo': {
-      id: '/linha-do-tempo'
-      path: '/linha-do-tempo'
-      fullPath: '/linha-do-tempo'
-      preLoaderRoute: typeof LinhaDoTempoRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/historia': {
-      id: '/historia'
-      path: '/historia'
-      fullPath: '/historia'
-      preLoaderRoute: typeof HistoriaRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/editor': {
-      id: '/editor'
-      path: '/editor'
-      fullPath: '/editor'
-      preLoaderRoute: typeof EditorRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/auth': {
-      id: '/auth'
-      path: '/auth'
-      fullPath: '/auth'
-      preLoaderRoute: typeof AuthRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/album': {
-      id: '/album'
-      path: '/album'
-      fullPath: '/album'
-      preLoaderRoute: typeof AlbumRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/admin': {
-      id: '/admin'
-      path: '/admin'
-      fullPath: '/admin'
-      preLoaderRoute: typeof AdminRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/': {
       id: '/'
       path: '/'
@@ -325,145 +48,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/manual/': {
-      id: '/manual/'
-      path: '/'
-      fullPath: '/manual/'
-      preLoaderRoute: typeof ManualIndexRouteImport
-      parentRoute: typeof ManualRoute
-    }
-    '/linha-do-tempo/': {
-      id: '/linha-do-tempo/'
-      path: '/'
-      fullPath: '/linha-do-tempo/'
-      preLoaderRoute: typeof LinhaDoTempoIndexRouteImport
-      parentRoute: typeof LinhaDoTempoRoute
-    }
-    '/historia/': {
-      id: '/historia/'
-      path: '/'
-      fullPath: '/historia/'
-      preLoaderRoute: typeof HistoriaIndexRouteImport
-      parentRoute: typeof HistoriaRoute
-    }
-    '/admin/': {
-      id: '/admin/'
-      path: '/'
-      fullPath: '/admin/'
-      preLoaderRoute: typeof AdminIndexRouteImport
-      parentRoute: typeof AdminRoute
-    }
-    '/manual/editar': {
-      id: '/manual/editar'
-      path: '/editar'
-      fullPath: '/manual/editar'
-      preLoaderRoute: typeof ManualEditarRouteImport
-      parentRoute: typeof ManualRoute
-    }
-    '/linha-do-tempo/editar': {
-      id: '/linha-do-tempo/editar'
-      path: '/editar'
-      fullPath: '/linha-do-tempo/editar'
-      preLoaderRoute: typeof LinhaDoTempoEditarRouteImport
-      parentRoute: typeof LinhaDoTempoRoute
-    }
-    '/historia/editar': {
-      id: '/historia/editar'
-      path: '/editar'
-      fullPath: '/historia/editar'
-      preLoaderRoute: typeof HistoriaEditarRouteImport
-      parentRoute: typeof HistoriaRoute
-    }
-    '/convite/$slug': {
-      id: '/convite/$slug'
-      path: '/convite/$slug'
-      fullPath: '/convite/$slug'
-      preLoaderRoute: typeof ConviteSlugRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/admin/users': {
-      id: '/admin/users'
-      path: '/users'
-      fullPath: '/admin/users'
-      preLoaderRoute: typeof AdminUsersRouteImport
-      parentRoute: typeof AdminRoute
-    }
-    '/admin/login': {
-      id: '/admin/login'
-      path: '/login'
-      fullPath: '/admin/login'
-      preLoaderRoute: typeof AdminLoginRouteImport
-      parentRoute: typeof AdminRoute
-    }
   }
 }
 
-interface AdminRouteChildren {
-  AdminLoginRoute: typeof AdminLoginRoute
-  AdminUsersRoute: typeof AdminUsersRoute
-  AdminIndexRoute: typeof AdminIndexRoute
-}
-
-const AdminRouteChildren: AdminRouteChildren = {
-  AdminLoginRoute: AdminLoginRoute,
-  AdminUsersRoute: AdminUsersRoute,
-  AdminIndexRoute: AdminIndexRoute,
-}
-
-const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)
-
-interface HistoriaRouteChildren {
-  HistoriaEditarRoute: typeof HistoriaEditarRoute
-  HistoriaIndexRoute: typeof HistoriaIndexRoute
-}
-
-const HistoriaRouteChildren: HistoriaRouteChildren = {
-  HistoriaEditarRoute: HistoriaEditarRoute,
-  HistoriaIndexRoute: HistoriaIndexRoute,
-}
-
-const HistoriaRouteWithChildren = HistoriaRoute._addFileChildren(
-  HistoriaRouteChildren,
-)
-
-interface LinhaDoTempoRouteChildren {
-  LinhaDoTempoEditarRoute: typeof LinhaDoTempoEditarRoute
-  LinhaDoTempoIndexRoute: typeof LinhaDoTempoIndexRoute
-}
-
-const LinhaDoTempoRouteChildren: LinhaDoTempoRouteChildren = {
-  LinhaDoTempoEditarRoute: LinhaDoTempoEditarRoute,
-  LinhaDoTempoIndexRoute: LinhaDoTempoIndexRoute,
-}
-
-const LinhaDoTempoRouteWithChildren = LinhaDoTempoRoute._addFileChildren(
-  LinhaDoTempoRouteChildren,
-)
-
-interface ManualRouteChildren {
-  ManualEditarRoute: typeof ManualEditarRoute
-  ManualIndexRoute: typeof ManualIndexRoute
-}
-
-const ManualRouteChildren: ManualRouteChildren = {
-  ManualEditarRoute: ManualEditarRoute,
-  ManualIndexRoute: ManualIndexRoute,
-}
-
-const ManualRouteWithChildren =
-  ManualRoute._addFileChildren(ManualRouteChildren)
-
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
-  AdminRoute: AdminRouteWithChildren,
-  AlbumRoute: AlbumRoute,
-  AuthRoute: AuthRoute,
-  EditorRoute: EditorRoute,
-  HistoriaRoute: HistoriaRouteWithChildren,
-  LinhaDoTempoRoute: LinhaDoTempoRouteWithChildren,
-  ManualRoute: ManualRouteWithChildren,
-  PainelRoute: PainelRoute,
-  ConviteSlugRoute: ConviteSlugRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
