@@ -71,36 +71,44 @@ function buildSPA() {
     fs.writeFileSync(path.join(distDir, 'index.html'), indexHtml);
 
     // Create .htaccess for SPA routing fallback (Apache)
-    const htaccess = `# Enable mod_rewrite
-<IfModule mod_rewrite.c>
-  RewriteEngine On
-  RewriteBase /
+    const htaccess = `RewriteEngine On
+RewriteBase /
 
-  # Don't rewrite existing files or directories
-  RewriteCond %{REQUEST_FILENAME} !-f
-  RewriteCond %{REQUEST_FILENAME} !-d
+# Disable directory listing
+Options -Indexes
 
-  # Rewrite all other requests to index.html
-  RewriteRule ^ index.html [QSA,L]
-</IfModule>
+# Set default document
+DirectoryIndex index.html
 
-# Set default directory index
-<IfModule mod_dir.c>
-  DirectoryIndex index.html
-</IfModule>
+# Don't rewrite requests to existing files or directories
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
 
-# Serve 404.html for missing files (as SPA fallback)
+# Don't rewrite requests that already have a query string
+RewriteCond %{QUERY_STRING} !^$
+
+# Rewrite everything else to index.html
+RewriteRule ^ index.html [QSA,L]
+
+# Also handle cases without query string
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^(.*)$ index.html [QSA,L]
+
+# Serve 404.html for missing files
 ErrorDocument 404 /404.html
 
-# Optimize caching
-<IfModule mod_expires.c>
-  ExpiresActive On
-  ExpiresByType text/html "access plus 0 seconds"
-  ExpiresByType application/javascript "access plus 1 year"
-  ExpiresByType text/css "access plus 1 year"
-  ExpiresByType image/jpeg "access plus 1 year"
-  ExpiresByType image/png "access plus 1 year"
-</IfModule>`;
+# Prevent caching of HTML files
+<FilesMatch "\\.html$">
+  Header set Cache-Control "max-age=0, no-cache, no-store, must-revalidate"
+  Header set Pragma "no-cache"
+  Header set Expires "0"
+</FilesMatch>
+
+# Cache busting for assets
+<FilesMatch "\\.(js|css|png|jpg|jpeg|gif|svg|ico)$">
+  Header set Cache-Control "max-age=31536000, public, immutable"
+</FilesMatch>`;
     fs.writeFileSync(path.join(distDir, '.htaccess'), htaccess);
 
     // Create web.config for IIS support
