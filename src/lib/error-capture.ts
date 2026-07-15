@@ -10,9 +10,13 @@ function record(error: unknown) {
 
 if (typeof globalThis.addEventListener === "function") {
   globalThis.addEventListener("error", (event) => record((event as ErrorEvent).error ?? event));
-  globalThis.addEventListener("unhandledrejection", (event) =>
-    record((event as PromiseRejectionEvent).reason),
-  );
+  globalThis.addEventListener("unhandledrejection", (event) => {
+    record((event as PromiseRejectionEvent).reason);
+    // Prevent unhandled promise rejections from crashing the app in SPA mode
+    if (typeof event.preventDefault === 'function') {
+      event.preventDefault();
+    }
+  });
 }
 
 export function consumeLastCapturedError(): unknown {
