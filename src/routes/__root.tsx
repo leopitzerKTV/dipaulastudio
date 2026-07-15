@@ -11,11 +11,10 @@ function RootComponent() {
       <head>
         <meta charSet="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
-        <title>DiPaula Studio - Test</title>
+        <title>DiPaula Studio</title>
       </head>
       <body style={{ background: "white", padding: "20px", fontFamily: "Arial" }}>
-        <h1>Test - No providers, no components</h1>
-        <p>If this shows without errors, the problem is in a provider or component.</p>
+        Testando...
       </body>
     </html>
   );
